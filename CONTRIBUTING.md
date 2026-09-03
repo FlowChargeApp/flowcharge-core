@@ -116,6 +116,12 @@ gh repo view --json squashMergeAllowed,mergeCommitAllowed,rebaseMergeAllowed,del
 gh api repos/{owner}/{repo}/branches/main/protection --jq '{checks: [.required_status_checks.checks[].context], strict: .required_status_checks.strict, reviews: .required_pull_request_reviews, admins: .enforce_admins.enabled}'
 ```
 
+## Issue labels
+
+`node .github/scripts/setup-labels.mjs` reconciles the repository's issue-triage label
+set against the six-entry table in the script itself, printing the difference by
+default and performing it under `--apply`; it is safe to re-run.
+
 ## Versions in a SKILL.md
 
 The `metadata.version` value in a `SKILL.md` is a derived value. The release
