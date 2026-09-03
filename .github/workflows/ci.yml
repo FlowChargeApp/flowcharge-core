@@ -1,0 +1,123 @@
+# Continuous integration for the FlowCharge Core suite.
+#
+# Gitea Actions uses GitHub Actions syntax, so this one file serves both
+# platforms. The checkout action is the only action used, because a self-hosted
+# runner's access to an action registry is not guaranteed; every other step is
+# a plain command.
+#
+# No actions/setup-node step. Every candidate runner image ships Node 20 or
+# newer, and this repository's floor is Node >= 16.
+#
+# No fc-index.mjs --root . --check step either. The flowcharge/ tree is
+# untracked here, so a checkout has no flowcharge/workstreams/ directory and
+# the generator exits 1, which would fail every run.
+#
+# The publish job writes nothing back to the repository: it makes no commit,
+# moves no ref, and pushes nothing. It reads the tag the maintainer already
+# pushed and attaches one file to that tag's release row.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*.*.*']
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # A runner image without Node fails here, with a clear message rather
+      # than an obscure one inside the suite.
+      - name: Print the Node version
+        run: node --version
+
+      - name: Run the test suite
+        run: node skills/flowcharge/scripts/test/run-tests.mjs
+
+  release:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+
+      # The steps below run in order and the job stops at the first failure, so
+      # this verification gates every step after it: a tag whose stamped
+      # versions disagree with it produces no asset, because the build step is
+      # never reached.
+      - name: Verify the stamped versions against the tag
+        run: node .github/scripts/check-release.mjs "${GITHUB_REF_NAME#v}"
+
+      # The body text is built here, before the asset build and before any
+      # create call, so a missing or empty CHANGELOG.md section stops the job
+      # while no asset and no release row exist yet. JSON.stringify does the
+      # escaping, so backticks, quotes and newlines in the notes survive.
+      - name: Extract the release notes from CHANGELOG.md
+        run: |
+          set -eu
+          node .github/scripts/changelog-section.mjs "${GITHUB_REF_NAME#v}" > release-body.md
+          node -e 'const fs=require("fs");const b=fs.readFileSync("release-body.md","utf8");const t=process.env.GITHUB_REF_NAME;fs.writeFileSync("release-create.json",JSON.stringify({tag_name:t,name:`FlowCharge Core ${t}`,body:b}));fs.writeFileSync("release-patch.json",JSON.stringify({body:b}))'
+
+      - name: Build the release asset
+        run: node .github/scripts/build-release-zip.mjs "${GITHUB_REF_NAME#v}"
+
+      - name: Create the release
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          RESPONSE="$(curl -sS -X POST \
+            -H "Authorization: token ${TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d @release-create.json \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/releases")"
+          # Gitea may have auto-created a release row for the pushed tag
+          # already, in which case the create call above fails and returns no
+          # id. Read the existing row and attach the asset to that one.
+          if ! printf '%s' "${RESPONSE}" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{process.exit(JSON.parse(s).id?0:1)}catch{process.exit(1)}})'; then
+            RESPONSE="$(curl -sS -H "Authorization: token ${TOKEN}" \
+              "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/releases/tags/${GITHUB_REF_NAME}")"
+            # That row carries whatever body it was auto-created with, so patch
+            # the notes onto it. The -f flag is deliberate: a token that cannot
+            # edit a release fails the job instead of publishing a blank body.
+            # The PATCH response is discarded, because release-response.json
+            # must keep the release row the attach step reads.
+            printf '%s' "${RESPONSE}" > release-response.json
+            EXISTING_ID="$(node -p 'JSON.parse(require("fs").readFileSync("release-response.json","utf8")).id || ""')"
+            curl -sS -f -X PATCH \
+              -H "Authorization: token ${TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d @release-patch.json \
+              "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/releases/${EXISTING_ID}" > /dev/null
+          fi
+          printf '%s' "${RESPONSE}" > release-response.json
+
+      - name: Attach the release asset
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          ASSET_NAME="flowcharge-skills-${GITHUB_REF_NAME#v}.zip"
+          ASSET_PATH="dist/${ASSET_NAME}"
+          RELEASE_ID="$(node -p 'JSON.parse(require("fs").readFileSync("release-response.json","utf8")).id || ""')"
+          UPLOAD_URL="$(node -p 'JSON.parse(require("fs").readFileSync("release-response.json","utf8")).upload_url || ""')"
+          if [ -n "${UPLOAD_URL}" ]; then
+            # GitHub returns an upload_url on its own host, with a
+            # "{?name,label}" template tail, and takes the file as a raw body.
+            curl -sS -f -X POST \
+              -H "Authorization: token ${TOKEN}" \
+              -H "Content-Type: application/zip" \
+              --data-binary "@${ASSET_PATH}" \
+              "${UPLOAD_URL%%\{*}?name=${ASSET_NAME}"
+          else
+            # Gitea takes the file as a multipart "attachment" field on the
+            # release's own assets endpoint.
+            curl -sS -f -X POST \
+              -H "Authorization: token ${TOKEN}" \
+              -F "attachment=@${ASSET_PATH}" \
+              "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}/assets?name=${ASSET_NAME}"
+          fi
