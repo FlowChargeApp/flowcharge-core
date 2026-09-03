@@ -31,14 +31,16 @@ There is one FlowCharge Core suite version. Every skill mirrors it. See
 
 1. Edit `CHANGELOG.md`. Move the `## Unreleased` items into a new release
    heading, written as `## X.Y.Z - YYYY-MM-DD` with no brackets.
-2. Run `node .github/scripts/release.mjs <X.Y.Z>`. The command refuses a wrong
+2. Drain this version's milestone of every issue still open in it — see Release milestones below.
+3. Run `node .github/scripts/release.mjs <X.Y.Z>`. The command refuses a wrong
    branch, a dirty tree, a changelog that disagrees, and a tag that already
    exists. It then stamps every `SKILL.md`, commits, and creates the annotated
    tag.
-3. Push the branch, then push the tag. The command never pushes. You do this
+4. Push the branch, then push the tag. The command never pushes. You do this
    step yourself, and it prints the two commands you need.
    This is a direct push to a protected branch, and it works because
    `enforce_admins` is `false` — see Branch protection below.
+5. Close this version's milestone — see Release milestones below.
 
 This repository has no `package.json` and takes no dependency, so the release
 command is a bare `node` invocation. Do not add an npm script for it.
@@ -115,6 +117,66 @@ gh repo view --json squashMergeAllowed,mergeCommitAllowed,rebaseMergeAllowed,del
 ```bash
 gh api repos/{owner}/{repo}/branches/main/protection --jq '{checks: [.required_status_checks.checks[].context], strict: .required_status_checks.strict, reviews: .required_pull_request_reviews, admins: .enforce_admins.enabled}'
 ```
+
+## Release milestones
+
+Each planned release gets one GitHub milestone, which is the public roadmap:
+<https://github.com/FlowChargeApp/flowcharge-core/milestones>.
+
+1. **Name.** A milestone's title is exactly the tag that will carry it — `v0.2.0`,
+   `v0.3.0`, `v1.0.0`. Nothing else is ever a milestone title.
+2. **Existence.** One open milestone represents the next release. It is created
+   immediately after the previous release closes, so the roadmap is never blank.
+   A second, later milestone is created only when an accepted issue is
+   deliberately deferred past the next release.
+3. **Membership.** An issue joins a milestone when it carries both `accepted`
+   and `enhancement`, and the maintainer has chosen the release it lands in.
+   Nothing else joins a milestone.
+4. **Draining.** Before a release is cut, every issue still open in that
+   milestone moves to a later milestone or leaves every milestone, so a closed
+   milestone is an honest record of what that version shipped.
+5. **Closing.** The milestone closes after the tag is pushed and the CI release
+   job has published the asset — never before the push, and never automatically.
+
+`gh` has no `milestone` subcommand, so create and close go through `gh api`;
+assign and drain use the first-class `--milestone` flags `gh issue edit` and
+`gh issue list` already carry. `{owner}` and `{repo}` expand from the working
+directory's repository.
+
+**Create** the next milestone:
+
+```bash
+gh api repos/{owner}/{repo}/milestones \
+  -f title='v0.2.0' \
+  -f description='One sentence naming what this release is about.'
+```
+
+**Assign** an accepted enhancement to it, by milestone title:
+
+```bash
+gh issue edit <issue-number> --milestone v0.2.0
+```
+
+**Drain** before releasing — list what is still open, then move or unassign each:
+
+```bash
+gh issue list --milestone v0.2.0 --state open
+gh issue edit <issue-number> --milestone v0.3.0     # or --remove-milestone
+```
+
+**Close** after the tag is pushed. The PATCH needs the milestone *number*, not
+its title, so the listing comes first:
+
+```bash
+gh api repos/{owner}/{repo}/milestones \
+  --jq '.[] | "\(.number) \(.title) \(.state)"'
+gh api --method PATCH repos/{owner}/{repo}/milestones/<number> -f state=closed
+```
+
+Write any state filter in a listing call as a `?state=` query string, for
+example `repos/{owner}/{repo}/milestones?state=all`. Never filter a listing's
+state with a bare `-f` flag: any `-f` field switches `gh api` to POST unless `--method` overrides it, and would attempt to create an untitled milestone. The
+close call's `-f state=closed` is the deliberate exception: it names `--method PATCH` explicitly.
 
 ## Issue labels
 
