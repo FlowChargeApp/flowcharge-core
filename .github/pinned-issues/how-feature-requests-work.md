@@ -29,10 +29,3 @@ is:issue is:open label:enhancement sort:reactions-+1-desc
 The maintainer, working solo. Nothing here auto-labels, auto-closes or
 auto-replies — if an issue sits quietly, that is a person being busy, not a
 bot ignoring you.
-
-## The rules
-
-The full procedure — commit conventions, the release process, and how
-release milestones work — lives in
-[CONTRIBUTING.md](https://github.com/FlowChargeApp/flowcharge-core/blob/main/CONTRIBUTING.md).
-This issue is a summary, not a substitute for it.

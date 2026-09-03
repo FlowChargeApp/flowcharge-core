@@ -1,5 +1,12 @@
 # Contributing
 
+This file documents the maintainer's own process — commit conventions, the
+release procedure, branch protection, issue labels and release milestones.
+It is not a guide for outside contributors: this project does not currently
+accept pull requests, and every accepted change is implemented by the
+maintainer alone. To request a feature or report a bug, open an issue —
+GitHub issues are the only channel.
+
 ## Commit messages
 
 This repository uses Conventional Commits. Write the subject line as
