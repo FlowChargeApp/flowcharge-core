@@ -191,6 +191,12 @@ Releases page for the installable zip of each tagged version.
 
 ---
 
+## Security
+
+To report a vulnerability, read the policy in [SECURITY.md](SECURITY.md).
+
+---
+
 ## License
 
 FlowCharge Core is released under the [MIT License](LICENSE).
