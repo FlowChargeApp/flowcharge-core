@@ -2,7 +2,7 @@
 name: flowcharge
 description: Orchestrate the FlowCharge Core project-management suite from one plain-English request — chain investigations, plans, issue lists, task lists (diff or spec), task execution, git commits, and board/index upkeep by spawning subagents with pre-authored prompt templates and feeding each stage's output into the next. FlowCharge Core is the frontmatter-and-ID successor to the AK suite; artefacts live in flowcharge/workstreams/WS-N-SUFFIX-<slug>/ workstream folders. Use whenever the user describes a multi-step FlowCharge Core workflow in any phrasing — "file these findings as issues in flowcharge and fix them", "plan Y in flowcharge, create the tasks, execute and commit" — and on /flowcharge. Do NOT use when the user invokes exactly one fc- skill for a single artefact with no chaining — run that skill directly.
 metadata:
-  version: "9.9.9"
+  version: "0.1.0"
 ---
 
 # FlowCharge
