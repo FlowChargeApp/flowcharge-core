@@ -14,7 +14,7 @@ Anthony Koukoullis.
 
 ## What to expect
 
-Acknowledgement within 7 days. Best effort thereafter — there is no fix deadline,
+Acknowledgement within 7 days. Best effort thereafter. There is no fix deadline,
 because this project has one unpaid maintainer. A 90-day default coordinated-disclosure
 window applies, negotiable on the advisory thread. Credit in the advisory unless you
 decline. There is no bug bounty, and none is planned.
@@ -28,9 +28,9 @@ tag.
 ## Scope
 
 **In scope:** the Node scripts under `skills/flowcharge/scripts/` and
-`.github/scripts/` — path traversal, arbitrary file write, frontmatter injection,
-untrusted-cwd code execution, and resource exhaustion — and the release build and
-publish path.
+`.github/scripts/`: path traversal, arbitrary file write, frontmatter injection,
+untrusted-cwd code execution, and resource exhaustion. Also in scope: the release
+build and publish path.
 
 **Out of scope:** what an LLM chooses to do when it reads a skill's prose, and defects
 in third-party tools such as Claude Code or GitHub itself.
