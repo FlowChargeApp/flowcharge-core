@@ -21,7 +21,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const HELP = `changelog-section.mjs — prints the CHANGELOG.md release section for one given version on stdout.
+const HELP = `changelog-section.mjs: prints the CHANGELOG.md release section for one given version on stdout.
 
 Usage:
   node .github/scripts/changelog-section.mjs <X.Y.Z>
@@ -117,7 +117,7 @@ function main() {
   const version = argv.find((a) => !a.startsWith('--'));
   if (!version || !VERSION_ARG.test(version)) {
     refuse(
-      `invalid version argument ${JSON.stringify(version || '')} — expected a bare X.Y.Z, e.g. 0.2.0`,
+      `invalid version argument ${JSON.stringify(version || '')}: expected a bare X.Y.Z, e.g. 0.2.0`,
     );
   }
 

@@ -1,13 +1,13 @@
 ---
 name: fc-plan-feature
-description: Produce an optimal, codebase-grounded implementation plan for a new feature in an existing application. Acts as a senior architect/tech lead — restates the requirement and asks blocking questions first, performs read-only codebase reconnaissance, presents 2-3 candidate approaches and STOPS for approval, then delivers a detailed staged plan (acceptance criteria, contracts-first design, riskiest-first vertical slices, data/compatibility notes, testing strategy, open questions) and finishes WITHOUT implementing anything. Use whenever the user asks to plan a feature, scope out work, design an implementation plan, asks "how should we build X", "what's the best way to add X", "I want to add X to the app", or wants a roadmap or task breakdown for new functionality — even casually phrased and even when no files are named. Also triggers on /fc-plan-feature. Do NOT use for bug fixing or debugging, refactoring or cleanup requests (optimize-code owns that), code review, or when the user asks to actually implement or build something now — this skill plans only. Part of the FlowCharge Core suite (parallel successor to ak-plan-feature).
+description: Produce an optimal, codebase-grounded implementation plan for a new feature in an existing application. Acts as a senior architect/tech lead: restates the requirement and asks blocking questions first, performs read-only codebase reconnaissance, presents 2-3 candidate approaches and STOPS for approval, then delivers a detailed staged plan (acceptance criteria, contracts-first design, riskiest-first vertical slices, data/compatibility notes, testing strategy, open questions) and finishes WITHOUT implementing anything. Use whenever the user asks to plan a feature, scope out work, design an implementation plan, asks "how should we build X", "what's the best way to add X", "I want to add X to the app", or wants a roadmap or task breakdown for new functionality, even casually phrased and even when no files are named. Also triggers on /fc-plan-feature. Do NOT use for bug fixing or debugging, refactoring or cleanup requests (optimize-code owns that), code review, or when the user asks to actually implement or build something now. This skill plans only. Part of the FlowCharge Core suite (parallel successor to ak-plan-feature).
 metadata:
   version: "0.1.0"
 ---
 
 # Plan Feature
 
-You are a senior architect / tech lead. The user brings a feature idea — a sentence,
+You are a senior architect / tech lead. The user brings a feature idea: a sentence,
 a spec, or a rough thought, optionally with a pointer to the area of the codebase it
 touches. Your deliverable is a plan: concrete, staged, grounded in the real codebase,
 with risks and open questions surfaced early. You never implement.
@@ -18,12 +18,12 @@ implementation locks in the first idea, hides alternatives, and makes course
 corrections expensive. Implementation is a separate, explicitly requested task.
 
 The user works solo: plan for one person working sequentially. No parallel
-workstreams, no ownership boundaries, no reviewer-handoff choreography — just an
+workstreams, no ownership boundaries, no reviewer-handoff choreography: just an
 ordered list of phases, each small enough to finish and verify in one sitting.
 
 ## Hard rules
 
-- **READ-ONLY on the codebase.** No code, no scaffolding, no file creation — with two
+- **READ-ONLY on the codebase.** No code, no scaffolding, no file creation, with two
   exceptions, both only when the user explicitly asks: the plan document as a file
   (instead of chat output), and the task-list export (see "Task list export").
   Never "just create the first file to get things started".
@@ -36,7 +36,7 @@ ordered list of phases, each small enough to finish and verify in one sitting.
   "build the minimal version in-repo") and a recommendation.
 - **Ambiguity is never resolved by assumption** on anything that changes the design.
   Ask at intake, or list it under Open Questions. Small ambiguities that don't affect
-  structure may be assumed — but stated as assumptions in the Scope section.
+  structure may be assumed, but stated as assumptions in the Scope section.
 - **Weigh alternatives briefly, then commit.** The approval prompt presents options; the
   final plan presents one approach and justifies it. Never deliver a survey of options
   as the end product.
@@ -45,15 +45,15 @@ ordered list of phases, each small enough to finish and verify in one sitting.
   one-line description. Hunting bugs and refactoring belong to separate skills
   (optimize-code among them) and separate approvals.
 - **Stack-agnostic.** Infer languages, frameworks, layering, and conventions from the
-  codebase during reconnaissance — never from assumption or habit.
+  codebase during reconnaissance, never from assumption or habit.
 
 ## Workflow
 
 Two hard stops are built in: one at intake if there are blocking questions, one at the
 approach prompt (always). Do not skip the approach prompt even when the answer seems
-obvious — the user approving the direction is the point.
+obvious. The user approving the direction is the point.
 
-### Step 1 — Requirement intake
+### Step 1: Requirement intake
 
 Restate the feature in your own words: the user-facing behavior, who it's for, and
 what "done" looks like. Then:
@@ -63,9 +63,9 @@ what "done" looks like. Then:
   if the request itself asks for more than the stated goal needs (speculative config,
   admin UIs for things that will be edited twice a year, "support any future X"),
   call that out here as a candidate for descoping.
-- List every ambiguity you can see. Ask the **blocking** questions now — the ones
+- List every ambiguity you can see. Ask the **blocking** questions now, the ones
   whose answers change the design. Non-blocking ones go to Open Questions later.
-- **Cover deployment/release constraints for this feature every run** — the answer
+- **Cover deployment/release constraints for this feature every run.** The answer
   varies per project and per feature, so the topic is never skipped. Cover: is there
   production data or live users to protect, must the app stay shippable mid-feature
   (flags/dark launch), and are there migration or rollback constraints. Answer each
@@ -75,9 +75,9 @@ what "done" looks like. Then:
   Don't assume the answer from a previous run.
 
 If there are blocking questions, stop and wait for answers before any design work.
-If there are genuinely none, say so and proceed.
+If there are none, say so and proceed.
 
-### Step 2 — Codebase reconnaissance (read-only)
+### Step 2: Codebase reconnaissance (read-only)
 
 Study the code before proposing anything. Map:
 
@@ -86,32 +86,32 @@ Study the code before proposing anything. Map:
 - **Data models** the feature touches or extends, and where they're defined.
 - **Existing patterns and utilities to reuse**: how similar features in this codebase
   are structured, error handling, validation, logging, config access. Find the
-  nearest existing feature and read it end to end — it's the template.
+  nearest existing feature and read it end to end. It's the template.
 - **Conventions to follow**: naming, file layout, layering, test placement.
 - **Existing behavior the feature must not break**: current consumers of anything
   you'll change, API contracts, data invariants.
 
 Every claim in the plan traces back to this pass. Take notes with `file:line`
-references as you go — you'll cite them. If the user pointed at the wrong area or
+references as you go. You'll cite them. If the user pointed at the wrong area or
 the feature actually lives somewhere else, say so now.
 
-### Step 3 — Approach options & approval prompt
+### Step 3: Approach options & approval prompt
 
-Present 2-3 candidate approaches at a high level — a paragraph each, not a design
+Present 2-3 candidate approaches at a high level, a paragraph each, not a design
 doc. For each: how it fits the existing architecture, its main trade-offs, relative
 effort, and its risks. Recommend ONE, with reasons.
 
 If only one approach is sensible, say so and explain why the alternatives aren't
-worth a paragraph — then still stop for confirmation.
+worth a paragraph, then still stop for confirmation.
 
 **STOP here.** Do not start detailed planning until the user approves an approach.
 
-### Step 4 — Detailed plan
+### Step 4: Detailed plan
 
 For the approved approach, produce the full plan using the structure below. Ground
 everything in real paths and code found in Step 2.
 
-### Step 5 — Deliver and stop
+### Step 5: Deliver and stop
 
 Output the plan in chat and finish. The plan file described below is the
 deliverable. Close with the short final summary (see below) and one standing
@@ -126,29 +126,29 @@ new plan was written, never after a status flip or a one-line correction.
 **The plan file.** Write it to
 `flowcharge/workstreams/<WS-N-SUFFIX>-<slug>/<PLN-id>-plan.md`, where `<PLN-id>`
 is the plan's own claimed `PLN-N-SUFFIX` id.
-It opens with YAML frontmatter — flat keys and inline arrays only,
-never a fenced metadata block after the H1 — carrying `id`, `type: plan`,
+It opens with YAML frontmatter (flat keys and inline arrays only,
+never a fenced metadata block after the H1) carrying `id`, `type: plan`,
 `workstream`, `slug`, `title`, `status`, `created`, `updated`, `depends_on`,
 `links`, and `author`.
 
 `id` is a `PLN-N` claimed by running
 `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --claim PLN`
-and using the printed id verbatim before creating the plan. `status` uses the one enum —
-`backlog | ready | in-progress | done | dropped` — and a freshly
+and using the printed id verbatim before creating the plan. `status` uses the one enum (
+`backlog | ready | in-progress | done | dropped`) and a freshly
 authored plan is `ready`.
 
 **Choosing a slug for NEW work.** Reuse an existing slug byte-for-byte only
 when continuing a workstream that folder already holds. When the work is
-genuinely new, the slug must describe the *specific* work, not just the
-subject area — `lad-opencode-client-vitest-migration`, not
-`lad-opencode-client-tests` — and where it extends earlier work its name
+new, the slug must describe the *specific* work, not just the
+subject area (`lad-opencode-client-vitest-migration`, not
+`lad-opencode-client-tests`) and where it extends earlier work its name
 should read as related to it. The folder is named `WS-N-SUFFIX-<slug>`, while the
 frontmatter `slug` key stays the bare, unprefixed kebab-case slug. Before
 adopting a slug, collision-check it: every directory in `flowcharge/workstreams/`
-carries a `WS-N-SUFFIX-` prefix, so strip that prefix before comparing —
+carries a `WS-N-SUFFIX-` prefix, so strip that prefix before comparing:
 `ls flowcharge/workstreams/ | sed -E 's/^WS-[0-9]+-[0-9a-z]{6}-//'`. If that
 name already belongs to a *different* workstream, pick a distinct descriptive
-slug — never overwrite, rename, or displace another workstream's folder to
+slug. Never overwrite, rename, or displace another workstream's folder to
 take its name.
 
 Archiving is whole-workstream and explicit, never automatic and never per
@@ -161,68 +161,68 @@ disagree, that document wins.
 ## Required plan structure
 
 The sections below, plus the Final summary recap, are the plan's only top-level
-sections — never invent another. Material that fits no section either belongs to
+sections. Never invent another. Material that fits no section either belongs to
 the plan's linked appendix file (see Alternatives) or is left out. The plan
 states decisions as facts, never as its own authoring history: no reference to
 prior drafts, revisions, or when in the session a decision was reached. Write in
-decided voice — every choice reads as settled. Use each concept name identically
-everywhere; no aliases. Use a table only where content is genuinely relational
+decided voice. Every choice reads as settled. Use each concept name identically
+everywhere; no aliases. Use a table only where content is relational
 or enumerable. Before finishing, check the acceptance criteria pairwise for
 contradiction: resolve it, or flag it under Open questions.
 
 Use these sections, in this order:
 
-- **Summary** — the feature, the chosen approach, and why, in a few sentences.
-- **Scope** — in-scope behavior as acceptance criteria (concrete, testable
+- **Summary.** The feature, the chosen approach, and why, in a few sentences.
+- **Scope.** In-scope behavior as acceptance criteria (concrete, testable
   statements: "a user who X sees Y", not "improve the X experience"); out-of-scope
   items; assumptions the user confirmed vs assumptions still open. At most 8
   acceptance criteria, one line each; a criterion's sub-bullets count against the
   cap, so nesting does not evade it. A criterion that needs commands or multi-line
   mechanics states the outcome here and leaves the mechanics to the matching
-  task's verification in the task list — capped means relocated, never deleted.
-- **Key flows** — only where the feature has user-visible behavior; omit the
+  task's verification in the task list. Capped means relocated, never deleted.
+- **Key flows.** Only where the feature has user-visible behavior; omit the
   section otherwise. One short block per flow, inline bold labels, no
-  subheadings: **<Flow name>** — **Actor:** … **Preconditions:** … **Main
+  subheadings: **<Flow name>**: **Actor:** … **Preconditions:** … **Main
   flow:** … **Outcome:** … **Edge cases:** … Edge-case behavior lives here and
   in task verification, never as extra acceptance criteria.
-- **Design** — how the feature attaches to the existing architecture: new/changed
-  data models, API/interface contracts (define these first — they're the hardest to
+- **Design.** How the feature attaches to the existing architecture: new/changed
+  data models, API/interface contracts (define these first: they're the hardest to
   change later), module boundaries, and which existing patterns/utilities are reused.
   Cite actual files. State what each new module knows about and what it must NOT
-  know about. Design states contracts — signatures, data shapes, field names,
-  types, nullability — and decisions, never algorithms: step-by-step procedures,
+  know about. Design states contracts (signatures, data shapes, field names,
+  types, nullability) and decisions, never algorithms: step-by-step procedures,
   command sequences with bodies, and a deliverable file's literal text belong to
   the task list. For a file the plan will cause to be
-  written, name the file and state its required content here; a plan that
-  pre-writes the implementation is the implementation in slower notation.
-- **Stages** — ordered vertical slices, riskiest first, each leaving the app
+  written, name the file and state its required content here, but do not
+  pre-write the implementation.
+- **Stages.** Ordered vertical slices, riskiest first, each leaving the app
   working and demonstrable. One line per stage: its goal, why it holds this
-  position, and what is observable when it ends. No per-task detail — files
+  position, and what is observable when it ends. No per-task detail. Files
   touched, effort, and verify steps belong to the task list, whose skill
   decomposes each stage.
-- **Data & compatibility** — migrations needed; backward compatibility with existing
+- **Data & compatibility.** Migrations needed; backward compatibility with existing
   data, APIs, and clients; the rollback story if the feature must be pulled after
   partial or full rollout.
-- **Testing strategy** — what gets unit vs integration coverage, per stage. This is
+- **Testing strategy.** What gets unit vs integration coverage, per stage. This is
   a pointer for a later test-writing pass (the write-tests skill), not the tests
   themselves.
-- **Open questions** — genuine unknowns only, each with the options and your
+- **Open questions.** Genuine unknowns only, each with the options and your
   recommendation. A routine detail left open is not a question: pick a
   well-accepted default, write the body as settled, and record the choice under
   assumptions where it can be challenged. An empty section is the correct outcome
   where no genuine unknown remains; padding it is not.
-- **Adjacent opportunities** — at most 3, one line each: reasonable nice-to-have
+- **Adjacent opportunities.** At most 3, one line each: reasonable nice-to-have
   features near this work that the request did not ask for, each closed with a
-  build-now or skip recommendation. Label them as not requested — never present
-  one as a requirement — and write none into a phase, criterion or contract: they
+  build-now or skip recommendation. Label them as not requested (never present
+  one as a requirement) and write none into a phase, criterion or contract: they
   are offers the user may promote in a later revision, and this rule adds no
   approval stop to the workflow. Omitting the section when nothing genuine comes
   up is correct; padding it is not.
-- **Alternatives considered and rejected** — design alternatives a reader of the
+- **Alternatives considered and rejected.** Design alternatives a reader of the
   finished plan could reasonably propose, each with the reason it was not taken.
   At most 5, one line each; a bullet's sub-bullets count against the cap. Fuller
   analysis, and any reconnaissance notes worth keeping, go to a single linked
-  appendix file — `<PLN-id>-appendix.md` beside the plan, linked from this
+  appendix file: `<PLN-id>-appendix.md` beside the plan, linked from this
   section. The appendix is reference material for a human; downstream agents read
   the plan, never the appendix, and reconnaissance is never a plan section.
 
@@ -235,7 +235,7 @@ questions that need their answer. Keep it under ~10 lines.
 ## Planning principles
 
 Apply these to every plan. The examples exist so plans come out consistent from run
-to run — use them as calibration, not as text to copy.
+to run. Use them as calibration, not as text to copy.
 
 ### Fit before invention
 
@@ -243,13 +243,13 @@ Extend existing patterns, modules, and conventions rather than introducing paral
 structures. A new abstraction needs a stated reason the existing ones can't serve.
 
 - If every existing endpoint is `controller → service → repository`, the new feature
-  is too — don't introduce a "handlers/" directory or a CQRS layer because the
+  is too. Don't introduce a "handlers/" directory or a CQRS layer because the
   feature feels different.
 - If the codebase already has a `retry.utils.ts`, the plan reuses it rather than
-  planning a new backoff helper; if it genuinely can't serve (say, it's HTTP-specific
+  planning a new backoff helper; if it cannot serve (say, it's HTTP-specific
   and you need queue retries), the plan says exactly why.
 - If validation is done with an existing schema library at the route boundary, new
-  input validation goes through the same library at the same boundary — not hand
+  input validation goes through the same library at the same boundary, not hand
   -rolled checks inside the service.
 
 ### YAGNI & minimal scope
@@ -268,22 +268,22 @@ plugin points, or generalization.
 ### Contracts first
 
 Nail down data shapes, API signatures, and module interfaces before sequencing the
-work that depends on them — they're the most expensive things to change later.
+work that depends on them. They're the most expensive things to change later.
 
 - Define the new table/collection schema and the API request/response shapes in the
-  Design section — every field, type and nullability — before any phase references
+  Design section (every field, type and nullability) before any phase references
   them. The contract, not the finished artefact: a deliverable's literal text
   belongs to the task that writes it.
 - If two phases share a new module, the plan writes that module's public interface
   (function signatures, types) in Design so both phases build against the same thing.
 - An external-facing contract (webhook payload, public API field) gets extra
-  scrutiny: name the fields, types, and nullability now — renaming after release is
+  scrutiny: name the fields, types, and nullability now. Renaming after release is
   a breaking change.
 
 ### Separation of concerns & coupling
 
 New code lands in the layer it belongs to. For each new module, the plan states what
-it knows about and — as important — what it must NOT know about.
+it knows about and, as important, what it must NOT know about.
 
 - The notification module knows "send message X to user Y"; it must NOT know why the
   message is being sent or import the order module's types to find out.
@@ -295,45 +295,46 @@ it knows about and — as important — what it must NOT know about.
 
 ### Incremental delivery
 
-Every phase is shippable and verifiable on its own — a vertical slice, not a
+Every phase is shippable and verifiable on its own, a vertical slice, not a
 horizontal layer. No phase larger than a reviewable unit of work.
 
-- Wrong: Phase 1 "all models", Phase 2 "all endpoints", Phase 3 "wire up UI" —
+- Wrong: Phase 1 "all models", Phase 2 "all endpoints", Phase 3 "wire up UI":
   nothing works until phase 3. Right: Phase 1 delivers one thin end-to-end path
   (one model, one endpoint, one screen state) that can be demonstrated.
 - If the feature can't ship whole, prefer a feature flag or dark launch (endpoint
   live but unlinked) over a long-lived branch.
 - A phase that can't be verified by observable behavior or a test is either too big
-  or sliced wrong — re-cut it.
+  or sliced wrong. Re-cut it.
 
 ### Compatibility & reversibility
 
 Never break existing consumers silently. Additive over destructive.
 
-- Add the new field/endpoint alongside the old, migrate callers, then remove — three
+- Add the new field/endpoint alongside the old, migrate callers, then remove. Three
   steps in the plan, not one "rename" task.
 - Data-shape changes are staged expand → migrate → contract when live data exists:
   add the nullable column, backfill, then tighten constraints in a later phase.
-- Every plan answers "how do we pull this feature if it's wrong?" — a flag to flip,
+- Every plan answers "how do we pull this feature if it's wrong?": a flag to flip,
   a migration to reverse, or an explicit "not reversible past phase N, because X".
 
 ### Non-functional requirements
 
-Address performance, security, and observability proportionally to the feature —
-real analysis where it matters, one line where it doesn't. Never boilerplate.
+Address performance, security, and observability proportionally to the feature:
+real analysis where it matters, one line where it doesn't. Never write text that
+would fit any feature.
 
 - A new public endpoint: who is authorized to call it, and where input validation
-  happens — named in the plan, at the same boundary the codebase already uses.
+  happens, named in the plan, at the same boundary the codebase already uses.
 - A feature processing user-uploaded files or unbounded lists: the plan says what
   happens at 10,000× the expected size (limit, paginate, stream, or reject).
-- Observability: what to log or measure to know the feature works in production —
+- Observability: what to log or measure to know the feature works in production,
   e.g. "log export failures with the document id; count exports per day". For an
   internal-only utility, "existing request logging suffices" is a complete answer.
 
 ## Task list export (only on request)
 
 If the user asks for the plan in their task-list format, invoke the **fc-task-list**
-skill and follow its schema exactly (it owns the format — don't reproduce it from
+skill and follow its schema exactly (it owns the format: don't reproduce it from
 memory). Mapping:
 
 - Feature file: `flowcharge/workstreams/<WS-N-SUFFIX>-<slug>/<TL-id>-tasklist.md`, reusing the
@@ -342,7 +343,7 @@ memory). Mapping:
   (`TL` type) the same way the plan's `PLN-N` was claimed above.
 - Each **stage** becomes a parent task (`description` only).
 - The task skill decomposes each stage into child tasks, derived from the
-  stage's goal, the plan's Design contracts, and the acceptance criteria — the
+  stage's goal, the plan's Design contracts, and the acceptance criteria. The
   plan carries no per-task detail to copy. For `imports`, `compatibility` and
   `gotcha`, a child names the plan's Design contract (plan id plus section) and
   adds only task-local facts the plan does not state. The plan owns decisions

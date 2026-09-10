@@ -1,8 +1,8 @@
 ## Context
 Read these to understand the structure and purpose of the app:
-{{this project's own structural or reference documentation, listed as `@`-prefixed bullets, one per file. Look at what actually exists at the project root — a README, a `docs/` folder, an architecture, layers or conventions document — and list only files you have confirmed are there. Invent nothing and never carry a path over from another project. If the project has no such documentation, delete this block and the sentence introducing it; if that leaves this section with no other content, delete its heading too.}}
+{{this project's own structural or reference documentation, listed as `@`-prefixed bullets, one per file. Look at what actually exists at the project root (a README, a `docs/` folder, an architecture, layers or conventions document) and list only files you have confirmed are there. Invent nothing and never carry a path over from another project. If the project has no such documentation, delete this block and the sentence introducing it; if that leaves this section with no other content, delete its heading too.}}
 ````md
-{{everything the subagent needs and cannot discover for itself: what this plan changes, the target files and how they relate, decisions already taken, and constraints in play — complete on those points, no padding}}
+{{everything the subagent needs and cannot discover for itself: what this plan changes, the target files and how they relate, decisions already taken, and constraints in play, complete on those points, no padding}}
 ````
 
 ## Role
@@ -19,23 +19,23 @@ The file must open with frontmatter per the skill: `id: <the TL ID you claim bel
 
 Allocate the TL ID by running `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --claim TL` and using the printed id verbatim. IDs are global and permanent across every task list.
 
-This file is **spec mode**: set `mode: spec` in the frontmatter, and record `base_commit` there as the current HEAD short SHA so any block that does appear is dated. Do not ask which mode to use and do not add smoke-test verify steps — you have no user to ask, so these are the answers.
+This file is **diff mode**: set `mode: diff` and `base_commit` to the current HEAD short SHA in the frontmatter. Do not ask which mode to use and do not add smoke-test verify steps. You have no user to ask, so these are the answers.
 
 Mirror the plan's scope, design and stage order; the decomposition into tasks is yours:
 
-* One parent task per plan stage, in the plan's order. Decompose each stage into atomic child tasks yourself — derived from the stage's goal, the plan's Design contracts, and its acceptance criteria; the plan carries no per-task detail to copy. Atomic per the fc-task-list skill: one file, one coherent change, one verify sequence.
+* One parent task per plan stage, in the plan's order. Decompose each stage into atomic child tasks yourself, derived from the stage's goal, the plan's Design contracts, and its acceptance criteria; the plan carries no per-task detail to copy. Atomic per the fc-task-list skill: one file, one coherent change, one SEARCH/REPLACE block, one verify sequence.
 * Cover every stage. This plan exists because partial implementation is the failure mode, and an untasked stage is how that happens.
 * Carry the plan's acceptance criteria into the tasks that satisfy them, as `verify` steps or `checklist` items, keeping the plan's own measurable form (e.g. a grep that must return zero).
-* Honour the plan's exclusions — anything it says a change must not touch stays untouched. Build what the plan specifies and nothing beyond it: no extra abstractions, options, or capabilities you judge would help.
+* Honour the plan's exclusions: anything it says a change must not touch stays untouched. Build what the plan specifies and nothing beyond it: no extra abstractions, options, or capabilities you judge would help.
 
 Before writing any SEARCH/REPLACE block:
 
-* Read the target file as it stands now. This plan may predate the current code. Copy SEARCH text from the file you just read — never from the plan's quoted snippets, never from memory.
+* Read the target file as it stands now. This plan may predate the current code. Copy SEARCH text from the file you just read, never from the plan's quoted snippets, never from memory.
 * If a file no longer matches what the plan assumes, author no task for it; record the divergence in the file's `## Divergences` section, per the `fc-task-list` skill, and continue with the rest.
 
 Where a stage depends on an open question or on an assumption the plan marks unconfirmed, author no task for it and list it instead. Do not settle it yourself.
 
-Prefer the project's own lint, type-check, build, or test commands as verify steps alongside the plan's acceptance checks — discover them from the project's own configuration (`package.json` scripts, a Makefile, CI config, `pyproject.toml`, `go.mod`, or equivalent). Only when the project has none of its own — no lint config, no typecheck config, no test command — fall back to a project-agnostic illustrative example, naming more than one toolchain rather than singling out one (e.g. `npm run lint` / `npx tsc --noEmit` for a Node project, `ruff` / `mypy` for a Python project, `go vet` for a Go project) — never issue a command against a project whose toolchain does not match it. Avoid slow, heavyweight integration/E2E suites as a task's primary verify step. Where the plan names issue IDs, record them in the task's `issues:` key.
+Prefer the project's own lint, type-check, build, or test commands as verify steps alongside the plan's acceptance checks. Discover them from the project's own configuration (`package.json` scripts, a Makefile, CI config, `pyproject.toml`, `go.mod`, or equivalent). Only when the project has none of its own (no lint config, no typecheck config, no test command), fall back to a project-agnostic illustrative example, naming more than one toolchain rather than singling out one (e.g. `npm run lint` / `npx tsc --noEmit` for a Node project, `ruff` / `mypy` for a Python project, `go vet` for a Go project). Never issue a command against a project whose toolchain does not match it. Avoid slow, heavyweight integration/E2E suites as a task's primary verify step. Where the plan names issue IDs, record them in the task's `issues:` key.
 
 Measure before you write. Where a `verify` step asserts a count, a file's existence, or the presence or absence of a string, run that command at `base_commit` before you write it down, and record the number or state it actually returned rather than the one you expect. Where the command already passes with nothing changed, the step does not discriminate, so rewrite it until it fails at `base_commit`, or state in the step why it cannot fail there. Rewriting means making the assertion specific to the change. It never means deleting the step or weakening what it asserts.
 
@@ -45,7 +45,7 @@ Reply in chat only, briefly:
 - each plan stage → task numbers, and any stage left untasked, with the reason
 - any file that diverged from the plan, and any item left for you to decide
 
-**Open questions — the return shape**
+**Open questions, the return shape**
 
 Return every open question in this shape, and no other:
 

@@ -20,7 +20,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 
-const HELP = `manifest.mjs — generates skills/manifest.json for one release version.
+const HELP = `manifest.mjs: generates skills/manifest.json for one release version.
 
 Usage:
   node .github/scripts/manifest.mjs <X.Y.Z> [--stdout]
@@ -60,7 +60,7 @@ Exit codes:
 
 Scope: this script reads skills/ and writes exactly one path,
 skills/manifest.json. It never edits a SKILL.md, never runs a git command,
-and never reads a tag. It is a generator, not a gate — check-release.mjs is
+and never reads a tag. It is a generator, not a gate: check-release.mjs is
 the read-only verifier CI calls, and there is no exit 2 here.
 `;
 
@@ -124,7 +124,7 @@ function listSkillDirs(skillsDir) {
 // frontmatter block, then an indented `version: "..."` line before the
 // closing `---`. Accepts exactly what findVersionLine() in
 // stamp-skill-versions.mjs accepts, and returns null rather than throwing on
-// any other shape. The current value only — this reader never rewrites, so it
+// any other shape. The current value only. This reader never rewrites, so it
 // needs no splice offsets.
 function readSkillVersion(text) {
   const fm = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
@@ -193,12 +193,12 @@ function main() {
   const toStdout = argv.includes('--stdout');
 
   if (!fs.existsSync(VERSIONING_MD)) {
-    refuse(`no VERSIONING.md at ${SELF_ROOT} — this script must sit two directories below the repository root`);
+    refuse(`no VERSIONING.md at ${SELF_ROOT}: this script must sit two directories below the repository root`);
   }
 
   const version = argv.find((a) => !a.startsWith('--'));
   if (!version || !VERSION_ARG.test(version)) {
-    refuse(`invalid version argument ${JSON.stringify(version || '')} — expected a bare X.Y.Z, e.g. 0.2.0`);
+    refuse(`invalid version argument ${JSON.stringify(version || '')}: expected a bare X.Y.Z, e.g. 0.2.0`);
   }
 
   const skillsDir = path.join(SELF_ROOT, 'skills');
@@ -206,7 +206,7 @@ function main() {
   if (found === null) refuse(`no skills directory at ${skillsDir}`);
   const { skills, skipped } = found;
   if (skills.length === 0) {
-    refuse(`no SKILL.md was discovered under ${skillsDir} — refusing rather than writing an empty manifest`);
+    refuse(`no SKILL.md was discovered under ${skillsDir}, refusing rather than writing an empty manifest`);
   }
 
   // Validate every skill before writing anything. The run is all-or-nothing,
@@ -220,7 +220,7 @@ function main() {
       refuse(`${rel}: no metadata.version found in the documented shape`);
     }
     if (carried !== version) {
-      refuse(`${rel}: metadata.version is "${carried}", expected "${version}" — run the stamping script first`);
+      refuse(`${rel}: metadata.version is "${carried}", expected "${version}": run the stamping script first`);
     }
     skill.version = carried;
   }
@@ -230,7 +230,7 @@ function main() {
   // run that produced no manifest.
   const out = toStdout ? process.stderr : process.stdout;
   for (const name of skipped) {
-    out.write(`WARN skills/${name}: no SKILL.md — skipped\n`);
+    out.write(`WARN skills/${name}: no SKILL.md, skipped\n`);
   }
 
   const manifest = {
@@ -246,10 +246,10 @@ function main() {
 
   if (toStdout) {
     process.stdout.write(json);
-    out.write(`manifest: ${skills.length} skills at ${version} — wrote nothing (--stdout)\n`);
+    out.write(`manifest: ${skills.length} skills at ${version}, wrote nothing (--stdout)\n`);
   } else {
     fs.writeFileSync(path.join(skillsDir, 'manifest.json'), json);
-    out.write(`manifest: ${skills.length} skills at ${version} — wrote skills/manifest.json\n`);
+    out.write(`manifest: ${skills.length} skills at ${version}, wrote skills/manifest.json\n`);
   }
   process.exit(0);
 }

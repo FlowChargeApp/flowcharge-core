@@ -1,10 +1,10 @@
 # Contributing
 
-This file documents the maintainer's own process — commit conventions, the
+This file documents the maintainer's own process: commit conventions, the
 release procedure, branch protection, issue labels and release milestones.
 It is not a guide for outside contributors: this project does not currently
 accept pull requests, and every accepted change is implemented by the
-maintainer alone. To request a feature or report a bug, open an issue —
+maintainer alone. To request a feature or report a bug, open an issue.
 GitHub issues are the only channel.
 
 ## Commit messages
@@ -14,12 +14,12 @@ This repository uses Conventional Commits. Write the subject line as
 
 The allowed types are:
 
-- `feat:` — a new capability.
-- `fix:` — a defect repair.
-- `docs:` — documentation only.
-- `chore:` — maintenance, tooling and release commits.
-- `refactor:` — a change that keeps behaviour the same.
-- `test:` — test cases only.
+- `feat:` a new capability.
+- `fix:` a defect repair.
+- `docs:` documentation only.
+- `chore:` maintenance, tooling and release commits.
+- `refactor:` a change that keeps behaviour the same.
+- `test:` test cases only.
 
 One worked example:
 
@@ -38,7 +38,7 @@ There is one FlowCharge Core suite version. Every skill mirrors it. See
 
 1. Edit `CHANGELOG.md`. Move the `## Unreleased` items into a new release
    heading, written as `## X.Y.Z - YYYY-MM-DD` with no brackets.
-2. Drain this version's milestone of every issue still open in it — see Release milestones below.
+2. Drain this version's milestone of every issue still open in it. See Release milestones below.
 3. Run `node .github/scripts/release.mjs <X.Y.Z>`. The command refuses a wrong
    branch, a dirty tree, a changelog that disagrees, and a tag that already
    exists. It then stamps every `SKILL.md`, commits, and creates the annotated
@@ -46,8 +46,8 @@ There is one FlowCharge Core suite version. Every skill mirrors it. See
 4. Push the branch, then push the tag. The command never pushes. You do this
    step yourself, and it prints the two commands you need.
    This is a direct push to a protected branch, and it works because
-   `enforce_admins` is `false` — see Branch protection below.
-5. Close this version's milestone — see Release milestones below.
+   `enforce_admins` is `false`. See Branch protection below.
+5. Close this version's milestone. See Release milestones below.
 
 This repository has no `package.json` and takes no dependency, so the release
 command is a bare `node` invocation. Do not add an npm script for it.
@@ -103,7 +103,7 @@ JSON
 
 The `"test"` string is replaced by whatever the check-run read above printed.
 This `PUT` replaces the whole protection object, so re-running it is the way to
-change any setting, and no key may be dropped — the four top-level keys are
+change any setting, and no key may be dropped: the four top-level keys are
 required even when null. GitHub's schema also lists a deprecated `contexts`
 field as required alongside `checks`, but the live endpoint rejects a body that
 sends both, even with `contexts` empty; `checks` alone is what it accepts, so
@@ -111,7 +111,7 @@ sends both, even with `contexts` empty; `checks` alone is what it accepts, so
 
 `enforce_admins` is deliberately `false`. The release procedure above pushes
 `main` directly, and enforcing protection on the maintainer would force
-releases through a pull request — a squash merge would then rewrite the commit
+releases through a pull request. A squash merge would then rewrite the commit
 and leave the annotated release tag on a SHA that never reaches `main`. Do not
 "tighten" this setting without reading that procedure first.
 
@@ -130,7 +130,7 @@ gh api repos/{owner}/{repo}/branches/main/protection --jq '{checks: [.required_s
 Each planned release gets one GitHub milestone, which is the public roadmap:
 <https://github.com/FlowChargeApp/flowcharge-core/milestones>.
 
-1. **Name.** A milestone's title is exactly the tag that will carry it — `v0.2.0`,
+1. **Name.** A milestone's title is exactly the tag that will carry it: `v0.2.0`,
    `v0.3.0`, `v1.0.0`. Nothing else is ever a milestone title.
 2. **Existence.** One open milestone represents the next release. It is created
    immediately after the previous release closes, so the roadmap is never blank.
@@ -143,7 +143,7 @@ Each planned release gets one GitHub milestone, which is the public roadmap:
    milestone moves to a later milestone or leaves every milestone, so a closed
    milestone is an honest record of what that version shipped.
 5. **Closing.** The milestone closes after the tag is pushed and the CI release
-   job has published the asset — never before the push, and never automatically.
+   job has published the asset, never before the push, and never automatically.
 
 `gh` has no `milestone` subcommand, so create and close go through `gh api`;
 assign and drain use the first-class `--milestone` flags `gh issue edit` and
@@ -164,7 +164,7 @@ gh api repos/{owner}/{repo}/milestones \
 gh issue edit <issue-number> --milestone v0.2.0
 ```
 
-**Drain** before releasing — list what is still open, then move or unassign each:
+**Drain** before releasing. List what is still open, then move or unassign each:
 
 ```bash
 gh issue list --milestone v0.2.0 --state open

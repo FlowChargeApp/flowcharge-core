@@ -1,6 +1,6 @@
 ---
 name: fc-validate
-description: Validate an authored FlowCharge Core artefact against the source it was authored from — a plan against the brief and workstream record behind it, a task list against its backing plan or issue list, an issue list against the findings it was filed from. Checks three classes — coverage of the source, content with no source behind it, and accuracy of anchors, paths, counts and claims about other artefacts — and, for a task list, runs the verify steps it may run at the recorded baseline to catch a task that verifies nothing. Applies only provable in-field corrections, reports every coverage gap and every piece of invented content as an open question carrying a recommendation, and never edits frontmatter. Use whenever the user asks to validate, check, cross-check or sanity-check an authored artefact against its source, asks "does this task list cover the plan", "did the plan miss anything from the brief", "check the issues against the findings", "was anything invented here", or takes up the closing offer one of the generating skills prints after writing a new artefact. Also triggers on /fc-validate. Do NOT use to hunt defects in code, and do NOT use for pull-request or code review work, which a separate skill handles. This skill compares an authored document with the source it came from; it never judges the code an executor produced, and it never judges whether a task's approach actually works. Part of the FlowCharge Core suite.
+description: Validate an authored FlowCharge Core artefact against the source it was authored from, a plan against the brief and workstream record behind it, a task list against its backing plan or issue list, an issue list against the findings it was filed from. Checks three classes (coverage of the source, content with no source behind it, and accuracy of anchors, paths, counts and claims about other artefacts) and, for a task list, runs the verify steps it may run at the recorded baseline to catch a task that verifies nothing. Applies only provable in-field corrections, reports every coverage gap and every piece of invented content as an open question carrying a recommendation, and never edits frontmatter. Use whenever the user asks to validate, check, cross-check or sanity-check an authored artefact against its source, asks "does this task list cover the plan", "did the plan miss anything from the brief", "check the issues against the findings", "was anything invented here", or takes up the closing offer one of the generating skills prints after writing a new artefact. Also triggers on /fc-validate. Do NOT use to hunt defects in code, and do NOT use for pull-request or code review work, which a separate skill handles. This skill compares an authored document with the source it came from; it never judges the code an executor produced, and it never judges whether a task's approach actually works. Part of the FlowCharge Core suite.
 metadata:
   version: "0.1.0"
 ---
@@ -113,8 +113,8 @@ which is the project's own check command.
 A step outside the class is reported as **unrun**. You never execute it, and an unrun
 step is neither a pass nor a failure.
 
-This class is deliberately wider than the class the executor template
-`skills/flowcharge/prompts/execute-parent-task.md` works under. The reason is that
+This class is wider than the class the executor template
+`skills/flowcharge/templates/execute-parent-task.md` works under. The reason is that
 the two run a command for different purposes: you run it to judge whether it
 discriminates, while the executor runs it to gate a change to project code. That
 template is not yours to edit, and nothing here changes it.
@@ -150,14 +150,14 @@ fails, report the finding instead.
 
 Three classes satisfy all three.
 
-- **Accuracy corrections** — a wrong path, a wrong anchor, a wrong count, a wrong ID, or
+- **Accuracy corrections.** A wrong path, a wrong anchor, a wrong count, a wrong ID, or
   a factual claim the artefact makes about a file it itself cites, where reading that
   file disproves the claim. The artefact must pin that claim to a named file. A claim
   with no file behind it is not provable and reports. Each member is proved by reading
   the file the artefact itself cites.
-- **A replaced tautological `verify` step** — proved in the strongest form available to
+- **A replaced tautological `verify` step.** Proved in the strongest form available to
   you, because you run the replacement at `base_commit` and state that it fails there.
-- **A settled finding whose recommended fix you labelled localised** — the caller has
+- **A settled finding whose recommended fix you labelled localised.** The caller has
   already settled the finding and handed back the answer it adopted, and the fix that
   answer asks for is a wording change inside sections the artefact already has.
 
@@ -257,8 +257,8 @@ This detail is produced on **every** run. It is withheld from the stage report; 
 never omitted from the return. A validator that stops producing the proof loses the only
 evidence its corrections were provable, so produce it always and print it on request.
 
-The default is deliberate. The common case is a few provable accuracy corrections and no
-open finding, and printing those in every stage report frames routine production as
+The default follows from the common case: a few provable accuracy corrections and no
+open finding. Printing those in every stage report frames routine production as
 remediation. The user's judgment is needed only on an open finding, and an open finding
 always prints.
 

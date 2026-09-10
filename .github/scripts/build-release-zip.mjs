@@ -26,7 +26,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { deflateRawSync } from 'node:zlib';
 
-const HELP = `build-release-zip.mjs — writes dist/flowcharge-skills-<X.Y.Z>.zip, holding every discovered skill folder at the archive's top level.
+const HELP = `build-release-zip.mjs: writes dist/flowcharge-skills-<X.Y.Z>.zip, holding every discovered skill folder at the archive's top level.
 
 Usage:
   node .github/scripts/build-release-zip.mjs <X.Y.Z>
@@ -211,7 +211,7 @@ function listSkillFolders(skillsDir) {
 }
 
 // Every file below one skill folder, at every depth, paired with the path it
-// takes inside the archive — the folder's own name and everything under it,
+// takes inside the archive: the folder's own name and everything under it,
 // with no skills/ prefix above it. Selection is by walking this directory, so
 // no filename can be excluded and none can be let in from anywhere else.
 function walkFolder(absDir, archiveDir, out) {
@@ -238,7 +238,7 @@ function writeAtomic(filePath, content) {
     fs.writeFileSync(tmpPath, content);
     fs.renameSync(tmpPath, filePath);
   } catch (e) {
-    try { fs.unlinkSync(tmpPath); } catch { /* tmp may not exist yet — ignore */ }
+    try { fs.unlinkSync(tmpPath); } catch { /* tmp may not exist yet, ignore */ }
     throw e;
   }
 }
@@ -255,12 +255,12 @@ function main() {
 
   const version = argv.find((a) => !a.startsWith('--'));
   if (!version || !VERSION_ARG.test(version)) {
-    fail(`invalid version argument ${JSON.stringify(version || '')} — expected a bare X.Y.Z, e.g. 0.2.0`);
+    fail(`invalid version argument ${JSON.stringify(version || '')}: expected a bare X.Y.Z, e.g. 0.2.0`);
   }
 
   const folders = listSkillFolders(SKILLS_DIR);
   if (folders.length === 0) {
-    fail(`no skill folder was discovered under ${SKILLS_DIR} — an empty release asset is worse than a failed build`);
+    fail(`no skill folder was discovered under ${SKILLS_DIR}. An empty release asset is worse than a failed build`);
   }
 
   const files = [];
