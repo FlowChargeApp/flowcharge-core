@@ -70,17 +70,21 @@ still working: a new skill, a new optional key, a new `--list` scope. PATCH is a
 fix with no contract change: a generator bug, a wrong warning, a prompt wording
 fix. Where one release mixes them, the highest applies.
 
-**The `0.x` exception, and it is in force today.** Below `1.0.0` there is no
-compatibility promise. A breaking change bumps MINOR, `0.1.0` to `0.2.0`.
-Everything else bumps PATCH, `0.1.0` to `0.1.1`. FlowCharge Core stays on `0.x`
-deliberately while the frontmatter schema and the ID shapes are still moving.
-Reaching `1.0.0` is the promise that no `flowcharge/` folder breaks without a
-major bump, and that promise is not made yet.
+**The `0.x` period, and it is in force today.** Below `1.0.0` there is no
+compatibility promise, and MAJOR cannot move below `1`. MINOR and PATCH keep
+their ordinary meaning: a new capability bumps MINOR, `0.1.0` to `0.2.0`, and a
+fix bumps PATCH, `0.1.0` to `0.1.1`. A breaking change also bumps MINOR, because
+it is the only number available to move, and its changelog line says that it
+breaks. FlowCharge Core stays on `0.x` deliberately while the frontmatter schema
+and the ID shapes are still moving. Reaching `1.0.0` is the point where the
+promise starts that no `flowcharge/` folder breaks without a major bump, and
+that promise is not made yet.
 
 **How an agent uses this.** An agent asked to recommend a release reads
-`## Unreleased`, applies the mapping above, applies the `0.x` exception, and
-recommends one number with its reason. It never chooses the number from memory,
-and it never decides on its own that a release should happen.
+`## Unreleased`, applies the mapping above, applies the `0.x` note for a
+breaking change, and recommends one number with its reason. It never chooses
+the number from memory, and it never decides on its own that a release should
+happen.
 
 Conventional Commits mechanises this same mapping: `fix:` to PATCH, `feat:` to
 MINOR, `!` or `BREAKING CHANGE:` to the breaking bump. That is why
