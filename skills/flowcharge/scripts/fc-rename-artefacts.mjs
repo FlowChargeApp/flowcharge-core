@@ -18,7 +18,7 @@
 //
 // Exit codes:
 //   0  Every file was reported, and every requested move succeeded.
-//   1  Bad root, or at least one refusal — a target name already taken, or a
+//   1  Bad root, or at least one refusal: a target name already taken, or a
 //      move that failed.
 //
 // Scope: this script knows filenames and the frontmatter id, and nothing else.
@@ -166,12 +166,12 @@ for (const scanRoot of [wsRoot, archiveRoot]) {
       // one starting with `..`, so both are tested too.
       const relNew = path.relative(folderPath, absNew);
       if (relNew === '' || path.isAbsolute(relNew) || relNew.startsWith('..')) {
-        console.error(`fc-rename-artefacts: ${rel(abs)}: ${target} resolves outside ${rel(folderPath)} — refusing to move`);
+        console.error(`fc-rename-artefacts: ${rel(abs)}: ${target} resolves outside ${rel(folderPath)}, refusing to move`);
         refusals++;
         continue;
       }
       if (fs.existsSync(absNew)) {
-        console.error(`fc-rename-artefacts: ${rel(abs)}: ${target} already exists — refusing to overwrite`);
+        console.error(`fc-rename-artefacts: ${rel(abs)}: ${target} already exists, refusing to overwrite`);
         refusals++;
         continue;
       }
@@ -180,7 +180,7 @@ for (const scanRoot of [wsRoot, archiveRoot]) {
         try {
           move(abs, absNew);
         } catch (e) {
-          console.error(`fc-rename-artefacts: ${rel(abs)}: move failed — ${e.message}`);
+          console.error(`fc-rename-artefacts: ${rel(abs)}: move failed: ${e.message}`);
           refusals++;
           continue;
         }

@@ -11,7 +11,7 @@ incrementing version.
 
 This document does not implement:
 
-- Where the suite version is authored and bumped — `CHANGELOG.md`, the release
+- Where the suite version is authored and bumped: `CHANGELOG.md`, the release
   command `node .github/scripts/release.mjs <X.Y.Z>`, and the annotated git tag
   that command creates. See "Cutting a release" below.
 - The generated skill manifest. That is WS-69.
@@ -82,7 +82,7 @@ major bump, and that promise is not made yet.
 recommends one number with its reason. It never chooses the number from memory,
 and it never decides on its own that a release should happen.
 
-Conventional Commits mechanises this same mapping — `fix:` to PATCH, `feat:` to
+Conventional Commits mechanises this same mapping: `fix:` to PATCH, `feat:` to
 MINOR, `!` or `BREAKING CHANGE:` to the breaking bump. That is why
 `CONTRIBUTING.md` adopts it.
 

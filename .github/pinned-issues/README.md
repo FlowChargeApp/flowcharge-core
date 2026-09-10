@@ -1,6 +1,6 @@
 # Pinned issues
 
-This is not an issue template directory — GitHub does not treat it specially. It
+This is not an issue template directory. GitHub does not treat it specially. It
 holds the body of every pinned issue as a markdown file, plus the `gh` commands to
 publish and update each one.
 
@@ -41,7 +41,7 @@ gh issue list --state all --limit 200 --json number,title,isPinned \
 newest first, so once the repository holds more than 30 issues this early-numbered
 pinned one would sit outside the default window and the count would under-report.
 
-No `--label` and no `--milestone` flag is ever passed on create — the pinned issue
+No `--label` and no `--milestone` flag is ever passed on create. The pinned issue
 is deliberately unlabelled and unmilestoned. The issue is never locked: GitHub
 disables reactions on a locked conversation for every user, and reactions are this
 repository's voting mechanism.

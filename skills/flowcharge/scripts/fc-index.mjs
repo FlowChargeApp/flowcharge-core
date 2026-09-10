@@ -17,7 +17,7 @@ import { execFileSync } from 'node:child_process';
 // applied default cannot drift.
 const NEW_WS_STATUS = 'backlog';
 
-const HELP = `fc-index.mjs — the FlowCharge Core index and board generator.
+const HELP = `fc-index.mjs: the FlowCharge Core index and board generator.
 
 Scans flowcharge/ frontmatter and rewrites flowcharge/index.md and
 flowcharge/kanban.md. The artefact files are the source of truth; both
@@ -36,7 +36,7 @@ Usage:
   node fc-index.mjs [--root <dir>] --whoami
   node fc-index.mjs --help
 
-Modes — one per run. With no mode flag the run regenerates. Two mode
+Modes, one per run. With no mode flag the run regenerates. Two mode
 flags together print one stderr line and exit 1.
 
   (default)  Rewrite flowcharge/index.md and flowcharge/kanban.md, and
@@ -49,9 +49,9 @@ flags together print one stderr line and exit 1.
              vX.Y.Z, also compares that tag with the newest CHANGELOG.md
              release heading, and says nothing when HEAD carries no such
              tag or CHANGELOG.md is absent.
-  --sync     Close what is mechanically decidable — task lists whose
+  --sync     Close what is mechanically decidable (task lists whose
              tasks are all checked, issue lists with no open issue left,
-             and workstreams whose artefacts are all closed — by setting
+             and workstreams whose artefacts are all closed) by setting
              status: done and updated: today. Print one SYNC line per
              change, then regenerate as the default mode does. A plan is
              never closed. Accepts --no-board only.
@@ -121,8 +121,8 @@ Exit codes:
      that is already taken.
   2  --check found at least one warning.
 
-.gitignore: every writing mode — the default, --no-board, --sync,
---claim and --new-ws — also appends to the project root's .gitignore
+.gitignore: every writing mode (the default, --no-board, --sync,
+--claim and --new-ws) also appends to the project root's .gitignore
 whichever of flowcharge/index.md, flowcharge/kanban.md and flowcharge/ids/
 it does not already cover. Existing lines are never rewritten or
 reordered. A failed write is a warning only. --list, --check, --whoami
@@ -138,7 +138,7 @@ function writeAtomic(filePath, content) {
     fs.writeFileSync(tmpPath, content);
     fs.renameSync(tmpPath, filePath);
   } catch (e) {
-    try { fs.unlinkSync(tmpPath); } catch { /* tmp may not exist yet — ignore */ }
+    try { fs.unlinkSync(tmpPath); } catch { /* tmp may not exist yet, ignore */ }
     throw e;
   }
 }
@@ -156,7 +156,7 @@ function randomSuffix() {
 // The three flowcharge/ paths this script regenerates or owns outright. They are
 // disposable views and ephemeral claim markers, so they are never worth
 // tracking and always worth keeping out of a merge.
-const GITIGNORE_COMMENT = '# FlowCharge-managed — do not hand-edit (see fc-index.mjs)';
+const GITIGNORE_COMMENT = '# FlowCharge-managed: do not hand-edit (see fc-index.mjs)';
 const GITIGNORE_TARGETS = ['flowcharge/index.md', 'flowcharge/kanban.md', 'flowcharge/ids/'];
 // A target needs no line of its own when a broader pattern already covers it:
 // a bare flowcharge/ (or flowcharge) covers all three, and a bare flowcharge/ids/ (or
@@ -218,8 +218,8 @@ function resolveProjectRoot(givenRoot) {
 root = resolveProjectRoot(root);
 
 // Local attribution, not a verified identity: whatever this machine's own git
-// config says. Falls back to the literal string "unknown" — never an empty
-// string, never a thrown error — so a missing or broken local git identity
+// config says. Falls back to the literal string "unknown" (never an empty
+// string, never a thrown error), so a missing or broken local git identity
 // never blocks a claim or an authoring step, the same way resolveProjectRoot()
 // above falls back to its given root rather than throwing.
 // The author key is written unquoted, so a name holding a line break or any
@@ -270,7 +270,7 @@ if (!args.includes('--list') && !args.includes('--check') && !args.includes('--w
   try {
     ensureGitignore(root);
   } catch (e) {
-    console.error(`fc-index: warning — failed to update .gitignore: ${e.message}`);
+    console.error(`fc-index: warning, failed to update .gitignore: ${e.message}`);
   }
 }
 
@@ -279,7 +279,7 @@ const STATUSES = ['backlog', 'ready', 'in-progress', 'done', 'dropped'];
 const SEV_ORDER = { critical: 0, high: 1, medium: 2, low: 3 };
 const STALE_DAYS = 14;
 // `updated` is bumped on every edit, but a file's mtime also moves for reasons
-// no edit caused — a copy, a checkout, a formatter. The two are therefore
+// no edit caused: a copy, a checkout, a formatter. The two are therefore
 // compared at day granularity, with this much slack before the drift is
 // reported.
 const UPDATED_GRACE_DAYS = 1;
@@ -293,14 +293,14 @@ const ORPHAN_GRACE_DAYS = 1;
 // longer first body line loses its tail on the board.
 const CARD_DESC_MAX = 200;
 // The soft cap on a workstream's description key. The board writes the
-// description in full, so a longer one loses nothing — it only crowds the
+// description in full, so a longer one loses nothing. It only crowds the
 // card. The cap is therefore advisory: it is reported, never enforced.
 const DESC_MAX = 1000;
 // A workstream lease held past this many minutes is reported as stale. The
 // value SKILL.md publishes as LEASE_STALE_MINUTES; the two must not drift.
 const LEASE_STALE_MINUTES = 60;
 // An undefined tag names a pool entry as its likely intent only when it sits
-// this close to one. The check is deliberately literal — a typo backstop, not
+// this close to one. The check is deliberately literal: a typo backstop, not
 // a synonym finder. Choosing a tag by meaning is the authoring flows' job.
 const TAG_NEAR_MAX = 2;
 
@@ -315,7 +315,7 @@ const REGISTRY_HEADER = '# FlowCharge ID Registry\n\n'
 
 // The counter lines are the user's data and are carried down byte-for-byte;
 // everything above the first of them is the header this script owns. Returns
-// the rewritten file text, or null when nothing is to be done — either the
+// the rewritten file text, or null when nothing is to be done: either the
 // header already matches, so a correct registry is never touched, or the file
 // carries no counter line at all, in which case there is nothing to preserve
 // and the absent counters are reported by the registry-drift check instead.
@@ -334,7 +334,7 @@ const localDay = (d = new Date()) =>
   `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 
 // A closed status: the two terminal values. This generator never reopens a
-// closed record — it only warns about one that still owns open work or still
+// closed record. It only warns about one that still owns open work or still
 // carries a blocked reason. The rule that does reopen a record lives in
 // flowcharge/SKILL.md, and a person applies it.
 const isClosedStatus = (s) => s === 'done' || s === 'dropped';
@@ -475,7 +475,7 @@ function checkShape(a) {
   // lines. A legacy name carries no prefix, so it can never also trip the
   // prefix-disagreement check below.
   if (rule && rule.legacy && rule.legacy.test(a.basename)) {
-    out.push(`${a.file}: legacy filename — rename to ${a.id}-${a.basename} to carry its id`);
+    out.push(`${a.file}: legacy filename: rename to ${a.id}-${a.basename} to carry its id`);
   }
   const foundPrefix = (a.basename.match(/^((?:PLN|IL|TL)-\d+-[0-9a-z]{6})-/) || [])[1];
   if (foundPrefix && foundPrefix !== a.id) {
@@ -494,20 +494,20 @@ function checkShape(a) {
   const first = firstBodyLine(a.body);
   if (!first) out.push(`${a.id} (${a.file}): body has no card-description line`);
   else if (first.length > CARD_DESC_MAX) {
-    out.push(`${a.id} (${a.file}): first body line is ${first.length} characters — the board shows only ${CARD_DESC_MAX}`);
+    out.push(`${a.id} (${a.file}): first body line is ${first.length} characters: the board shows only ${CARD_DESC_MAX}`);
   }
   // A separate statement, not another else-if: a record can carry both an
   // over-long first body line and an over-long description, and both are
   // reported. An absent description is the empty string, so it never trips.
   if (a.description.length > DESC_MAX) {
-    out.push(`${a.id} (${a.file}): description is ${a.description.length} characters — longer than the ${DESC_MAX} a card should carry`);
+    out.push(`${a.id} (${a.file}): description is ${a.description.length} characters, longer than the ${DESC_MAX} a card should carry`);
   }
   // fmKeys is what separates an absent key from an empty one: a record with no
   // blocked key is simply not blocked, while a present-but-empty one carries no
   // reason and is a defect. A whitespace-only value trims to empty and is caught
   // here too, because the record field is trimmed at scan time.
   if (a.fmKeys.has('blocked') && !a.blocked) {
-    out.push(`${a.id} (${a.file}): blocked is present but empty — give the reason or remove the key`);
+    out.push(`${a.id} (${a.file}): blocked is present but empty: give the reason or remove the key`);
   }
   return out;
 }
@@ -536,7 +536,7 @@ function parseListArgs(argv) {
   if (sortKey === 'severity' && scope !== 'issues') die('--sort severity is only available for --list issues');
   const wi = argv.indexOf('--ws');
   const wsId = wi !== -1 && argv[wi + 1] && !argv[wi + 1].startsWith('--') ? argv[wi + 1] : '';
-  if (wsId && !workstreams.some((w) => w.id === wsId)) die(`unknown --ws id "${wsId}" — no workstream record with that id`);
+  if (wsId && !workstreams.some((w) => w.id === wsId)) die(`unknown --ws id "${wsId}": no workstream record with that id`);
   return { scope, wsId, sortKey, desc: argv.includes('--desc'), archived: argv.includes('--archived') };
 }
 
@@ -598,14 +598,14 @@ function parseNewWsArgs(argv) {
   const slug = argv[ni + 1];
   if (!slug || slug.startsWith('--')) die('--new-ws requires a <slug> argument');
   // The slug is the only untrusted part of the folder name and of the record
-  // path, so a strict kebab-case allow-list — the same character class the tag
-  // pool uses — is what actually closes the traversal. Checked here, before any
+  // path, so a strict kebab-case allow-list, the same character class the tag
+  // pool uses, is what actually closes the traversal. Checked here, before any
   // id is claimed, so a refused run leaves no orphan marker directory behind.
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
     die(`invalid --new-ws slug "${slug}" (expected kebab-case: [a-z0-9] words joined by single hyphens)`);
   }
-  // A line break is what lets an injected line become a real frontmatter key —
-  // parseFrontmatter is line-based and last-value-wins — and what lets a bare
+  // A line break is what lets an injected line become a real frontmatter key
+  // (parseFrontmatter is line-based and last-value-wins) and what lets a bare
   // `---` line close the block early, because the frontmatter block regex is
   // lazy. The whole C0 range and DEL are refused rather than only CR and LF: a
   // vertical tab or a form feed is no safer inside a YAML double-quoted scalar.
@@ -660,7 +660,7 @@ function parseWhoamiArgs(argv) {
 // ---- ID allocation ---------------------------------------------------------
 // The atomic claim CONVENTIONS.md documents: the next number is the maximum of
 // three sources, and a marker directory created with mkdir *without* the
-// recursive flag is the lock — EEXIST means that exact id is already taken, so
+// recursive flag is the lock. EEXIST means that exact id is already taken, so
 // a fresh suffix is drawn at the same number and the claim is retried. One
 // implementation, shared by --claim and --new-ws,
 // rather than two copies that could drift apart. Returns the claimed ids and
@@ -694,7 +694,7 @@ function allocateIds(type, count) {
     }
   }
 
-  // Ensure flowcharge/ids/ exists — after computing the marker-directory
+  // Ensure flowcharge/ids/ exists, after computing the marker-directory
   // source (so an absent directory correctly contributes 0) and before the
   // claim loop. recursive: true makes this call itself race-safe.
   fs.mkdirSync(idsDir, { recursive: true });
@@ -711,8 +711,8 @@ function allocateIds(type, count) {
         n++;
         break;
       } catch (e) {
-        if (e.code === 'EEXIST') continue; // suffix taken — redraw it at the same number
-        throw e; // unexpected I/O error — not swallowed
+        if (e.code === 'EEXIST') continue; // suffix taken, redraw it at the same number
+        throw e; // unexpected I/O error, not swallowed
       }
     }
   }
@@ -722,8 +722,8 @@ function allocateIds(type, count) {
 // ---- ID graph --------------------------------------------------------------
 // The checks that need the whole ID graph rather than one record: a claimed id
 // nothing carries, a registry counter ahead of every source that could justify
-// it, and the two cross-reference keys — links: in frontmatter and issues: on a
-// task line. It reads no artefact file: every record it needs is already in
+// it, and the two cross-reference keys (links: in frontmatter and issues: on a
+// task line). It reads no artefact file: every record it needs is already in
 // artefacts and byId, and its only filesystem access is listing idsDir, the one
 // source with no other representation. Returns the warning strings rather than
 // pushing them, the way checkShape does.
@@ -756,7 +756,7 @@ function checkIds(artefacts, byId, idsDir, registry) {
 
   // Counters ahead of both other sources. A counter with no artefact but a
   // matching marker is a claim in flight, not drift, so the marker counts. The
-  // opposite drift — a counter behind — is reported by the registry check.
+  // opposite drift, a counter behind, is reported by the registry check.
   for (const type of CLAIM_TYPES) {
     const counter = registry[type];
     if (counter === undefined) continue; // a missing counter line is reported on its own
@@ -787,7 +787,7 @@ function checkIds(artefacts, byId, idsDir, registry) {
 // ---- leases ----------------------------------------------------------------
 // A lease is one file in one workstream folder, so this check knows nothing
 // else: not the ID graph, not the registry, not the artefact records. It
-// reports and never deletes — acquiring and releasing a lease stays in
+// reports and never deletes. Acquiring and releasing a lease stays in
 // SKILL.md, and a lease the generator removed would be a lock removed by a
 // process that never held it.
 const ageInMinutes = (ms) => {
@@ -811,14 +811,14 @@ function checkLeases(wsDirs) {
     if (Number.isNaN(at)) continue;
     const age = now - at;
     if (age > LEASE_STALE_MINUTES * 60000) {
-      out.push(`flowcharge/workstreams/${dir}/.lease: held by session ${session} for ${ageInMinutes(age)} — stale`);
+      out.push(`flowcharge/workstreams/${dir}/.lease: held by session ${session} for ${ageInMinutes(age)}, stale`);
     }
   }
   return out;
 }
 
 // Suite-version model: the suite carries one version, authored by hand in two
-// places that must agree — the newest "## X.Y.Z" heading in CHANGELOG.md, and
+// places that must agree: the newest "## X.Y.Z" heading in CHANGELOG.md, and
 // the annotated tag vX.Y.Z at the release commit (the tag carries the leading
 // v, CHANGELOG.md does not). At release time the same value is also stamped
 // into every SKILL.md's metadata.version by stamp-skill-versions.mjs, a
@@ -854,7 +854,7 @@ function checkSuiteVersion(selfRoot) {
   }
   const changelogVersion = headingMatch[1];
   if (tagVersion === changelogVersion) return [];
-  return [`git tag "v${tagVersion}" at HEAD but the newest CHANGELOG.md release heading is "${changelogVersion}" — the suite version must be identical in both`];
+  return [`git tag "v${tagVersion}" at HEAD but the newest CHANGELOG.md release heading is "${changelogVersion}": the suite version must be identical in both`];
 }
 
 // The artefacts a workstream owns: every non-workstream record naming it,
@@ -945,7 +945,7 @@ function applySync() {
       // artefacts are plans cannot close. Name the blocker instead.
       if (open.every((a) => a.type === 'plan')) {
         for (const p of open) {
-          warnings.push(`${ws.id}: every artefact closed except ${p.id} (${p.status}) — close the plan to close the workstream`);
+          warnings.push(`${ws.id}: every artefact closed except ${p.id} (${p.status}): close the plan to close the workstream`);
         }
       }
       continue;
@@ -1013,7 +1013,7 @@ function selectRows(items, opts) {
   };
 }
 
-const listCell = (v) => (v === undefined || v === null || v === '' ? '—' : String(v).replace(/\r?\n/g, ' ').replace(/\|/g, '\\|'));
+const listCell = (v) => (v === undefined || v === null || v === '' ? '-' : String(v).replace(/\r?\n/g, ' ').replace(/\|/g, '\\|'));
 
 function renderTable(headers, rows) {
   if (!rows.length) return '_none_\n';
@@ -1050,7 +1050,7 @@ for (const rootSpec of ROOTS) {
       const text = fs.readFileSync(abs, 'utf8');
       const fm = parseFrontmatter(text);
       if (!fm || !fm.id) {
-        warnings.push(`${rel}: missing frontmatter or id — excluded from index`);
+        warnings.push(`${rel}: missing frontmatter or id, excluded from index`);
         continue;
       }
       const a = {
@@ -1070,7 +1070,7 @@ for (const rootSpec of ROOTS) {
       };
       if (!STATUSES.includes(a.status)) warnings.push(`${rel}: status "${a.status}" not in enum`);
       if (a.archived && a.status !== 'done' && a.status !== 'dropped') {
-        warnings.push(`${a.id} (${rel}): archived but status is "${a.status}" — only done/dropped belong in archive/`);
+        warnings.push(`${a.id} (${rel}): archived but status is "${a.status}": only done/dropped belong in archive/`);
       }
       if (byId.has(a.id)) warnings.push(`duplicate id ${a.id}: ${byId.get(a.id).file} and ${rel}`);
       byId.set(a.id, a);
@@ -1109,7 +1109,7 @@ if (listOpts) {
   process.exit(0);
 }
 
-// Cosmetic registry write-back — best effort, shared by --claim and --new-ws.
+// Cosmetic registry write-back: best effort, shared by --claim and --new-ws.
 // A failure here must not change the caller's exit code, remove the
 // already-claimed ids from stdout, or stop --new-ws creating its folder and
 // record; the marker directories are the authoritative record. A lost update
@@ -1145,7 +1145,7 @@ function writeRegistryBack(type, highest) {
       writeAtomic(registryPath, REGISTRY_HEADER + counters);
     }
   } catch (e) {
-    console.error(`fc-index: warning — failed to update ids.md after claim: ${e.message}`);
+    console.error(`fc-index: warning, failed to update ids.md after claim: ${e.message}`);
   }
 }
 
@@ -1164,7 +1164,7 @@ if (claimOpts) {
 
 // ---- --new-ws mode: scaffold one workstream folder and its record. An
 // early-exit mode like --list and --claim: it never reaches the integrity
-// checks or the index/board writes. It does not acquire the lease — that stays
+// checks or the index/board writes. It does not acquire the lease. That stays
 // in SKILL.md, which runs after the folder exists either way.
 if (newWsOpts) {
   const { slug, title, tags, status, description } = newWsOpts;
@@ -1188,8 +1188,8 @@ if (newWsOpts) {
   const id = claimed[0];
   const dirName = `${id}-${slug}`;
   // Defence in depth behind the slug allow-list: path.join normalises `..`
-  // lexically, so a containment test on the resolved path — not a string test
-  // on the slug — is what proves the write stays under flowcharge/workstreams/.
+  // lexically, so a containment test on the resolved path, not a string test
+  // on the slug, is what proves the write stays under flowcharge/workstreams/.
   // An empty relative path means the two paths are equal, which is itself an
   // escape; on Windows a drive-absolute value returns an absolute path rather
   // than one starting with `..`, so both are tested too.
@@ -1205,7 +1205,7 @@ if (newWsOpts) {
   fs.mkdirSync(wsDir, { recursive: true });
   const rel = path.join('flowcharge', 'workstreams', dirName, 'workstream.md');
   const day = localDay();
-  // Every required key, at a valid value, in CONVENTIONS.md's order — flat
+  // Every required key, at a valid value, in CONVENTIONS.md's order, flat
   // keys and inline arrays only. The body is deliberately left empty: its
   // length follows the originating request and cannot be passed on a command
   // line, and the missing-card-description warning names it far better than a
@@ -1243,7 +1243,7 @@ if (newWsOpts) {
   process.exit(0);
 }
 
-// ---- --sync mode: the close pass. A fall-through, not an early exit — the
+// ---- --sync mode: the close pass. A fall-through, not an early exit. The
 // integrity checks and the index/board writes below see the statuses it set,
 // so one command both closes and regenerates.
 if (syncOpts) applySync();
@@ -1266,15 +1266,15 @@ for (const iss of allIssues) {
 }
 for (const a of artefacts) {
   if (a.type === 'tasklist' && a.tasks.total > 0 && a.tasks.open === 0 && a.status !== 'done' && a.status !== 'dropped') {
-    warnings.push(`${a.id} (${a.file}): all ${a.tasks.total} tasks checked but status is "${a.status}" — close it?`);
+    warnings.push(`${a.id} (${a.file}): all ${a.tasks.total} tasks checked but status is "${a.status}". Close it?`);
   }
   if (a.type === 'issuelist' && a.issues.length > 0 && a.issues.every((i) => i.status === 'done' || i.status === 'dropped') && a.status !== 'done' && a.status !== 'dropped') {
-    warnings.push(`${a.id} (${a.file}): no open issues left but status is "${a.status}" — close it?`);
+    warnings.push(`${a.id} (${a.file}): no open issues left but status is "${a.status}". Close it?`);
   }
   if (a.type === 'workstream' && !isClosedStatus(a.status)) {
     const owned = ownedArtefacts(a);
     if (owned.length > 0 && owned.every((o) => isClosedStatus(o.status))) {
-      warnings.push(`${a.id} (${a.file}): all ${owned.length} artefacts closed but status is "${a.status}" — close it?`);
+      warnings.push(`${a.id} (${a.file}): all ${owned.length} artefacts closed but status is "${a.status}". Close it?`);
     }
   }
   // The aftermath of a close. An archived tree already reports every unclosed
@@ -1283,10 +1283,10 @@ for (const a of artefacts) {
     const owned = ownedArtefacts(a);
     const open = owned.filter((o) => !isClosedStatus(o.status));
     if (open.length > 0) {
-      warnings.push(`${a.id} (${a.file}): status is "${a.status}" but ${open.length} of its ${owned.length} artefacts are still open — reopen it?`);
+      warnings.push(`${a.id} (${a.file}): status is "${a.status}" but ${open.length} of its ${owned.length} artefacts are still open. Reopen it?`);
     }
     if (a.blocked) {
-      warnings.push(`${a.id} (${a.file}): status is "${a.status}" but it still carries a blocked reason — clear the blocked key`);
+      warnings.push(`${a.id} (${a.file}): status is "${a.status}" but it still carries a blocked reason: clear the blocked key`);
     }
   }
   if (!a.archived && (a.status === 'in-progress' || a.blocked) && a.updated) {
@@ -1319,7 +1319,7 @@ for (const a of artefacts) {
     const modified = localDay(new Date(a.mtime));
     const drift = (Date.parse(modified) - Date.parse(a.updated)) / 86400000;
     if (drift > UPDATED_GRACE_DAYS) {
-      warnings.push(`${a.id} (${a.file}): updated ${a.updated} but file modified ${modified} — bump updated on every edit`);
+      warnings.push(`${a.id} (${a.file}): updated ${a.updated} but file modified ${modified}: bump updated on every edit`);
     }
   }
   for (const w of checkShape(a)) warnings.push(w);
@@ -1328,14 +1328,14 @@ for (const a of artefacts) {
 // Tag pool membership. The pool is registry-like infrastructure rather than an
 // artefact: it sits at flowcharge/ root, outside the workstreams/ and archive/
 // walk above, so it is read here instead of scanned. A missing pool disables
-// the membership check for the whole run — one advisory line, rather than one
+// the membership check for the whole run: one advisory line, rather than one
 // WARN per tag in a corpus that has no pool yet.
 let tagPool = null;
 if (fs.existsSync(tagPoolPath)) {
   const poolText = fs.readFileSync(tagPoolPath, 'utf8');
   tagPool = new Set([...poolText.matchAll(/^- ([a-z0-9-]+)$/gm)].map((m) => m[1]));
 } else {
-  warnings.push('flowcharge/tags.md missing — tag validation skipped');
+  warnings.push('flowcharge/tags.md missing, tag validation skipped');
 }
 // Live and archived workstreams alike, lowercased the same way the board's
 // label keys are. The WARN drives a fix; it never suppresses the label.
@@ -1346,7 +1346,7 @@ if (tagPool) {
       if (tagPool.has(tag)) continue;
       const near = nearestTag(tag, tagPool);
       warnings.push(near
-        ? `${ws.id} (${ws.file}): tag "#${tag}" not in the tag pool — nearest defined tag: "#${near.tag}"`
+        ? `${ws.id} (${ws.file}): tag "#${tag}" not in the tag pool, nearest defined tag: "#${near.tag}"`
         : `${ws.id} (${ws.file}): tag "#${tag}" not in the tag pool`);
     }
   }
@@ -1357,7 +1357,7 @@ if (tagPool) {
 // folder, and one without the record is not.
 for (const dir of fs.readdirSync(wsRoot, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort()) {
   if (!fs.existsSync(path.join(wsRoot, dir, 'workstream.md'))) {
-    warnings.push(`flowcharge/workstreams/${dir}/: no workstream.md — not a workstream folder`);
+    warnings.push(`flowcharge/workstreams/${dir}/: no workstream.md, not a workstream folder`);
   }
 }
 
@@ -1373,7 +1373,7 @@ try {
   if (selfResolved === rootResolved) {
     for (const w of checkSuiteVersion(SELF_ROOT)) warnings.push(w);
   }
-} catch { /* not running against this tool's own repository — skip */ }
+} catch { /* not running against this tool's own repository, skip */ }
 
 // Registry drift. The parsed counters outlive the block: checkIds needs them
 // and is not permitted to read the file for itself.
@@ -1388,19 +1388,19 @@ if (fs.existsSync(registryPath)) {
   }
   for (const t of Object.keys(maxSeen)) {
     if (reg[t] === undefined) warnings.push(`ids.md: no counter for ${t}`);
-    else if (maxSeen[t] > reg[t]) warnings.push(`ids.md: ${t} counter is ${reg[t]} but ${t}-${maxSeen[t]} exists — registry behind`);
+    else if (maxSeen[t] > reg[t]) warnings.push(`ids.md: ${t} counter is ${reg[t]} but ${t}-${maxSeen[t]} exists, registry behind`);
   }
 } else {
-  warnings.push('flowcharge/ids.md missing — create it before allocating new IDs');
+  warnings.push('flowcharge/ids.md missing: create it before allocating new IDs');
 }
 
 // The registry header. The mismatch is reported here, with the other integrity
 // checks, and the rewrite it announces happens below with the index and board
-// writes — so --check's early exit prevents the write without a mode test.
+// writes, so --check's early exit prevents the write without a mode test.
 let registryRewrite = null;
 if (fs.existsSync(registryPath)) {
   registryRewrite = registryHeaderRewrite(fs.readFileSync(registryPath, 'utf8'));
-  if (registryRewrite) warnings.push('ids.md: header text is out of date — rewritten');
+  if (registryRewrite) warnings.push('ids.md: header text is out of date, rewritten');
 }
 
 // The ID graph: orphan markers, counters ahead of every source, and the
@@ -1425,7 +1425,7 @@ if (fs.existsSync(boardPath)) {
     if (card) {
       const ws = byId.get(card[1]);
       if (ws && !ws.archived && COLUMN_OF[ws.status] && COLUMN_OF[ws.status] !== col) {
-        warnings.push(`board: ${card[1]} sits in "${col}" but frontmatter says "${ws.status}" — frontmatter wins, board regenerated`);
+        warnings.push(`board: ${card[1]} sits in "${col}" but frontmatter says "${ws.status}". Frontmatter wins, board regenerated`);
       }
     }
   }
@@ -1455,7 +1455,7 @@ const wsArtefacts = (ws) =>
       }
       return `${a.id} (${a.status}${extra})`;
     })
-    .join(', ') || '—';
+    .join(', ') || '-';
 
 const readyWork = artefacts.filter(
   (a) => !a.archived && (a.status === 'ready' || a.status === 'backlog') && !a.blocked && a.depends_on.every(isDone)
@@ -1467,10 +1467,10 @@ const openIssues = artefacts
   .filter((i) => i.status !== 'done' && i.status !== 'dropped')
   .sort((a, b) => (SEV_ORDER[a.severity] ?? 9) - (SEV_ORDER[b.severity] ?? 9) || a.id.localeCompare(b.id, undefined, { numeric: true }));
 
-let idx = `<!-- GENERATED by fc-index.mjs ${now} — do not edit. Regenerate: node fc-index.mjs --root <project-root> -->\n\n# FlowCharge Index\n\n`;
+let idx = `<!-- GENERATED by fc-index.mjs ${now}. Do not edit. Regenerate: node fc-index.mjs --root <project-root> -->\n\n# FlowCharge Index\n\n`;
 idx += `## Workstreams\n\n| ID | Slug | Status | Author | Depends on | Artefacts |\n|---|---|---|---|---|---|\n`;
 for (const ws of workstreams.filter((w) => !w.archived).sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }))) {
-  idx += `| ${listCell(ws.id)} | ${listCell(ws.slug)} | ${listCell(ws.status + (ws.blocked ? ' (blocked)' : ''))} | ${listCell(ws.author || 'unknown')} | ${listCell(ws.depends_on.join(', ') || '—')} | ${listCell(wsArtefacts(ws))} |\n`;
+  idx += `| ${listCell(ws.id)} | ${listCell(ws.slug)} | ${listCell(ws.status + (ws.blocked ? ' (blocked)' : ''))} | ${listCell(ws.author || 'unknown')} | ${listCell(ws.depends_on.join(', ') || '-')} | ${listCell(wsArtefacts(ws))} |\n`;
 }
 idx += `\n## Open issues (${openIssues.length})\n\n| ID | Severity | Status | Author | Title | File |\n|---|---|---|---|---|---|\n`;
 for (const i of openIssues) idx += `| ${listCell(i.id)} | ${listCell(i.severity)} | ${listCell(i.status)} | ${listCell(i.author || 'unknown')} | ${listCell(i.title)} | ${listCell(i.file)} |\n`;
@@ -1480,7 +1480,7 @@ for (const a of artefacts.filter((x) => x.type === 'tasklist' && !x.archived)) {
 }
 const archivedWs = workstreams.filter((w) => w.archived).sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
 idx += `\n## Archived (${archivedWs.length})\n\n`;
-idx += archivedWs.length ? archivedWs.map((w) => `- ${w.id} ${w.slug} (${w.status}) — ${path.dirname(w.file)}/`).join('\n') + '\n' : '- none\n';
+idx += archivedWs.length ? archivedWs.map((w) => `- ${w.id} ${w.slug} (${w.status}), ${path.dirname(w.file)}/`).join('\n') + '\n' : '- none\n';
 idx += `\n## Ready to start (deps satisfied)\n\n`;
 idx += readyWork.length ? readyWork.map((a) => `- ${a.id} ${a.slug} (${a.type}, ${a.status})`).join('\n') + '\n' : '- none\n';
 idx += `\n## Attention\n\n`;

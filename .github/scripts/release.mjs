@@ -10,7 +10,7 @@
 //
 // Module boundary: this file knows git, CHANGELOG.md and the stamper's CLI
 // contract. It never opens a SKILL.md and never learns the metadata.version
-// frontmatter shape — that knowledge lives in the stamper alone. Listing the
+// frontmatter shape. That knowledge lives in the stamper alone. Listing the
 // skills/ subdirectories so each SKILL.md can be staged by its own explicit
 // path is directory enumeration, not frontmatter parsing, so it stays inside
 // the boundary.
@@ -22,7 +22,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
-const HELP = `release.mjs — cuts the local release commit and the annotated tag for one FlowCharge Core version.
+const HELP = `release.mjs: cuts the local release commit and the annotated tag for one FlowCharge Core version.
 
 Usage:
   node .github/scripts/release.mjs <X.Y.Z>
@@ -57,7 +57,7 @@ It never pushes. It prints the two push commands to run next.
         that could fail, and before any git call.
 
 Exit codes:
-  0  The release commit — or the already-committed HEAD — now carries the
+  0  The release commit, or the already-committed HEAD, now carries the
      annotated tag vX.Y.Z.
   1  A refusal, or a stamper failure. No commit was made and no tag was
      created.
@@ -138,7 +138,7 @@ function main() {
   const argv = process.argv.slice(2);
 
   // Step 1. --help takes precedence over everything else, including a missing
-  // or invalid version argument, so it always answers — before any argument
+  // or invalid version argument, so it always answers: before any argument
   // parsing that could fail, before any git call, and before any write.
   if (argv.includes('--help')) {
     process.stdout.write(HELP);
@@ -148,14 +148,14 @@ function main() {
   // Step 2. The one positional argument.
   const version = argv.find((a) => !a.startsWith('--'));
   if (!version || !VERSION_ARG.test(version)) {
-    fail(`invalid version argument ${JSON.stringify(version || '')} — expected a bare X.Y.Z, e.g. 0.2.0`);
+    fail(`invalid version argument ${JSON.stringify(version || '')}: expected a bare X.Y.Z, e.g. 0.2.0`);
   }
   const tag = `v${version}`;
 
   // Step 3. The branch.
   const branch = git(['rev-parse', '--abbrev-ref', 'HEAD']).stdout.trim();
   if (branch !== RELEASE_BRANCH) {
-    fail(`the current branch is ${JSON.stringify(branch)}, not ${RELEASE_BRANCH} — a release is cut from ${RELEASE_BRANCH} only`);
+    fail(`the current branch is ${JSON.stringify(branch)}, not ${RELEASE_BRANCH}: a release is cut from ${RELEASE_BRANCH} only`);
   }
 
   // Step 4. The tracked working tree. Untracked files are ignored on purpose:
@@ -163,20 +163,20 @@ function main() {
   // nothing untracked can reach the release commit, which stages by path.
   const dirty = git(['status', '--porcelain', '--untracked-files=no']).stdout;
   if (dirty.trim() !== '') {
-    fail(`the tracked working tree is dirty — commit or stash it first:\n${dirty.trimEnd()}`);
+    fail(`the tracked working tree is dirty. Commit or stash it first:\n${dirty.trimEnd()}`);
   }
 
   // Step 5. The changelog. Its newest release heading is the authored version,
   // and it must be the version being released.
   const changelog = newestChangelogVersion();
   if (changelog.missing) {
-    fail(`no CHANGELOG.md at ${SELF_ROOT} — write the ${version} entry first`);
+    fail(`no CHANGELOG.md at ${SELF_ROOT}: write the ${version} entry first`);
   }
   if (changelog.version === null) {
-    fail('CHANGELOG.md holds no "## X.Y.Z" release heading — write the entry first, unbracketed');
+    fail('CHANGELOG.md holds no "## X.Y.Z" release heading: write the entry first, unbracketed');
   }
   if (changelog.version !== version) {
-    fail(`CHANGELOG.md's newest release heading is ${changelog.version}, not ${version} — the changelog and the argument must agree`);
+    fail(`CHANGELOG.md's newest release heading is ${changelog.version}, not ${version}: the changelog and the argument must agree`);
   }
 
   // Step 6. The tag. This check runs before the stamper, not after it: without
@@ -184,7 +184,7 @@ function main() {
   // fail at the tag step, which breaks the all-or-nothing property.
   const existingTag = git(['rev-parse', '-q', '--verify', `refs/tags/${tag}`], { allowFailure: true });
   if (existingTag.status === 0) {
-    fail(`the tag ${tag} already exists — that release is cut; nothing was stamped, committed or tagged`);
+    fail(`the tag ${tag} already exists: that release is cut; nothing was stamped, committed or tagged`);
   }
 
   // Step 7. The stamper, as a child process, resolved from this file's own
@@ -195,12 +195,12 @@ function main() {
     fail(`could not run ${path.relative(SELF_ROOT, STAMPER)}: ${stamp.error.message}`);
   }
   if (stamp.status !== 0) {
-    fail(`${path.relative(SELF_ROOT, STAMPER)} exited ${stamp.status} — nothing was committed and no tag was created`);
+    fail(`${path.relative(SELF_ROOT, STAMPER)} exited ${stamp.status}: nothing was committed and no tag was created`);
   }
 
   // Step 7b. The manifest generator, also as a child process resolved from
   // this file's own directory, and given the same validated version string the
-  // stamper was given — one typed value reaches both steps. It runs after the
+  // stamper was given. One typed value reaches both steps. It runs after the
   // stamp, so it records the versions this run just wrote rather than the
   // previous release's, and before anything is staged, so one commit carries a
   // self-consistent release. Its refusal means the tree is not releasable: its
@@ -211,7 +211,7 @@ function main() {
     fail(`could not run ${path.relative(SELF_ROOT, MANIFEST)}: ${manifest.error.message}`);
   }
   if (manifest.status !== 0) {
-    fail(`${path.relative(SELF_ROOT, MANIFEST)} exited ${manifest.status} — nothing was committed and no tag was created`);
+    fail(`${path.relative(SELF_ROOT, MANIFEST)} exited ${manifest.status}: nothing was committed and no tag was created`);
   }
 
   // Step 8. Stage the discovered SKILL.md paths and the manifest step 7b just
@@ -229,7 +229,7 @@ function main() {
     // The recovery path for a run that stamped and committed but failed before
     // tagging, and the path the first release takes, because every file
     // already carries its version.
-    console.log(`release: every SKILL.md already carries ${version} and is already committed — skipping the release commit, tagging HEAD`);
+    console.log(`release: every SKILL.md already carries ${version} and is already committed, skipping the release commit, tagging HEAD`);
   } else {
     git(['commit', '-q', '-m', `chore(release): ${tag}`]);
     committed = true;
@@ -241,7 +241,7 @@ function main() {
   // Step 10. Report, and hand the two pushes back to the maintainer.
   const sha = git(['rev-parse', 'HEAD']).stdout.trim();
   console.log('');
-  console.log(`  commit  ${sha}${committed ? '' : '  (existing HEAD — no release commit was needed)'}`);
+  console.log(`  commit  ${sha}${committed ? '' : '  (existing HEAD, no release commit was needed)'}`);
   console.log(`  tag     ${tag}  (annotated, "FlowCharge Core ${tag}")`);
   console.log('');
   console.log('Nothing has been pushed. Run these two commands yourself when you are ready:');

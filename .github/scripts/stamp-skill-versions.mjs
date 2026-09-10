@@ -10,7 +10,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const HELP = `stamp-skill-versions.mjs — writes a given release version into every skills/*/SKILL.md's metadata.version.
+const HELP = `stamp-skill-versions.mjs: writes a given release version into every skills/*/SKILL.md's metadata.version.
 
 Usage:
   node stamp-skill-versions.mjs <X.Y.Z>
@@ -23,7 +23,7 @@ or build suffix (so "0.2.0", never "v0.2.0", "0.2", or "0.2.0-rc.1").
 It reads no CHANGELOG.md and no git tag. It trusts the version it is given.
 
 It writes nothing at all if the argument fails validation, or if any
-skills/*/SKILL.md fails the documented metadata.version shape check — the
+skills/*/SKILL.md fails the documented metadata.version shape check. The
 run is all-or-nothing, validated in full before any file is touched. A file
 whose metadata.version already equals the target is left untouched.
 
@@ -38,7 +38,7 @@ Exit codes:
 
 // This script's own repository root, derived from its own file location:
 // the script sits at .github/scripts/stamp-skill-versions.mjs, two
-// directories below the repository root. There is no --root flag —
+// directories below the repository root. There is no --root flag:
 // this script has exactly one legitimate target, the repository it ships
 // from, and accepting an arbitrary root would let it be pointed at some
 // other project's skills/ tree by mistake. It lives under .github/ so
@@ -59,14 +59,14 @@ function writeAtomic(filePath, content) {
     fs.writeFileSync(tmpPath, content);
     fs.renameSync(tmpPath, filePath);
   } catch (e) {
-    try { fs.unlinkSync(tmpPath); } catch { /* tmp may not exist yet — ignore */ }
+    try { fs.unlinkSync(tmpPath); } catch { /* tmp may not exist yet, ignore */ }
     throw e;
   }
 }
 
 // Every immediate child of skills/ that holds a SKILL.md, sorted for a
 // deterministic scan and print order. A skills/ entry with no SKILL.md is
-// skipped silently — this script polices frontmatter shape, not directory
+// skipped silently: this script polices frontmatter shape, not directory
 // layout.
 function listSkillFiles(skillsDir) {
   let entries;
@@ -123,7 +123,7 @@ function main() {
   const version = argv.find((a) => !a.startsWith('--'));
   if (!version || !/^\d+\.\d+\.\d+$/.test(version)) {
     console.error(
-      `stamp-skill-versions: invalid version argument ${JSON.stringify(version || '')} — expected a bare X.Y.Z, e.g. 0.2.0`,
+      `stamp-skill-versions: invalid version argument ${JSON.stringify(version || '')}: expected a bare X.Y.Z, e.g. 0.2.0`,
     );
     process.exit(1);
   }
@@ -131,7 +131,7 @@ function main() {
   const skillsDir = path.join(SELF_ROOT, 'skills');
   const files = listSkillFiles(skillsDir);
 
-  // Validate every file before writing any of them — the all-or-nothing
+  // Validate every file before writing any of them: the all-or-nothing
   // guarantee that keeps a release from shipping with seven skills stamped
   // and one not.
   const parsed = [];

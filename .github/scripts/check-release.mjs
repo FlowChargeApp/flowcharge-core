@@ -5,7 +5,7 @@
 // It writes nothing at all. No dependencies; node >= 16.
 //
 // Module boundary: this file knows the SKILL.md frontmatter shape, CHANGELOG.md
-// and its own repository root. It never calls git and never reads a tag — the
+// and its own repository root. It never calls git and never reads a tag. The
 // caller passes the version it must agree with, which is what keeps this script
 // testable without a git repository.
 //
@@ -21,7 +21,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const HELP = `check-release.mjs — verifies that every stamped skill version and the newest CHANGELOG.md heading agree with one given release version.
+const HELP = `check-release.mjs: verifies that every stamped skill version and the newest CHANGELOG.md heading agree with one given release version.
 
 Usage:
   node .github/scripts/check-release.mjs <X.Y.Z>
@@ -88,7 +88,7 @@ function listSkillFiles(skillsDir) {
 
 // The documented shape from VERSIONING.md: a `metadata:` line inside the
 // frontmatter block, then an indented `version: "..."` line before the closing
-// `---`. The current value only — this reader never rewrites, so it needs no
+// `---`. The current value only. This reader never rewrites, so it needs no
 // splice offsets. Returns null when the file does not carry the shape.
 function readVersion(text) {
   const fm = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
@@ -113,7 +113,7 @@ function main() {
   const version = argv.find((a) => !a.startsWith('--'));
   if (!version || !VERSION_ARG.test(version)) {
     console.error(
-      `check-release: invalid version argument ${JSON.stringify(version || '')} — expected a bare X.Y.Z, e.g. 0.2.0`,
+      `check-release: invalid version argument ${JSON.stringify(version || '')}: expected a bare X.Y.Z, e.g. 0.2.0`,
     );
     process.exit(1);
   }

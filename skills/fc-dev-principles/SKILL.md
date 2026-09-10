@@ -1,7 +1,7 @@
 ---
 name: fc-dev-principles
 description: >-
-  Reference checklist of core software engineering principles — DRY, KISS,
+  Reference checklist of core software engineering principles: DRY, KISS,
   YAGNI, POLA, Law of Demeter, SOLID, separation of concerns, modularity,
   composition over inheritance, convention over configuration, task/scope
   discipline, and implementation/operational principles (least privilege,

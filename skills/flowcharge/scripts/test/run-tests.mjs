@@ -7,7 +7,7 @@
 //
 // Skill-file consistency cases: each reads the repository's own skills/ tree
 // and greps every skills/**/*.md file for two shapes that a past on-disk schema
-// migration left stale in prose — a workstreams/ path with no WS id in front of
+// migration left stale in prose: a workstreams/ path with no WS id in front of
 // the slug, and a bare WS-N with no -SUFFIX. These cases are not hermetic on
 // purpose: an edit made anywhere under skills/ can fail this suite.
 //
@@ -26,6 +26,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { inflateRawSync } from 'node:zlib';
+import { LABELS } from '../../../../.github/scripts/setup-labels.mjs';
 
 const HERE = path.dirname(decodeURIComponent(new URL(import.meta.url).pathname));
 const GENERATOR = path.resolve(HERE, '..', 'fc-index.mjs');
@@ -142,7 +143,7 @@ const REGISTRY_HEADER = '# FlowCharge ID Registry\n\n'
   + ' --root <project-root> --claim <TYPE> [<count>] and use the printed id(s) verbatim.\n\n';
 
 // ids.md with one counter line per type, under the canonical header. Pass
-// omit to leave a type out, or head to give the file a header of its own —
+// omit to leave a type out, or head to give the file a header of its own,
 // which is what a stale-header case needs.
 function registry(counters = {}, omit = [], head = REGISTRY_HEADER) {
   const lines = REG_TYPES.filter((t) => !omit.includes(t))
@@ -257,7 +258,7 @@ const testCase = (name, fn) => cases.push({ name, fn });
 // or more annotated release tags on that commit. When copyScript is true
 // (the default), the real fc-index.mjs is copied into the fixture first, at
 // the exact depth it ships from (skills/flowcharge/scripts/), before
-// the commit — task 2.3 needs the same builder with copyScript off, so the
+// the commit. Task 2.3 needs the same builder with copyScript off, so the
 // option lives here rather than being duplicated there.
 function gitTagFixture(dir, { tags = [], copyScript = true } = {}) {
   if (copyScript) {
@@ -280,7 +281,7 @@ function gitTagFixture(dir, { tags = [], copyScript = true } = {}) {
 const changelog = (heading) => `## ${heading}\n\nRelease notes.\n`;
 
 // Runs the copy of fc-index.mjs that gitTagFixture() placed inside the
-// fixture, not the real GENERATOR — this is what proves the check fires
+// fixture, not the real GENERATOR. This is what proves the check fires
 // against the fixture's own tag and own CHANGELOG.md rather than this
 // repository's.
 function runCopiedGenerator(dir, extraArgs = []) {
@@ -318,7 +319,7 @@ testCase('version check: a tag disagreeing with the newest CHANGELOG.md heading 
   withFixture(baseTree({ 'CHANGELOG.md': changelog('0.1.0') }), (dir) => {
     gitTagFixture(dir, { tags: ['v0.2.0'] });
     expectCopiedWarns(dir, [
-      'git tag "v0.2.0" at HEAD but the newest CHANGELOG.md release heading is "0.1.0" — the suite version must be identical in both',
+      'git tag "v0.2.0" at HEAD but the newest CHANGELOG.md release heading is "0.1.0": the suite version must be identical in both',
     ]);
   });
 });
@@ -368,7 +369,7 @@ testCase('version check: a matching tag with a CHANGELOG.md holding no release h
 });
 
 // The first-match rule must read past a non-release heading, so the release
-// heading sits second here — writing it first would prove nothing.
+// heading sits second here. Writing it first would prove nothing.
 testCase('version check: an Unreleased heading above a valid release heading is read past', () => {
   withFixture(baseTree({
     'CHANGELOG.md': `## Unreleased\n\nNothing shipped yet.\n\n${changelog('0.1.0')}`,
@@ -379,7 +380,7 @@ testCase('version check: an Unreleased heading above a valid release heading is 
 });
 
 // This case proves the same-repository gate holds by running the real
-// script at its own path in this repository — never a copy — against a
+// script at its own path in this repository, never a copy, against a
 // fixture that plants the same mismatch the copy warns about above.
 // Consumers of the plugin are never warned about their own git tags or
 // their own CHANGELOG.md, whatever those hold, and their CI can never fail
@@ -398,7 +399,7 @@ testCase('missing frontmatter warns and excludes the file', () => {
     'flowcharge/workstreams/WS-1-abcdef-alpha/plan.md': 'No frontmatter block at all.\n',
   }), (dir) => {
     expectWarns(dir, [
-      'flowcharge/workstreams/WS-1-abcdef-alpha/plan.md: missing frontmatter or id — excluded from index',
+      'flowcharge/workstreams/WS-1-abcdef-alpha/plan.md: missing frontmatter or id, excluded from index',
     ]);
   });
 });
@@ -448,7 +449,7 @@ testCase('archived artefact with an open status warns', () => {
     'flowcharge/archive/WS-2-abcdef-beta/workstream.md': workstream({ id: 'WS-2-abcdef', slug: 'beta', status: 'ready' }),
   }, { WS: 2 }), (dir) => {
     expectWarns(dir, [
-      'WS-2-abcdef (flowcharge/archive/WS-2-abcdef-beta/workstream.md): archived but status is "ready" — only done/dropped belong in archive/',
+      'WS-2-abcdef (flowcharge/archive/WS-2-abcdef-beta/workstream.md): archived but status is "ready": only done/dropped belong in archive/',
     ]);
   });
 });
@@ -569,7 +570,7 @@ testCase('a task list with every task checked but an open status warns', () => {
     }),
   }, { TL: 1 }), (dir) => {
     expectWarns(dir, [
-      'TL-1-abcdef (flowcharge/workstreams/WS-1-abcdef-alpha/TL-1-abcdef-tasklist.md): all 2 tasks checked but status is "ready" — close it?',
+      'TL-1-abcdef (flowcharge/workstreams/WS-1-abcdef-alpha/TL-1-abcdef-tasklist.md): all 2 tasks checked but status is "ready". Close it?',
     ]);
   });
 });
@@ -597,7 +598,7 @@ testCase('an issue list with every issue closed but an open status warns', () =>
     }),
   }, { IL: 1, ISS: 1 }), (dir) => {
     expectWarns(dir, [
-      'IL-1-abcdef (flowcharge/workstreams/WS-1-abcdef-alpha/IL-1-abcdef-issuelist.md): no open issues left but status is "ready" — close it?',
+      'IL-1-abcdef (flowcharge/workstreams/WS-1-abcdef-alpha/IL-1-abcdef-issuelist.md): no open issues left but status is "ready". Close it?',
     ]);
   });
 });
@@ -682,7 +683,7 @@ testCase('a blocked in-progress artefact past the stale window names both flags'
 testCase('a missing ids.md warns', () => {
   withFixture({ 'flowcharge/tags.md': tagPool(), [WS1]: workstream({ id: 'WS-1-abcdef' }) }, (dir) => {
     expectWarns(dir, [
-      'flowcharge/ids.md missing — create it before allocating new IDs',
+      'flowcharge/ids.md missing: create it before allocating new IDs',
     ]);
   });
 });
@@ -696,7 +697,7 @@ testCase('clean: a present ids.md warns about nothing', () => {
 testCase('a registry counter behind the scanned artefacts warns', () => {
   withFixture(baseTree({}, { WS: 0 }), (dir) => {
     expectWarns(dir, [
-      'ids.md: WS counter is 0 but WS-1 exists — registry behind',
+      'ids.md: WS counter is 0 but WS-1 exists, registry behind',
     ]);
   });
 });
@@ -730,7 +731,7 @@ testCase('a board card in the wrong column warns', () => {
     'flowcharge/kanban.md': board('Ready', 'WS-1-abcdef', 'Alpha'),
   }), (dir) => {
     expectWarns(dir, [
-      'board: WS-1-abcdef sits in "Ready" but frontmatter says "in-progress" — frontmatter wins, board regenerated',
+      'board: WS-1-abcdef sits in "Ready" but frontmatter says "in-progress". Frontmatter wins, board regenerated',
     ]);
   });
 });
@@ -1000,7 +1001,7 @@ function indexSection(dir, heading) {
 }
 
 // The fixture text with only its status: and updated: frontmatter lines
-// changed — the only bytes --sync is permitted to write. Both patterns anchor
+// changed, the only bytes --sync is permitted to write. Both patterns anchor
 // at column 0, so the indented status: lines inside issue and task YAML blocks
 // in a body are left alone, exactly as the generator leaves them.
 const closedText = (text, day) =>
@@ -1122,7 +1123,7 @@ testCase('--sync names the blocking plan and closes neither it nor its workstrea
   }, { PLN: 1, TL: 1 }), (dir) => {
     const stdout = expectSync(dir, []);
     assert.ok(
-      warnLines(stdout).includes('WS-1-abcdef: every artefact closed except PLN-1-abcdef (ready) — close the plan to close the workstream'),
+      warnLines(stdout).includes('WS-1-abcdef: every artefact closed except PLN-1-abcdef (ready): close the plan to close the workstream'),
       `plan-blocker WARN missing from:\n${stdout}`,
     );
     assert.strictEqual(readRel(dir, WS1), wsText, 'the blocked workstream was written');
@@ -1136,7 +1137,7 @@ testCase('--check warns about a workstream whose artefacts are all closed', () =
     [TL1]: tasklist({ id: 'TL-1-abcdef', status: 'done', tasks: [taskLine(1, true)] }),
     [IL1]: issuelist({ id: 'IL-1-abcdef', status: 'done', issues: [issueBlock('ISS-1-abcdef', { checked: true, status: 'done' })] }),
   }, { TL: 1, IL: 1, ISS: 1 }), (dir) => {
-    expectWarns(dir, [`WS-1-abcdef (${WS1}): all 2 artefacts closed but status is "ready" — close it?`]);
+    expectWarns(dir, [`WS-1-abcdef (${WS1}): all 2 artefacts closed but status is "ready". Close it?`]);
   });
 });
 
@@ -1154,7 +1155,7 @@ testCase('--check warns about a done workstream that still owns an open plan', (
     [WS1]: workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', status: 'done' }),
     [PLN1]: plan({ id: 'PLN-1-abcdef', status: 'ready' }),
   }, { PLN: 1 }), (dir) => {
-    expectWarns(dir, [`WS-1-abcdef (${WS1}): status is "done" but 1 of its 1 artefacts are still open — reopen it?`]);
+    expectWarns(dir, [`WS-1-abcdef (${WS1}): status is "done" but 1 of its 1 artefacts are still open. Reopen it?`]);
   });
 });
 
@@ -1163,7 +1164,7 @@ testCase('--check warns about a dropped workstream that still owns an open task 
     [WS1]: workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', status: 'dropped' }),
     [TL1]: tasklist({ id: 'TL-1-abcdef', status: 'ready', tasks: [taskLine(1, false)] }),
   }, { TL: 1 }), (dir) => {
-    expectWarns(dir, [`WS-1-abcdef (${WS1}): status is "dropped" but 1 of its 1 artefacts are still open — reopen it?`]);
+    expectWarns(dir, [`WS-1-abcdef (${WS1}): status is "dropped" but 1 of its 1 artefacts are still open. Reopen it?`]);
   });
 });
 
@@ -1171,7 +1172,7 @@ testCase('--check warns about a closed workstream that still carries a blocked r
   withFixture(baseTree({
     [WS1]: workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', status: 'done', blocked: 'waiting on the vendor API key' }),
   }), (dir) => {
-    expectWarns(dir, [`WS-1-abcdef (${WS1}): status is "done" but it still carries a blocked reason — clear the blocked key`]);
+    expectWarns(dir, [`WS-1-abcdef (${WS1}): status is "done" but it still carries a blocked reason: clear the blocked key`]);
   });
 });
 
@@ -1229,7 +1230,7 @@ testCase('--sync --no-board writes index.md and leaves the board alone', () => {
 // ---- cases: required frontmatter keys --------------------------------------
 // One case per required key, omitting exactly that key from an otherwise clean
 // record. `id` is absent from this list on purpose: a record with no id never
-// reaches the schema check, because the scan excludes it first — the case below
+// reaches the schema check, because the scan excludes it first. The case below
 // asserts that instead.
 
 const WS_REQUIRED_KEYS = ['type', 'workstream', 'slug', 'title', 'status', 'created', 'updated', 'depends_on', 'links', 'tags'];
@@ -1258,7 +1259,7 @@ testCase('a record missing id is excluded by the scan before the schema check', 
     // counter with neither an artefact nor a marker behind it. The second line
     // is that counter check firing correctly, not a side effect of the first.
     expectWarns(dir, [
-      `${WS1}: missing frontmatter or id — excluded from index`,
+      `${WS1}: missing frontmatter or id, excluded from index`,
       'ids.md: WS counter is 1 but no WS-1 artefact or marker exists',
     ]);
   });
@@ -1322,7 +1323,7 @@ testCase('an artefact modified two days after its updated date warns with both d
     [WS1]: workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', updated: stale }),
   }), (dir) => {
     setMtime(dir, WS1, day);
-    expectWarns(dir, [`WS-1-abcdef (${WS1}): updated ${stale} but file modified ${day} — bump updated on every edit`]);
+    expectWarns(dir, [`WS-1-abcdef (${WS1}): updated ${stale} but file modified ${day}: bump updated on every edit`]);
   });
 });
 
@@ -1398,25 +1399,25 @@ testCase('clean: an ID-prefixed task-list filename is allowed, primary and quali
 testCase('a legacy plan filename warns and names its ID-prefixed replacement', () => {
   const rel = 'flowcharge/workstreams/WS-1-abcdef-alpha/plan.md';
   withFixture(baseTree({ [rel]: plan({ id: 'PLN-1-abcdef' }) }, { PLN: 1 }), (dir) => {
-    expectWarns(dir, [`${rel}: legacy filename — rename to PLN-1-abcdef-plan.md to carry its id`]);
+    expectWarns(dir, [`${rel}: legacy filename: rename to PLN-1-abcdef-plan.md to carry its id`]);
   });
 });
 
 testCase('a legacy issue-list filename warns, bare and qualified alike', () => {
   const bare = 'flowcharge/workstreams/WS-1-abcdef-alpha/issuelist.md';
   withFixture(baseTree({ [bare]: issuelist({ id: 'IL-1-abcdef', issues: [issueBlock('ISS-1-abcdef')] }) }, { IL: 1, ISS: 1 }), (dir) => {
-    expectWarns(dir, [`${bare}: legacy filename — rename to IL-1-abcdef-issuelist.md to carry its id`]);
+    expectWarns(dir, [`${bare}: legacy filename: rename to IL-1-abcdef-issuelist.md to carry its id`]);
   });
   const qualified = 'flowcharge/workstreams/WS-1-abcdef-alpha/issuelist-second.md';
   withFixture(baseTree({ [qualified]: issuelist({ id: 'IL-1-abcdef', issues: [issueBlock('ISS-1-abcdef')] }) }, { IL: 1, ISS: 1 }), (dir) => {
-    expectWarns(dir, [`${qualified}: legacy filename — rename to IL-1-abcdef-issuelist-second.md to carry its id`]);
+    expectWarns(dir, [`${qualified}: legacy filename: rename to IL-1-abcdef-issuelist-second.md to carry its id`]);
   });
 });
 
 testCase('a legacy task-list filename warns and names its ID-prefixed replacement', () => {
   const rel = 'flowcharge/workstreams/WS-1-abcdef-alpha/tasklist.md';
   withFixture(baseTree({ [rel]: tasklist({ id: 'TL-1-abcdef', tasks: [taskLine(1, false)] }) }, { TL: 1 }), (dir) => {
-    expectWarns(dir, [`${rel}: legacy filename — rename to TL-1-abcdef-tasklist.md to carry its id`]);
+    expectWarns(dir, [`${rel}: legacy filename: rename to TL-1-abcdef-tasklist.md to carry its id`]);
   });
 });
 
@@ -1457,7 +1458,7 @@ testCase('an ID-prefixed workstream record leaves its folder unmarked', () => {
   withFixture(baseTree({
     'flowcharge/workstreams/WS-2-abcdef-beta/WS-2-abcdef-workstream.md': workstream({ id: 'WS-2-abcdef', slug: 'beta' }),
   }), (dir) => {
-    expectWarns(dir, ['flowcharge/workstreams/WS-2-abcdef-beta/: no workstream.md — not a workstream folder']);
+    expectWarns(dir, ['flowcharge/workstreams/WS-2-abcdef-beta/: no workstream.md, not a workstream folder']);
   });
 });
 
@@ -1488,7 +1489,7 @@ testCase('a folder under workstreams holding no workstream.md warns', () => {
   withFixture(baseTree({
     'flowcharge/workstreams/WS-2-abcdef-beta/PLN-1-abcdef-plan.md': plan({ id: 'PLN-1-abcdef', workstream: 'WS-2-abcdef', slug: 'beta' }),
   }, { PLN: 1 }), (dir) => {
-    expectWarns(dir, ['flowcharge/workstreams/WS-2-abcdef-beta/: no workstream.md — not a workstream folder']);
+    expectWarns(dir, ['flowcharge/workstreams/WS-2-abcdef-beta/: no workstream.md, not a workstream folder']);
   });
 });
 
@@ -1523,7 +1524,7 @@ testCase('a workstream first body line of 201 characters warns', () => {
   withFixture(baseTree({
     [WS1]: workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', body: `  ${'x'.repeat(201)}  \n` }),
   }), (dir) => {
-    expectWarns(dir, [`WS-1-abcdef (${WS1}): first body line is 201 characters — the board shows only 200`]);
+    expectWarns(dir, [`WS-1-abcdef (${WS1}): first body line is 201 characters: the board shows only 200`]);
   });
 });
 
@@ -1535,13 +1536,13 @@ testCase('clean: a workstream first body line of 200 characters warns about noth
   });
 });
 
-// The description cap is soft — the board writes the value in full — so the
+// The description cap is soft (the board writes the value in full), so the
 // boundary is asserted either side: 1001 characters warns, 1000 does not.
 testCase('a workstream description of 1001 characters warns', () => {
   withFixture(baseTree({
     [WS1]: workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', description: 'x'.repeat(1001) }),
   }), (dir) => {
-    expectWarns(dir, [`WS-1-abcdef (${WS1}): description is 1001 characters — longer than the 1000 a card should carry`]);
+    expectWarns(dir, [`WS-1-abcdef (${WS1}): description is 1001 characters, longer than the 1000 a card should carry`]);
   });
 });
 
@@ -1556,7 +1557,7 @@ testCase('clean: a workstream description of 1000 characters warns about nothing
 // A present blocked key with no reason in it is a defect: an absent key already
 // says "not blocked". Whitespace-only is the same defect, because the record
 // field is trimmed at scan time.
-const BLOCKED_EMPTY = `WS-1-abcdef (${WS1}): blocked is present but empty — give the reason or remove the key`;
+const BLOCKED_EMPTY = `WS-1-abcdef (${WS1}): blocked is present but empty: give the reason or remove the key`;
 
 testCase('a workstream with an empty blocked value warns', () => {
   withFixture(baseTree({
@@ -1593,11 +1594,11 @@ testCase('a tree carrying several schema and shape faults warns about each of th
     setMtime(dir, planRel, day);
     expectWarns(dir, [
       `WS-1-abcdef (${WS1}): missing required frontmatter key "tags" for type "workstream"`,
-      `WS-1-abcdef (${WS1}): first body line is 201 characters — the board shows only 200`,
+      `WS-1-abcdef (${WS1}): first body line is 201 characters: the board shows only 200`,
       `${planRel}: filename not allowed for type "plan" (expected: <PLN-id>-plan.md)`,
-      `PLN-1-abcdef (${planRel}): updated ${stale} but file modified ${day} — bump updated on every edit`,
+      `PLN-1-abcdef (${planRel}): updated ${stale} but file modified ${day}: bump updated on every edit`,
       `TL-1-abcdef (${taskRel}): mode "neither" not in enum (expected: spec, diff)`,
-      'flowcharge/workstreams/WS-2-abcdef-beta/: no workstream.md — not a workstream folder',
+      'flowcharge/workstreams/WS-2-abcdef-beta/: no workstream.md, not a workstream folder',
     ]);
   });
 });
@@ -1613,7 +1614,7 @@ testCase('a workstream tag outside the pool warns, with a nearest match only whe
     [WS1]: workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', tags: ['orchestrator', 'gating'] }),
   }), (dir) => {
     expectWarns(dir, [
-      `WS-1-abcdef (${WS1}): tag "#orchestrator" not in the tag pool — nearest defined tag: "#orchestration"`,
+      `WS-1-abcdef (${WS1}): tag "#orchestrator" not in the tag pool, nearest defined tag: "#orchestration"`,
       `WS-1-abcdef (${WS1}): tag "#gating" not in the tag pool`,
     ]);
   });
@@ -1667,7 +1668,7 @@ const outLines = (s) => s.split(/\r?\n/).filter((l) => l.length);
 
 // A fixture id carries the fixed sample suffix, but an id the generator claims
 // carries a suffix drawn at claim time. Such an id is asserted by shape and
-// then read back into whatever the case derives from it — never pinned to a
+// then read back into whatever the case derives from it, never pinned to a
 // literal.
 const assertIdShape = (id, type, what) =>
   assert.ok(
@@ -1874,14 +1875,14 @@ testCase('--new-ws --status blocked is refused and writes nothing', () => {
   });
 });
 
-// ---- cases: ID graph — orphan markers, counters ahead, links: and issues: ---
+// ---- cases: ID graph (orphan markers, counters ahead, links: and issues:) ---
 // The marker cases pin the marker directory's mtime rather than accepting
 // whatever the filesystem set at creation, because the age the WARN reports is
 // derived from it. The two grace-period cases sit half a day and three days
 // out, clearly on each side of the one-day boundary, so neither can flake.
 
-// Creates flowcharge/ids/<id>/ as a directory — a marker is a directory, not a
-// file, so fixture()'s spec map cannot express it — and ages it by ageDays.
+// Creates flowcharge/ids/<id>/ as a directory (a marker is a directory, not a
+// file, so fixture()'s spec map cannot express it) and ages it by ageDays.
 function marker(dir, id, ageDays = 0) {
   const p = path.join(dir, 'flowcharge', 'ids', id);
   fs.mkdirSync(p, { recursive: true });
@@ -1948,7 +1949,7 @@ testCase('clean: a counter matched by a marker with no artefact yet warns about 
 testCase('the counter-behind warning still fires with its original string beside the new checks', () => {
   withFixture(baseTree({}, { WS: 0 }), (dir) => {
     marker(dir, 'WS-1-abcdef', 0.5);
-    expectWarns(dir, ['ids.md: WS counter is 0 but WS-1 exists — registry behind']);
+    expectWarns(dir, ['ids.md: WS counter is 0 but WS-1 exists, registry behind']);
   });
 });
 
@@ -2018,7 +2019,7 @@ const STALE_HEADER = '# FlowCharge ID Registry\n\n'
   + 'Last-issued ID per type. To claim IDs: read this file, take the next N numbers for\n'
   + 'your type, write the incremented counter back IMMEDIATELY, then use them.\n\n';
 
-const HEADER_WARN = 'ids.md: header text is out of date — rewritten';
+const HEADER_WARN = 'ids.md: header text is out of date, rewritten';
 
 testCase('clean: a lease acquired five minutes ago warns about nothing', () => {
   withFixture(baseTree({ [LEASE1]: lease('sess-fresh', 5) }), (dir) => {
@@ -2029,7 +2030,7 @@ testCase('clean: a lease acquired five minutes ago warns about nothing', () => {
 testCase('a lease held past sixty minutes warns with its session and its age', () => {
   withFixture(baseTree({ [LEASE1]: lease('sess-stale', 90.5) }), (dir) => {
     expectWarns(dir, [
-      'flowcharge/workstreams/WS-1-abcdef-alpha/.lease: held by session sess-stale for 90 minutes — stale',
+      'flowcharge/workstreams/WS-1-abcdef-alpha/.lease: held by session sess-stale for 90 minutes, stale',
     ]);
   });
 });
@@ -2097,7 +2098,7 @@ testCase('the registry --claim seeds carries the same canonical header', () => {
 // ---- cases: --help ---------------------------------------------------------
 // --help prints the script's whole interface on stdout and exits 0 before every
 // other mode runs. The cases pin the output's head and tail, the flag and enum
-// inventory the text must document, and — in two different trees — that the run
+// inventory the text must document, and, in two different trees, that the run
 // reads no file and writes none.
 
 // Every flag fc-index.mjs parses. A flag added to the script without an entry
@@ -2367,9 +2368,9 @@ testCase('rename: an untracked file in a tree with no repository moves through f
 // ---- cases: stamp-skill-versions.mjs ----------------------------------------
 // stamp-skill-versions.mjs derives its own root from its own file location,
 // not from a --root flag, so every case here copies the shipped script into
-// the fixture at .github/scripts/ — two directories below the fixture root,
+// the fixture at .github/scripts/ (two directories below the fixture root,
 // the same depth the script itself sits at, and the same copied-script
-// technique the version-check section above established for fc-index.mjs —
+// technique the version-check section above established for fc-index.mjs)
 // before running it. Running STAMPER itself would point the script at this
 // repository's real skills/ tree and rewrite this repository's own shipped
 // SKILL.md files, so no case here ever spawns STAMPER directly.
@@ -2485,7 +2486,7 @@ testCase('stamp: a file already at the target value is left untouched and not co
     assert.strictEqual(status, 0, `stamp exited ${status}\n${stderr}`);
     assert.strictEqual(readSkill(dir, 'alpha'), skillFile('alpha', '0.2.0'));
     assert.strictEqual(readSkill(dir, 'gamma'), skillFile('gamma', '0.2.0'));
-    // Byte-identical to its original content, and never rewritten at all —
+    // Byte-identical to its original content, and never rewritten at all,
     // not merely holding the same value after a redundant write.
     assert.strictEqual(readSkill(dir, 'beta'), skillFile('beta', '0.2.0'));
     assert.strictEqual(fs.statSync(betaPath).mtimeMs, betaMtimeBefore, 'beta/SKILL.md was rewritten despite already matching the target');
@@ -2578,7 +2579,7 @@ testCase('stamp: a SKILL.md carrying a bare top-level version key fails validati
 // <dir>/skills/skills, so listSkillFiles() returns an empty array and nothing
 // is written. If the three-parent walk is ever restored, that same copy
 // resolves its root to <dir>, finds <dir>/skills/<name>/SKILL.md, and stamps
-// them — which is what this case exists to catch. The case builds its own
+// them, which is what this case exists to catch. The case builds its own
 // copy step rather than reusing withStamperFixture(), which now copies to
 // .github/scripts/.
 testCase('stamp: a copy left at the old skills/legacy-skill/scripts/ depth resolves the wrong root and stamps nothing', () => {
@@ -2608,7 +2609,7 @@ testCase('stamp: a copy left at the old skills/legacy-skill/scripts/ depth resol
 
 // ---- cases: release.mjs -----------------------------------------------------
 // release.mjs derives its own root from its own file location, two directories
-// up, so every case here copies it — and the stamper it spawns — into the
+// up, so every case here copies it (and the stamper it spawns) into the
 // fixture at .github/scripts/ and runs that copy, the same copied-script
 // technique the two sections above established. It drives git from end to end,
 // so unlike every other fixture in this file the tree it acts on is a real git
@@ -2852,7 +2853,7 @@ testCase('release: R9 an existing tag refuses the release with no commit added',
     assert.strictEqual(commitCount(dir), before, 'a commit was added despite the existing tag');
     assert.strictEqual(headSha(dir), head, 'HEAD moved despite the existing tag');
     assert.deepStrictEqual(tagsIn(dir), [REL_TAG], 'the tag set changed');
-    assertSkillsUntouched(dir, specs, 'despite the existing tag — the stamper ran before the tag check');
+    assertSkillsUntouched(dir, specs, 'despite the existing tag: the stamper ran before the tag check');
   });
 });
 
@@ -2921,7 +2922,7 @@ testCase('release: R13 a tree already stamped and committed skips the commit and
     // release.mjs now stages skills/manifest.json alongside the SKILL.md
     // files, "already stamped and committed" must include a manifest that
     // already matches, or the run below would find something new to stage
-    // and commit instead of skipping — which is the opposite of what this
+    // and commit instead of skipping, which is the opposite of what this
     // case exists to prove.
     const manifestCopy = path.join(dir, '.github', 'scripts', 'manifest.mjs');
     const pre = spawnSync(process.execPath, [manifestCopy, REL_VERSION], { cwd: dir, encoding: 'utf8' });
@@ -2970,7 +2971,7 @@ const chkSpecs = () => [
 ];
 
 // A skills/ tree, a CHANGELOG.md, and copies of the named scripts at
-// .github/scripts/ — the depth check-release.mjs's own two-parent root walk
+// .github/scripts/, the depth check-release.mjs's own two-parent root walk
 // assumes, so the copy reads <dir>/skills/ and <dir>/CHANGELOG.md.
 //
 // opts:
@@ -3140,7 +3141,7 @@ testCase('check-release: V6 one more and one fewer skill folder are both discove
 const SECTION = path.resolve(HERE, '..', '..', '..', '..', '.github', 'scripts', 'changelog-section.mjs');
 
 // A CHANGELOG.md holding changelogText, plus a copy of changelog-section.mjs at
-// .github/scripts/ — the depth the script's own two-parent root walk assumes,
+// .github/scripts/, the depth the script's own two-parent root walk assumes,
 // so the copy reads <dir>/CHANGELOG.md. Pass null to leave CHANGELOG.md out of
 // the tree altogether: a missing file and an empty file are different cases.
 function withChangelogFixture(changelogText, fn) {
@@ -3373,7 +3374,7 @@ const distEntries = (dir) => {
 
 // A minimal ZIP reader. It finds the end-of-central-directory record, walks the
 // central directory it points at, and for each entry follows the recorded local
-// header offset to the file data — the same route a real unzip takes, so a
+// header offset to the file data, the same route a real unzip takes, so a
 // wrong offset fails here rather than passing.
 function readZipEntries(zipFile) {
   const buf = fs.readFileSync(zipFile);
@@ -3533,7 +3534,7 @@ testCase('build-release-zip: Z6 every refusal writes nothing, and --help writes 
 // ---- cases: manifest.mjs ----------------------------------------------------
 // manifest.mjs derives its own root from its own file location, two directories
 // up, and it takes no --root flag, so every case here copies it into the fixture
-// at .github/scripts/ and runs that copy — the same copied-script technique the
+// at .github/scripts/ and runs that copy, the same copied-script technique the
 // sections above established. Running MANIFEST itself would hash this
 // repository's own skills/ tree and write this repository's own
 // skills/manifest.json, so no case here ever spawns MANIFEST directly.
@@ -3542,7 +3543,7 @@ testCase('build-release-zip: Z6 every refusal writes nothing, and --help writes 
 // fixture root carries a VERSIONING.md: it is the marker the generator's root
 // derivation checks, and a fixture without one fails every case for the wrong
 // reason. Second, the trees are built here rather than through fixture(),
-// which always creates flowcharge/workstreams/ — a directory this script
+// which always creates flowcharge/workstreams/, a directory this script
 // neither needs nor may read, and one whose presence in a fixture would hide a
 // mistake. WS-76's own builders each bind one script to one set of extra files
 // and go through fixture(), so none of them is reusable as-is; this one mirrors
@@ -3739,7 +3740,7 @@ testCase('manifest: M3 the real stamper then the real generator agree on one sha
 // The digest contract. These six cases are the frozen definition of a public
 // value: once a release publishes digests, changing what the hash covers or how
 // it is fed invalidates every published one. They assert observable properties
-// only. No expected hex digest is written down anywhere in this section — a
+// only. No expected hex digest is written down anywhere in this section. A
 // hard-coded digest would pin the harness to the fixture's exact bytes, fail on
 // every unrelated fixture edit, and prove nothing these properties do not.
 
@@ -3948,7 +3949,7 @@ testCase('manifest: M17 a SKILL.md whose version disagrees with the argument is 
 // differently on purpose: a directory that holds no SKILL.md is announced and
 // skipped, because it may be a skill someone forgot to finish; a loose file is
 // ignored in silence, because manifest.json itself is one.
-const manSkippedWarn = (name) => `skills/${name}: no SKILL.md — skipped`;
+const manSkippedWarn = (name) => `skills/${name}: no SKILL.md, skipped`;
 
 testCase('manifest: M18 a directory under skills/ with no SKILL.md warns, stays out of the array, and still exits 0', () => {
   const specs = manSpecs();
@@ -4020,7 +4021,7 @@ const foldedSkillFile = (name, version) => [
   '---',
   `name: ${name}`,
   'description: >-',
-  '  Reference checklist of core software engineering principles — DRY, KISS,',
+  '  Reference checklist of core software engineering principles: DRY, KISS,',
   '  YAGNI, POLA, Law of Demeter, SOLID, separation of concerns, modularity,',
   '  composition over inheritance, convention over configuration, task/scope',
   '  discipline, and implementation/operational principles (least privilege,',
@@ -4094,6 +4095,227 @@ testCase('manifest: M23 --help answers in an empty directory, prints the usage o
     fs.rmSync(holder, { recursive: true, force: true });
     fs.rmSync(empty, { recursive: true, force: true });
   }
+});
+
+// ---- cases: setup-labels.mjs ------------------------------------------------
+// setup-labels.mjs (WS-71-hlbmjf) never touches the network in these cases: a
+// stub gh executable is written into a temp fixture's bin/ and put first on
+// PATH for the child process only. The stub answers --version, auth status,
+// repo view and label list from a state file the case writes into the
+// fixture, and logs EVERY invocation it receives, including the four it
+// answers, to a log file the case then asserts on. Logging only the calls it
+// does not answer would make a "no label list in the log" assertion pass
+// whether or not the refusal under test actually fired.
+
+const SETUP_LABELS = path.resolve(HERE, '..', '..', '..', '..', '.github', 'scripts', 'setup-labels.mjs');
+
+// The stub is CommonJS, not ESM: it is invoked directly by its shebang as a
+// file named exactly "gh" (spawnSync('gh', ...) resolves it off PATH by
+// name), and with no package.json anywhere above it, node treats an
+// extensionless script as CommonJS by default.
+const GH_STUB = `#!/usr/bin/env node
+const fs = require('fs');
+const path = require('path');
+
+const dir = process.env.GH_STUB_DIR;
+const args = process.argv.slice(2);
+fs.appendFileSync(path.join(dir, 'gh-log.txt'), JSON.stringify(args) + '\\n');
+
+const state = JSON.parse(fs.readFileSync(path.join(dir, 'gh-state.json'), 'utf8'));
+
+if (args[0] === '--version') {
+  process.stdout.write('gh version 2.98.0 (stub)\\n');
+  process.exit(0);
+}
+if (args[0] === 'auth' && args[1] === 'status') {
+  if (state.authStatus !== 0) {
+    process.stderr.write('You are not logged into any GitHub hosts.\\n');
+    process.exit(state.authStatus);
+  }
+  process.stdout.write('github.com\\n  \\u2713 Logged in\\n');
+  process.exit(0);
+}
+if (args[0] === 'repo' && args[1] === 'view') {
+  if (state.repoView.status !== 0) {
+    process.stderr.write('none of the git remotes configured for this repository point to a known GitHub host\\n');
+    process.exit(state.repoView.status);
+  }
+  process.stdout.write(JSON.stringify({ nameWithOwner: state.repoView.nameWithOwner || 'owner/repo', url: state.repoView.url }) + '\\n');
+  process.exit(0);
+}
+if (args[0] === 'label' && args[1] === 'list') {
+  process.stdout.write(JSON.stringify(state.labels) + '\\n');
+  process.exit(0);
+}
+if (args[0] === 'label' && args[1] === 'create') {
+  process.exit(0);
+}
+if (args[0] === 'label' && args[1] === 'delete') {
+  process.exit(0);
+}
+process.stderr.write('gh-stub: unhandled invocation ' + JSON.stringify(args) + '\\n');
+process.exit(1);
+`;
+
+// GitHub's nine seeded defaults, each with GitHub's own colour and
+// description. bug and enhancement match LABELS' colour but differ in
+// description, so they land as updates rather than creates or unchanged.
+const GITHUB_DEFAULT_LABELS = [
+  { name: 'bug', color: 'd73a4a', description: "Something isn't working" },
+  { name: 'documentation', color: '0075ca', description: 'Improvements or additions to documentation' },
+  { name: 'duplicate', color: 'cfd3d7', description: 'This issue or pull request already exists' },
+  { name: 'enhancement', color: 'a2eeef', description: 'New feature or request' },
+  { name: 'good first issue', color: '7057ff', description: 'Good for newcomers' },
+  { name: 'help wanted', color: '008672', description: 'Extra attention is needed' },
+  { name: 'invalid', color: 'e4e669', description: "This doesn't seem right" },
+  { name: 'question', color: 'd876e3', description: 'Further information is requested' },
+  { name: 'wontfix', color: 'ffffff', description: 'This will not be worked on' },
+];
+
+// Builds a fixture holding bin/gh (mode 0o755, stub above), writes the given
+// state to gh-state.json, and hands the directory to fn. withFixture's
+// finally block removes the tree afterwards, including when fn throws.
+function withLabelFixture(state, fn) {
+  return withFixture({}, (dir) => {
+    const binDir = path.join(dir, 'bin');
+    fs.mkdirSync(binDir, { recursive: true });
+    const ghPath = path.join(binDir, 'gh');
+    fs.writeFileSync(ghPath, GH_STUB);
+    fs.chmodSync(ghPath, 0o755);
+    fs.writeFileSync(path.join(dir, 'gh-log.txt'), '');
+    setLabelState(dir, state);
+    return fn(dir, binDir);
+  });
+}
+
+function setLabelState(dir, state) {
+  fs.writeFileSync(path.join(dir, 'gh-state.json'), JSON.stringify(state));
+}
+
+function readLabelLog(dir) {
+  const text = fs.readFileSync(path.join(dir, 'gh-log.txt'), 'utf8');
+  return text.split('\n').filter(Boolean).map((l) => JSON.parse(l));
+}
+
+// Runs the real setup-labels.mjs with the stub's bin/ prepended to PATH for
+// this child process only: process.env.PATH itself is never mutated, or
+// every later case would inherit the stub.
+function runSetupLabels(dir, binDir, extraArgs = []) {
+  const res = spawnSync(process.execPath, [SETUP_LABELS, ...extraArgs], {
+    cwd: dir,
+    encoding: 'utf8',
+    env: { ...process.env, PATH: binDir + path.delimiter + process.env.PATH, GH_STUB_DIR: dir },
+  });
+  return { status: res.status, stdout: res.stdout || '', stderr: res.stderr || '' };
+}
+
+const AUTHENTICATED_REPO_STATE = {
+  authStatus: 0,
+  repoView: { status: 0, nameWithOwner: 'FlowChargeApp/flowcharge-core', url: 'https://github.com/FlowChargeApp/flowcharge-core' },
+  labels: GITHUB_DEFAULT_LABELS,
+};
+
+testCase('setup-labels: dry run prints 4 creates, 2 updates, 7 deletes and writes nothing', () => {
+  withLabelFixture(AUTHENTICATED_REPO_STATE, (dir, binDir) => {
+    const { status, stdout } = runSetupLabels(dir, binDir);
+    assert.strictEqual(status, 0, `dry run exited ${status}: ${stdout}`);
+    assert.match(stdout, /4 create, 2 update, 7 delete/, 'dry-run summary did not report 4 creates, 2 updates, 7 deletes');
+    const log = readLabelLog(dir);
+    assert.strictEqual(log.filter((a) => a[0] === 'label' && a[1] === 'list').length, 1, 'expected exactly one label list call');
+    assert.strictEqual(log.filter((a) => a[0] === 'label' && a[1] === 'create').length, 0, 'dry run must issue no label create');
+    assert.strictEqual(log.filter((a) => a[0] === 'label' && a[1] === 'delete').length, 0, 'dry run must issue no label delete');
+  });
+});
+
+testCase('setup-labels: --apply issues 6 creates then 7 deletes, none deleting bug or enhancement', () => {
+  withLabelFixture(AUTHENTICATED_REPO_STATE, (dir, binDir) => {
+    const { status } = runSetupLabels(dir, binDir, ['--apply']);
+    assert.strictEqual(status, 0, 'apply did not exit 0');
+    const log = readLabelLog(dir);
+    const creates = log.filter((a) => a[0] === 'label' && a[1] === 'create');
+    const deletes = log.filter((a) => a[0] === 'label' && a[1] === 'delete');
+    assert.strictEqual(creates.length, 6, `expected 6 label create calls (4 creates + 2 updates), got ${creates.length}`);
+    assert.ok(creates.every((a) => a.includes('--force')), 'every label create must carry --force');
+    assert.strictEqual(deletes.length, 7, `expected 7 label delete calls, got ${deletes.length}`);
+    assert.ok(deletes.every((a) => a.includes('--yes')), 'every label delete must carry --yes');
+    assert.ok(!deletes.some((a) => a[2] === 'bug' || a[2] === 'enhancement'), 'bug or enhancement was deleted instead of updated');
+    const lastCreateIdx = log.map((a, i) => (a[0] === 'label' && a[1] === 'create' ? i : -1)).filter((i) => i >= 0).pop();
+    const firstDeleteIdx = log.map((a, i) => (a[0] === 'label' && a[1] === 'delete' ? i : -1)).filter((i) => i >= 0).shift();
+    assert.ok(lastCreateIdx < firstDeleteIdx, 'a delete was issued before every create had run');
+  });
+});
+
+testCase('setup-labels: --apply against an already-matching repository issues no call, case-insensitively', () => {
+  const matching = {
+    authStatus: 0,
+    repoView: AUTHENTICATED_REPO_STATE.repoView,
+    labels: LABELS,
+  };
+  withLabelFixture(matching, (dir, binDir) => {
+    const first = runSetupLabels(dir, binDir, ['--apply']);
+    assert.strictEqual(first.status, 0, 'first apply did not exit 0');
+    let log = readLabelLog(dir);
+    assert.strictEqual(log.filter((a) => a[0] === 'label' && (a[1] === 'create' || a[1] === 'delete')).length, 0, 'an already-matching repository must get no mutating call');
+
+    fs.writeFileSync(path.join(dir, 'gh-log.txt'), '');
+    const recased = LABELS.map((l) => (l.name === 'bug' ? { ...l, name: 'Bug' } : l.name === 'format-change' ? { ...l, name: 'Format-Change' } : l));
+    setLabelState(dir, { authStatus: 0, repoView: AUTHENTICATED_REPO_STATE.repoView, labels: recased });
+    const second = runSetupLabels(dir, binDir, ['--apply']);
+    assert.strictEqual(second.status, 0, 'second apply did not exit 0');
+    log = readLabelLog(dir);
+    assert.strictEqual(log.filter((a) => a[0] === 'label' && (a[1] === 'create' || a[1] === 'delete')).length, 0, 'a differently-cased but matching repository must still get no mutating call: names compare case-insensitively');
+  });
+});
+
+testCase('setup-labels: refuses a repository whose host gh cannot resolve, or that is not github.com', () => {
+  withLabelFixture({ authStatus: 0, repoView: { status: 1 }, labels: [] }, (dir, binDir) => {
+    const { status } = runSetupLabels(dir, binDir);
+    assert.strictEqual(status, 1, 'a failing gh repo view must refuse');
+    const log = readLabelLog(dir);
+    assert.strictEqual(log.filter((a) => a[0] === 'label' && a[1] === 'list').length, 0, 'no label list may run after a failing repo view');
+    assert.strictEqual(log.filter((a) => a[0] === 'label').length, 0, 'no mutating label call may run after a failing repo view');
+  });
+  withLabelFixture({ authStatus: 0, repoView: { status: 0, nameWithOwner: 'owner/repo', url: 'https://github.example.com/owner/repo' }, labels: [] }, (dir, binDir) => {
+    const { status } = runSetupLabels(dir, binDir);
+    assert.strictEqual(status, 1, 'a non-github.com host must refuse');
+    const log = readLabelLog(dir);
+    assert.strictEqual(log.filter((a) => a[0] === 'label' && a[1] === 'list').length, 0, 'no label list may run after a non-github.com host refusal');
+  });
+});
+
+testCase('setup-labels: refuses when gh reports no authenticated host, and prints the fix', () => {
+  withLabelFixture({ authStatus: 1, repoView: AUTHENTICATED_REPO_STATE.repoView, labels: [] }, (dir, binDir) => {
+    const { status, stderr } = runSetupLabels(dir, binDir);
+    assert.strictEqual(status, 1, 'an unauthenticated gh must refuse');
+    assert.match(stderr, /gh auth login/, 'the refusal must print the gh auth login fix');
+    const log = readLabelLog(dir);
+    assert.strictEqual(log.filter((a) => a[0] === 'repo' && a[1] === 'view').length, 0, 'no repo view may run after an auth refusal');
+    assert.strictEqual(log.filter((a) => a[0] === 'label').length, 0, 'no label call may run after an auth refusal');
+    assert.ok(log.some((a) => a[0] === '--version'), '--version should still have been checked before the auth refusal');
+    assert.ok(log.some((a) => a[0] === 'auth' && a[1] === 'status'), 'auth status should have been checked');
+  });
+});
+
+testCase('setup-labels: the table holds exactly six entries, the six required names, capped descriptions, no priority label', () => {
+  withLabelFixture(AUTHENTICATED_REPO_STATE, (dir, binDir) => {
+    const script = `import { LABELS } from ${JSON.stringify(SETUP_LABELS)}; process.stdout.write(JSON.stringify(LABELS));`;
+    const res = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
+      cwd: dir,
+      encoding: 'utf8',
+      env: { ...process.env, PATH: binDir + path.delimiter + process.env.PATH, GH_STUB_DIR: dir },
+    });
+    assert.strictEqual(res.status, 0, `importing setup-labels.mjs failed: ${res.stderr}`);
+    const table = JSON.parse(res.stdout);
+    assert.strictEqual(table.length, 6, 'the table must hold exactly six entries');
+    const names = table.map((l) => l.name).sort();
+    assert.deepStrictEqual(names, ['accepted', 'bug', 'declined', 'enhancement', 'format-change', 'needs-info'], 'the table names must be exactly the six required names');
+    for (const l of table) {
+      assert.ok(l.description.length <= 100, `${l.name}'s description exceeds 100 characters`);
+      assert.ok(!/^(p[0-9]|priority)/i.test(l.name), `${l.name} looks like a priority label, which the design deliberately excludes`);
+    }
+    const log = readLabelLog(dir);
+    assert.strictEqual(log.length, 0, 'importing the module must make no gh call');
+  });
 });
 
 // ---- cases: skill-file docs consistency (skills/**/*.md) -------------------
@@ -4216,14 +4438,14 @@ function ruleDMatches(line) {
 // Rule E, the mechanism word. This suite calls the thing that stops the user a
 // prompt, and the `prompts:` key in flowcharge/agents.md governs it, so the word
 // gate must never name that mechanism again. The word survives in this tree in
-// several unrelated senses — a pre-commit safety gate, a baseline gate, a
-// candidate filter, a `#gates+` tag token — so every live occurrence is
+// several unrelated senses (a pre-commit safety gate, a baseline gate, a
+// candidate filter, a `#gates+` tag token), so every live occurrence is
 // allowlisted with the sense it carries, and only a new one fails. The
 // (?<![\w-]) and (?![\w-]) guards are the pair rules B, C and D use:
 // together they keep investigate, delegated, navigate and mitigate out of the
 // results.
 //
-// The matched text follows rule D's precedent — the gate word plus the word that
+// The matched text follows rule D's precedent: the gate word plus the word that
 // follows it on the same line, and the bare word where none follows. The key is
 // not the bare word alone because an allowlist entry keys on file plus matched
 // text, so a bare `gate` would allowlist every occurrence in the whole file
@@ -4352,14 +4574,14 @@ const DOCS_ALLOWLIST = [
       'and it is the only sense this entry covers.',
   },
   {
-    file: 'flowcharge/prompts/kanban-add.md',
+    file: 'flowcharge/templates/kanban-add.md',
     text: 'gates',
     why:
       'Rule E. The `#gates+` tag-token example, a sample word showing the ' +
       'trailing-plus syntax. It names no mechanism.',
   },
   {
-    file: 'flowcharge/prompts/validate-tasks.md',
+    file: 'flowcharge/templates/validate-tasks.md',
     text: 'gate',
     why:
       "Rule E. The template tells the validator to apply fc-validate's baseline " +
@@ -4406,7 +4628,7 @@ const DOCS_ALLOWLIST = [
     file: 'fc-validate/SKILL.md',
     text: 'gate a',
     why:
-      'Rule E. "to gate a change to project code" — the executor sense of the ' +
+      'Rule E. "to gate a change to project code": the executor sense of the ' +
       'verb, describing what a project test does.',
   },
   {
@@ -4443,15 +4665,15 @@ function describeOccurrences(occurrences) {
 // Rule G, cross-references resolve. Two path forms are written in this tree's
 // prose, and both are checked against the disk:
 //
-//   form 1  a prompts/<name>.md reference in flowcharge/SKILL.md, which the
+//   form 1  a templates/<name>.md reference in flowcharge/SKILL.md, which the
 //           Operations table and the hard rules use as a short form. It resolves
-//           under skills/flowcharge/prompts/.
+//           under skills/flowcharge/templates/.
 //   form 2  a skills/-rooted path in any skills/**/*.md. It resolves from the
 //           repository root, the directory above skills/.
 //
 // The <skills-dir>/ placeholder form is deliberately excluded: it is a slot the
 // reader fills in, not a path, and it never resolves anywhere. Both guards do
-// that for free — form 1 refuses a preceding slash, so <skills-dir>/…/prompts/x
+// that for free: form 1 refuses a preceding slash, so <skills-dir>/…/templates/x
 // is not read as a short form, and form 2's literal `skills/` never appears in
 // `<skills-dir>/`.
 //
@@ -4470,7 +4692,7 @@ function ruleGDanglingPaths(sources) {
     for (let i = 0; i < lines.length; i++) {
       const seen = [];
       if (src.file === RULE_G_PROMPT_SHORT_FORM_FILE) {
-        for (const m of lines[i].matchAll(/(?<![\w/-])prompts\/[A-Za-z0-9._-]+\.md/g)) {
+        for (const m of lines[i].matchAll(/(?<![\w/-])templates\/[A-Za-z0-9._-]+\.md/g)) {
           seen.push([m[0], path.join(SKILLS_ROOT, 'flowcharge', m[0])]);
         }
       }
@@ -4498,8 +4720,8 @@ function describeDanglingPaths(dangling) {
 // the same block, and this rule pins it in all six at once.
 //
 // The two tasks-from-issues templates are deliberately absent from the list.
-// Neither returns an open question — a template that cannot author a task for an
-// issue returns that issue as skipped instead — so the block would say nothing
+// Neither returns an open question (a template that cannot author a task for an
+// issue returns that issue as skipped instead), so the block would say nothing
 // there.
 //
 // RULE_H_BLOCK is the block as it stands in create-plan.md, the master copy, with
@@ -4510,16 +4732,16 @@ function describeDanglingPaths(dangling) {
 // Like rule G this rule is per file, so it calls neither collectOccurrences nor
 // unallowedOccurrences and it adds no DOCS_ALLOWLIST entries.
 const RULE_H_TEMPLATES = [
-  'flowcharge/prompts/create-plan.md',
-  'flowcharge/prompts/tasks-from-plan-spec.md',
-  'flowcharge/prompts/tasks-from-plan-diff.md',
-  'flowcharge/prompts/validate-plan.md',
-  'flowcharge/prompts/validate-issues.md',
-  'flowcharge/prompts/validate-tasks.md',
+  'flowcharge/templates/create-plan.md',
+  'flowcharge/templates/tasks-from-plan-spec.md',
+  'flowcharge/templates/tasks-from-plan-diff.md',
+  'flowcharge/templates/validate-plan.md',
+  'flowcharge/templates/validate-issues.md',
+  'flowcharge/templates/validate-tasks.md',
 ];
 
 const RULE_H_BLOCK =
-  '**Open questions — the return shape** '
+  '**Open questions, the return shape** '
   + 'Return every open question in this shape, and no other: '
   + '- **Question:** the question in one sentence that reads cold to somebody who was '
   + 'not here. '
@@ -4617,17 +4839,17 @@ testCase('skills/**/*.md: every path written in the prose resolves on disk', () 
   // In-memory samples first. The live tree passes today, so without this half
   // the case could silently stop discriminating and still report ok.
   const missing = ruleGDanglingPaths([
-    { file: 'sample/SKILL.md', text: 'see skills/flowcharge/prompts/does-not-exist.md' },
+    { file: 'sample/SKILL.md', text: 'see skills/flowcharge/templates/does-not-exist.md' },
   ]);
   assert.deepStrictEqual(
     missing.map((d) => d.written),
-    ['skills/flowcharge/prompts/does-not-exist.md'],
+    ['skills/flowcharge/templates/does-not-exist.md'],
     'Rule G did not flag a sample path that does not exist',
   );
   const present = ruleGDanglingPaths([
     { file: 'sample/SKILL.md', text: 'see skills/flowcharge/CONVENTIONS.md' },
-    { file: RULE_G_PROMPT_SHORT_FORM_FILE, text: 'run prompts/create-plan.md' },
-    { file: 'sample/SKILL.md', text: 'the slot <skills-dir>/flowcharge/prompts/create-plan.md' },
+    { file: RULE_G_PROMPT_SHORT_FORM_FILE, text: 'run templates/create-plan.md' },
+    { file: 'sample/SKILL.md', text: 'the slot <skills-dir>/flowcharge/templates/create-plan.md' },
   ]);
   assert.deepStrictEqual(present, [], 'Rule G flagged a path that does resolve, or read the placeholder form as a path');
 
@@ -4798,7 +5020,7 @@ testCase('the prompt policy still carries the no-recommendation rule', () => {
 // FlowCharge unless a LICENSE travels with the code. The root LICENSE carries
 // the terms; every discovered skill folder carries its own byte-identical
 // copy, so an installed skill folder ships those terms down every install
-// path — the release zip, the ln -s install and the cp -R install. The three
+// path: the release zip, the ln -s install and the cp -R install. The three
 // cases below read the repository's own tree, exactly as the skill-file docs
 // consistency cases above do, rather than building a fixture.
 //
