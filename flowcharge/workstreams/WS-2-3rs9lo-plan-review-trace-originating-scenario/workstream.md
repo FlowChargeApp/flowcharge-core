@@ -4,7 +4,7 @@ type: workstream
 workstream: WS-2-3rs9lo
 slug: plan-review-trace-originating-scenario
 title: "The orchestrator never checks a plan's design against the scenario that motivated it before authoring tasks from it"
-status: in-progress
+status: done
 tags: [orchestration, quality, feature]
 created: 2026-09-10
 updated: 2026-09-13

@@ -4,7 +4,7 @@ type: plan
 workstream: WS-2-3rs9lo
 slug: plan-review-trace-originating-scenario
 title: "Trace a plan against its originating scenario before authoring tasks from it"
-status: ready
+status: done
 created: 2026-09-13
 updated: 2026-09-13
 depends_on: []
