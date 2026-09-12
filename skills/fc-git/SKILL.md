@@ -150,6 +150,15 @@ Naming: follow the repo's existing convention (detect from `git branch -a`);
 otherwise `feature/`, `fix/`, `chore/` prefixes. Delete merged branches only with
 confirmation, and prefer `git branch -d` (refuses if unmerged) over `-D`.
 
+FlowCharge Core workstreams: when the branch is cut for work that traces to
+a FlowCharge Core workstream identifiable in context (`WS-N-SUFFIX`) — the
+same "in context" test the Committing section's FlowCharge Core artefacts
+rule uses — prefix the chosen name with that workstream's ID ahead of the
+description: `feature/WS-3-t2lfk1-branch-name-ws-prefix`, matching the
+`flowcharge/workstreams/WS-N-SUFFIX-<slug>/` folder convention. Work that
+isn't workstream-driven keeps the bare form above — never invent or hunt
+for an ID.
+
 ### Merging & rebasing
 **The golden rule: rebase local/private history freely; NEVER rewrite history that
 exists on a shared remote.** Rewriting published commits strands everyone who has
