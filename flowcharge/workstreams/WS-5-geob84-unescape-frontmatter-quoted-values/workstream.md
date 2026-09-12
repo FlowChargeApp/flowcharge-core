@@ -5,7 +5,7 @@ workstream: WS-5-geob84
 slug: unescape-frontmatter-quoted-values
 title: "Frontmatter parser leaves escaped quotes in title and description values"
 description: "parseFrontmatter strips only the outer quote marks from a quoted YAML scalar; it never undoes backslash-escaping inside the value. A title or description written with JSON.stringify (as fc-index.mjs now does for a value holding a literal quote) reads back with the backslashes still in the text, e.g. He said \\\"hi\\\" instead of He said \"hi\"."
-status: in-progress
+status: done
 tags: [generator, correctness, data-integrity, issue]
 created: 2026-09-10
 updated: 2026-09-13
