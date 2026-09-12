@@ -4,7 +4,7 @@ type: workstream
 workstream: WS-3-t2lfk1
 slug: branch-name-ws-prefix
 title: "Prefix feature branch names with their workstream code"
-status: in-progress
+status: done
 tags: [prompts, skills, git, feature]
 created: 2026-09-10
 updated: 2026-09-13
