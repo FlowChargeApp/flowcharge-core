@@ -339,6 +339,21 @@ const localDay = (d = new Date()) =>
 // flowcharge/SKILL.md, and a person applies it.
 const isClosedStatus = (s) => s === 'done' || s === 'dropped';
 
+// Undoes JSON.stringify's escaping on a double-quoted scalar (the only
+// form this file's writers emit) and falls back to the bare quote-strip
+// below when the value is not valid JSON, e.g. a hand-edited value or a
+// single-quoted YAML scalar. An unquoted value is returned unchanged.
+function unquoteScalar(v) {
+  if (v.startsWith('"') && v.endsWith('"')) {
+    try {
+      return JSON.parse(v);
+    } catch {
+      // not valid JSON (hand-edited or malformed) — fall through to strip
+    }
+  }
+  return v.replace(/^["']|["']$/g, '');
+}
+
 function parseFrontmatter(text) {
   const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!m) return null;
@@ -353,7 +368,7 @@ function parseFrontmatter(text) {
         ? inner.split(',').map((s) => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean)
         : [];
     } else {
-      fm[km[1]] = v.replace(/^["']|["']$/g, '');
+      fm[km[1]] = unquoteScalar(v);
     }
   }
   return fm;
