@@ -4,7 +4,7 @@ type: plan
 workstream: WS-3-t2lfk1
 slug: branch-name-ws-prefix
 title: "Prefix FlowCharge Core branch names with the workstream code"
-status: ready
+status: done
 created: 2026-09-13
 updated: 2026-09-13
 depends_on: []
