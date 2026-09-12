@@ -139,6 +139,25 @@ in that case.
     exactly as rule 4 defines them. On any other branch, do nothing and leave it
     alone. Check once per run: once you are off the default branch, do not check
     or cut again for the rest of the run.
+12. **A plan is checked against its motivating scenario before tasks are
+    authored from it.** Before spawning the tasks-from-plan stage for any
+    plan, read that plan and the workstream record it belongs to (its
+    frontmatter `workstream:` key), then state, in one line per case, how
+    the plan's design handles each concrete scenario or failure case the
+    workstream record's body names as the reason the work is needed. This
+    is a trace of the plan's actual proposed text against that scenario,
+    not a restatement that the plan reads as internally consistent or that
+    its acceptance criteria are individually satisfiable, and it runs
+    whether the plan was authored earlier in this same run or in an earlier
+    one. State the trace in that stage's report. It is the orchestrator's
+    own reading, under rule 8's carve-out for reading artefact files when a
+    briefing needs facts, never a subagent's. When the workstream record
+    names no concrete scenario or failure case, say so in one line and
+    proceed. When it names one the plan's stated design does not visibly
+    handle, halt and report instead of spawning tasks-from-plan; the user
+    may override, per-run, exactly as rule 5's dependency check does. This
+    check supplements, and never replaces, a walkthrough task a task list
+    may still place against the finished file.
 
 ## Standing vs. one-off instructions
 
@@ -300,6 +319,10 @@ Notes:
   from what the command printed or from what the listing found. Never compose it from the
   id and the slug. `{ws_id}` keeps its present source and its present meaning. It is still
   needed for each artefact's frontmatter `workstream:` key.
+- **tasks-from-plan**: before spawning this stage for any plan, apply hard rule 12
+  — state in one line per case how the plan's design handles each scenario its
+  workstream record names, and halt instead of spawning if one is not visibly
+  handled.
 - **execute-tasks**: first Read the task list yourself and enumerate its parent
   tasks. Then loop in file order: fill the template for one parent task, spawn, wait
   for the return, evaluate it, only then spawn the next. If a return reports an
