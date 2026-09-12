@@ -365,7 +365,7 @@ function parseFrontmatter(text) {
     if (v.startsWith('[')) {
       const inner = v.replace(/^\[/, '').replace(/\]$/, '').trim();
       fm[km[1]] = inner
-        ? inner.split(',').map((s) => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean)
+        ? inner.split(',').map((s) => unquoteScalar(s.trim())).filter(Boolean)
         : [];
     } else {
       fm[km[1]] = unquoteScalar(v);
@@ -389,9 +389,9 @@ function parseIssues(text, file) {
       // author is plaintext and may contain spaces, so it captures the rest of
       // the line rather than one non-space token.
       const am = lines[j].match(/^\s+author:\s*(.+)/);
-      if (sm && !issue.status) issue.status = sm[1].replace(/^["']|["']$/g, '');
-      if (vm && !issue.severity) issue.severity = vm[1].replace(/^["']|["']$/g, '');
-      if (am && !issue.author) issue.author = am[1].trim().replace(/^["']|["']$/g, '');
+      if (sm && !issue.status) issue.status = unquoteScalar(sm[1]);
+      if (vm && !issue.severity) issue.severity = unquoteScalar(vm[1]);
+      if (am && !issue.author) issue.author = unquoteScalar(am[1].trim());
     }
     issues.push(issue);
   }
@@ -420,7 +420,7 @@ function parseTasks(text) {
     const im = line.match(/^\s+issues:\s*\[(.*)\]\s*$/);
     if (im) {
       for (const id of im[1].split(',')) {
-        const v = id.trim().replace(/^["']|["']$/g, '');
+        const v = unquoteScalar(id.trim());
         if (v) current.issues.push(v);
       }
     }

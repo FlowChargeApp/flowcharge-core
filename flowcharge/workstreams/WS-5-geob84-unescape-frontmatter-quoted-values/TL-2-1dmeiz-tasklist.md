@@ -4,7 +4,7 @@ type: tasklist
 workstream: WS-5-geob84
 slug: unescape-frontmatter-quoted-values
 title: "Unescape frontmatter quoted values"
-status: ready
+status: done
 created: 2026-09-10
 updated: 2026-09-13
 author: Anthony Koukoullis
@@ -117,13 +117,13 @@ helper at the three remaining sites (ISS-2-jvahxd).
     passed: true
     failures: []
   ```
-- [ ] 2. Reuse unquoteScalar at the three remaining duplicated call sites
+- [x] 2. Reuse unquoteScalar at the three remaining duplicated call sites
 
   ```yaml
   description: "Fix the three call sites named in ISS-2-jvahxd that duplicate the same un-unescaping bare quote-strip pattern, each by calling the unquoteScalar helper task 1 adds. No call site redefines the helper."
   ```
 
-  - [ ] 2.1 parseFrontmatter array-element values
+  - [x] 2.1 parseFrontmatter array-element values
     ```yaml
     description: "Fix the array-element branch of parseFrontmatter (line 353 as read at base_commit) to call unquoteScalar instead of the bare quote-strip."
     author: Anthony Koukoullis
@@ -153,10 +153,10 @@ helper at the three remaining sites (ISS-2-jvahxd).
       - "The trailing .filter(Boolean) is left unchanged, so an empty element is still dropped."
       - "run-tests.mjs still reports 252/252 passed, exit 0, after the change."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 2.2 parseIssues status/severity/author
+  - [x] 2.2 parseIssues status/severity/author
     ```yaml
     description: "Fix the status/severity/author assignment lines of parseIssues (lines 377-379 as read at base_commit) to call unquoteScalar instead of the bare quote-strip."
     author: Anthony Koukoullis
@@ -187,10 +187,10 @@ helper at the three remaining sites (ISS-2-jvahxd).
       - "The surrounding if (sm && !issue.status) / (vm && !issue.severity) / (am && !issue.author) guards are left unchanged."
       - "run-tests.mjs still reports 252/252 passed, exit 0, after the change."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 2.3 parseTasks issues: id list
+  - [x] 2.3 parseTasks issues: id list
     ```yaml
     description: "Fix the issues: id-list loop of parseTasks (line 408 as read at base_commit) to call unquoteScalar instead of the bare quote-strip."
     author: Anthony Koukoullis
@@ -222,6 +222,6 @@ helper at the three remaining sites (ISS-2-jvahxd).
       - "The if (v) current.issues.push(v) guard is left unchanged, so an empty id is still dropped."
       - "run-tests.mjs still reports 252/252 passed, exit 0, after the change."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
