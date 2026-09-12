@@ -19,5 +19,6 @@ no suggestion still means "not listed," not "safe to leave."
 - orchestration
 - prompts
 - quality
+- schema
 - skills
 - usability
