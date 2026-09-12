@@ -129,10 +129,12 @@ in that case.
     commit of a run, read the checked-out branch (`git branch --show-current`). If
     it is the repo's default branch (`main`, or `master` where that is the
     default, the same definition fc-git's protected-branch rule uses), cut
-    `feature/<slug>` from the current HEAD (`git switch -c`; no fetch, no pull),
-    switch to it, and say so in that stage's report. `<slug>` is the run's
-    workstream slug, bare and unprefixed, matching the repo's existing branch
-    names. Creating a branch is in fc-git's "Safe. Execute directly" tier: no
+    `feature/<ws_id>-<slug>` from the current HEAD (`git switch -c`; no
+    fetch, no pull), switch to it, and say so in that stage's report.
+    `<ws_id>` is the run's own workstream ID (see "ID slots"), and `<slug>` is
+    the run's workstream slug, bare and unprefixed — together matching the
+    `flowcharge/workstreams/<WS-N-SUFFIX>-<slug>/` folder convention.
+    Creating a branch is in fc-git's "Safe. Execute directly" tier: no
     confirmation, and no new prompt. The execute-tasks and commit prompts stay
     exactly as rule 4 defines them. On any other branch, do nothing and leave it
     alone. Check once per run: once you are off the default branch, do not check
