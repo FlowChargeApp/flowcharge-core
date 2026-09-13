@@ -13,6 +13,34 @@ skill mirrors it. See VERSIONING.md.
 
 ## Unreleased
 
+## 0.2.0 - 2026-09-13
+
+### Added
+
+- A plan is now checked against the concrete scenario or failure case its
+  workstream record names as the reason the work is needed, before tasks are
+  authored from it.
+- execute-tasks now checks a task list's `base_commit` or `updated` date
+  against current `HEAD` before its first parent-task spawn, and reports what
+  changed since instead of executing silently against a stale baseline.
+
+### Changed
+
+- Feature branch names now carry their workstream code:
+  `feature/<WS-N-SUFFIX>-<slug>`, in place of a bare slug.
+
+### Fixed
+
+- A blanket "go with your recommendations" reply no longer satisfies the
+  execute-tasks or commit prompt on its own; the reply must name that stage
+  directly to count as an answer.
+- The frontmatter parser now unescapes JSON-stringify-escaped quoted scalars,
+  so a title or description saved with escaped quotes reads correctly instead
+  of keeping the backslashes.
+- The required `author` frontmatter key is now instructed everywhere
+  CONVENTIONS.md requires it, across the authoring templates and
+  `fc-issue-list`'s own schema example.
+
 ## 0.1.0 - 2026-09-03
 
 ### Added
