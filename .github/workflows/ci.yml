@@ -101,7 +101,7 @@ jobs:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -eu
-          ASSET_NAME="flowcharge-skills-${GITHUB_REF_NAME#v}.zip"
+          ASSET_NAME="flowcharge-core-${GITHUB_REF_NAME#v}.zip"
           ASSET_PATH="dist/${ASSET_NAME}"
           RELEASE_ID="$(node -p 'JSON.parse(require("fs").readFileSync("release-response.json","utf8")).id || ""')"
           UPLOAD_URL="$(node -p 'JSON.parse(require("fs").readFileSync("release-response.json","utf8")).upload_url || ""')"

@@ -3300,7 +3300,7 @@ const BUILD_ZIP = path.resolve(HERE, '..', '..', '..', '..', '.github', 'scripts
 // The version every case builds, and the file name it implies. The name carries
 // no leading v; the tag does, the asset does not.
 const ZIP_VERSION = '0.3.0';
-const ZIP_NAME = `flowcharge-skills-${ZIP_VERSION}.zip`;
+const ZIP_NAME = `flowcharge-core-${ZIP_VERSION}.zip`;
 
 // The default skills/ tree. A function, so each case owns its own array. Every
 // count in this section is derived from the case's own specs or from a listing
@@ -3423,7 +3423,7 @@ const fixtureSkillFolders = (dir) =>
     .filter((name) => fs.existsSync(path.join(dir, 'skills', name, 'SKILL.md')))
     .sort();
 
-testCase('build-release-zip: Z1 a clean run writes dist/flowcharge-skills-<version>.zip, with no leading v', () => {
+testCase('build-release-zip: Z1 a clean run writes dist/flowcharge-core-<version>.zip, with no leading v', () => {
   withZipFixture({ specs: zipSpecs() }, (dir) => {
     const { status, stdout, stderr } = runBuildZip(dir, [ZIP_VERSION]);
     assert.strictEqual(status, 0, `build-release-zip exited ${status}\n${stdout}\n${stderr}`);
