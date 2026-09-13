@@ -30,6 +30,7 @@ title: "<a short title for the plan>"
 status: ready
 created: <today, YYYY-MM-DD, from `date +%F`>
 updated: <same>
+author: <from `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --whoami`, per CONVENTIONS.md's author section>
 depends_on: []
 links: []
 ---

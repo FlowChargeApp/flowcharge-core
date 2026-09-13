@@ -4,8 +4,8 @@ type: workstream
 workstream: WS-7-boovu9
 slug: author-field-schema-mismatch
 title: "Authoring templates omit the author field CONVENTIONS.md requires on every artefact"
-status: backlog
-tags: [schema, conventions, prompts]
+status: done
+tags: [schema, conventions, prompts, issue]
 created: 2026-09-13
 updated: 2026-09-13
 author: Anthony Koukoullis
