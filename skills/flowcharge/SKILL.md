@@ -158,6 +158,34 @@ in that case.
     may override, per-run, exactly as rule 5's dependency check does. This
     check supplements, and never replaces, a walkthrough task a task list
     may still place against the finished file.
+13. **A task list is checked for drift against the branch before
+    execute-tasks' first spawn.** Before spawning the first parent-task
+    subagent of an execute-tasks run, for the task list that stage is
+    about to execute — whether that list was authored earlier in this
+    same run or an earlier one — read its frontmatter `base_commit` and
+    `updated` keys, per `fc-task-list`'s schema, against the
+    repository's current `HEAD`. When the frontmatter carries
+    `base_commit`, run `git log --oneline <base_commit>..HEAD`: each
+    returned line is one commit landed since the list was authored, the
+    line count is roughly how much, and the subjects are what changed.
+    When the frontmatter carries no `base_commit`, compare the
+    `updated` date to today (`date +%F`) for the elapsed span, and run
+    `git log --oneline --since=<updated>` on the current branch: the
+    elapsed span and the commit count together are roughly how much,
+    and the subjects are what changed. When the check finds no
+    commit, state so in one line ("no commits have landed since
+    <base_commit|updated>; proceeding") and proceed exactly as today.
+    When one or more commits are found, state what changed and roughly
+    how much, and recommend re-validating (`fc-validate`) or
+    re-running the diff-mode scan that produced the list's own
+    upstream plan or issue list, before proceeding. This is a stated
+    recommendation, folded into the always-printed "Before
+    execute-tasks" report content, never a halt and never a new
+    prompt. Run this check once per run, immediately before the first
+    parent-task spawn; do not repeat it before later parent tasks in
+    the same run. It is the orchestrator's own reading, under rule 8's
+    carve-out for reading artefact files when a briefing needs facts,
+    never a subagent's.
 
 ## Standing vs. one-off instructions
 
@@ -326,7 +354,10 @@ Notes:
 - **execute-tasks**: first Read the task list yourself and enumerate its parent
   tasks. Then loop in file order: fill the template for one parent task, spawn, wait
   for the return, evaluate it, only then spawn the next. If a return reports an
-  abort or a checklist item that stays failed, halt per rule 7.
+  abort or a checklist item that stays failed, halt per rule 7. Before the first
+  spawn, apply hard rule 13 once — compare the task list's `base_commit` or
+  `updated` against current `HEAD` and state the finding in that stage's report
+  rather than halting.
 - **commit**: invoke the fc-git skill in the main session with the user's standing
   instruction: "Commit all created and/or modified files in one commit to the
   current branch. This work traces to <every artefact this run touched, as ID +
@@ -522,7 +553,8 @@ then ask "proceed?" as a numbered question with a recommendation, and wait.
 
 - **Before execute-tasks**: the task list path and ID, its parent-task count and
   one-line scope, the dependency check's result (rule 5), anything the authoring
-  stage skipped or left open, and the resolved agent type.
+  stage skipped or left open, the resolved agent type, and the
+  staleness check's result (rule 13).
 - **Flagged tasks (only when there is something to flag)**: a separately
   labelled block that belongs to the task list, not to the prompt. When the run
   reaches the execute-tasks prompt, post it after that prompt's own content. When
