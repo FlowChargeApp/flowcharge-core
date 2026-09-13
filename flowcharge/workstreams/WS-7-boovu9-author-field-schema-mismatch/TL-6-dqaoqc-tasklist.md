@@ -87,7 +87,7 @@ and `fc-task-list/SKILL.md`'s own tasklist example already use: immediately afte
     passed: true
     failures: []
   ```
-- [ ] 3. Add the missing `author` key to fc-issue-list/SKILL.md's documented frontmatter example
+- [x] 3. Add the missing `author` key to fc-issue-list/SKILL.md's documented frontmatter example
   ```yaml
   description: "skills/fc-issue-list/SKILL.md's 'File frontmatter' example block omits author at the issuelist level, even though the same file documents per-issue author correctly elsewhere. Add author to the example, in the position fc-task-list/SKILL.md's equivalent tasklist example already uses."
   author: Anthony Koukoullis
@@ -126,7 +126,7 @@ and `fc-task-list/SKILL.md`'s own tasklist example already use: immediately afte
     - "No other line in the file changed, including the per-issue author documentation at line 140 at base_commit (line 141 once the author line is inserted above it)"
     - "node skills/flowcharge/scripts/test/run-tests.mjs still reports 252/252 passed"
   self_eval:
-    passed: false
+    passed: true
     failures: []
   ```
 - [ ] 4. Add the missing `author` key to the four tasks-from-plan/tasks-from-issues templates' frontmatter instructions
