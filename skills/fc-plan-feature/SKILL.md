@@ -2,7 +2,7 @@
 name: fc-plan-feature
 description: Produce an optimal, codebase-grounded implementation plan for a new feature in an existing application. Acts as a senior architect/tech lead: restates the requirement and asks blocking questions first, performs read-only codebase reconnaissance, presents 2-3 candidate approaches and STOPS for approval, then delivers a detailed staged plan (acceptance criteria, contracts-first design, riskiest-first vertical slices, data/compatibility notes, testing strategy, open questions) and finishes WITHOUT implementing anything. Use whenever the user asks to plan a feature, scope out work, design an implementation plan, asks "how should we build X", "what's the best way to add X", "I want to add X to the app", or wants a roadmap or task breakdown for new functionality, even casually phrased and even when no files are named. Also triggers on /fc-plan-feature. Do NOT use for bug fixing or debugging, refactoring or cleanup requests (optimize-code owns that), code review, or when the user asks to actually implement or build something now. This skill plans only. Part of the FlowCharge Core suite (parallel successor to ak-plan-feature).
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Plan Feature
