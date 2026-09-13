@@ -4,8 +4,8 @@ type: workstream
 workstream: WS-6-9sylpm
 slug: execute-tasks-staleness-check
 title: "execute-tasks runs a task list without checking its base_commit against current HEAD"
-status: backlog
-tags: [orchestration, quality, correctness]
+status: done
+tags: [orchestration, quality, correctness, feature]
 created: 2026-09-13
 updated: 2026-09-13
 author: Anthony Koukoullis
