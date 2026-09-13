@@ -5,8 +5,8 @@ workstream: WS-8-r6d8n6
 slug: prevent-non-conforming-task-yaml
 title: "Task lists can be authored with YAML block scalars the schema never sanctions"
 description: "Nothing in the schema states folded block scalars (>-) as a forbidden form for task-level string fields, nothing in the generator's --check validates it, and fc-task-list/SKILL.md gives no scalar-style rule at all — confirmed by direct inspection of this repository's own skill and generator, not carried over as an assumption."
-status: backlog
-tags: [skills, schema, generator]
+status: dropped
+tags: [skills, schema, generator, feature]
 created: 2026-09-13
 updated: 2026-09-13
 author: Anthony Koukoullis
@@ -61,3 +61,18 @@ dependency on work that only exists elsewhere. Its own plan/issue/task-list
 artefacts were not carried over either, per this project's practice for a
 backlog-status record: fresh artefacts get authored when this workstream is
 actually picked up, grounded in the codebase as it stands then.
+
+## Dropped
+
+Dropped on 2026-09-13, after a plan and diff-mode task list were authored and
+reviewed but before execution began. The premise was wrong: a YAML folded/literal
+block scalar on a task field is syntactically valid YAML, not a defect in how
+task lists here are authored. The actual defect is in a downstream renderer (the
+FlowCharge dashboard app, a sibling project) that cannot parse the construct and
+mislabels the content as "Unparsed" instead of rendering it. Banning the
+construct at the authoring source would only prevent new occurrences; it could
+never fix the files already authored elsewhere using it, and it would degrade
+`implement`'s own legitimate use of literal blocks for diff-mode SEARCH/REPLACE
+content. The dashboard project's own workstream WS-113-q8fl3u
+("Detail modal does not render artefact content faithfully") already covers the
+correct fix, at the rendering destination, with no new dependency required.
