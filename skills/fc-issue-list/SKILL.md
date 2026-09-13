@@ -2,7 +2,7 @@
 name: fc-issue-list
 description: Manage FlowCharge Core issue list files stored as per-workstream Markdown in ./flowcharge/workstreams/{{WS-N-SUFFIX}}-{{slug}}/{{IL-N-SUFFIX}}-issuelist.md. Read, create, update, and close issues, understand frontmatter, issue schema, the uniform status enum, severities, global ID allocation from the registry, and rules. Issues are cross-referenced from task files using the `issues` key. Part of the FlowCharge Core suite (parallel successor to ak-issue-list-md).
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 ## What I do
