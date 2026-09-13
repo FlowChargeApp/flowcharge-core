@@ -553,7 +553,8 @@ then ask "proceed?" as a numbered question with a recommendation, and wait.
 
 - **Before execute-tasks**: the task list path and ID, its parent-task count and
   one-line scope, the dependency check's result (rule 5), anything the authoring
-  stage skipped or left open, and the resolved agent type.
+  stage skipped or left open, the resolved agent type, and the
+  staleness check's result (rule 13).
 - **Flagged tasks (only when there is something to flag)**: a separately
   labelled block that belongs to the task list, not to the prompt. When the run
   reaches the execute-tasks prompt, post it after that prompt's own content. When
