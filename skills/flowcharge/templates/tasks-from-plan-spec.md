@@ -15,7 +15,7 @@ You are a senior software architect and senior software developer.
 ## Task
 Read {plan} in full, then author tasks that implement it, and save them to `{ws_dir}/<the TL ID you claim below>-tasklist.md` (if that file already exists for other work, use `<the TL ID you claim below>-tasklist-<qualifier>.md` in the same folder).
 
-The file must open with frontmatter per the skill: `id: <the TL ID you claim below>`, `type: tasklist`, `workstream: {ws_id}`, `slug: {slug}`, `status: ready`, today's date (from `date +%F`) in `created`/`updated`, and `depends_on: [<the plan's ID from its own frontmatter>]`. Flat keys and inline arrays only.
+The file must open with frontmatter per the skill: `id: <the TL ID you claim below>`, `type: tasklist`, `workstream: {ws_id}`, `slug: {slug}`, `status: ready`, today's date (from `date +%F`) in `created`/`updated`, `author` (from `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --whoami`, per CONVENTIONS.md's author section), and `depends_on: [<the plan's ID from its own frontmatter>]`. Flat keys and inline arrays only.
 
 Allocate the TL ID by running `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --claim TL` and using the printed id verbatim. IDs are global and permanent across every task list.
 

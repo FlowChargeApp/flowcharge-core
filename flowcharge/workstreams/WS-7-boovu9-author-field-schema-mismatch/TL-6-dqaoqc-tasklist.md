@@ -4,7 +4,7 @@ type: tasklist
 workstream: WS-7-boovu9
 slug: author-field-schema-mismatch
 title: "Author-field schema mismatch: fixes"
-status: ready
+status: done
 created: 2026-09-13
 updated: 2026-09-13
 author: Anthony Koukoullis
@@ -129,13 +129,13 @@ and `fc-task-list/SKILL.md`'s own tasklist example already use: immediately afte
     passed: true
     failures: []
   ```
-- [ ] 4. Add the missing `author` key to the four tasks-from-plan/tasks-from-issues templates' frontmatter instructions
+- [x] 4. Add the missing `author` key to the four tasks-from-plan/tasks-from-issues templates' frontmatter instructions
 
   ```yaml
   description: "skills/flowcharge/templates/tasks-from-plan-spec.md, tasks-from-plan-diff.md, tasks-from-issues-spec.md, and tasks-from-issues-diff.md each state their frontmatter instruction at line 18 without mentioning author. Fix each file individually."
   ```
 
-  - [ ] 4.1 Add the missing `author` key to tasks-from-plan-spec.md's frontmatter instruction
+  - [x] 4.1 Add the missing `author` key to tasks-from-plan-spec.md's frontmatter instruction
     ```yaml
     description: "skills/flowcharge/templates/tasks-from-plan-spec.md line 18 lists id, type: tasklist, workstream, slug, status: ready, created/updated, and depends_on with no author. Add author, sourced the same way as task 1."
     author: Anthony Koukoullis
@@ -161,10 +161,10 @@ and `fc-task-list/SKILL.md`'s own tasklist example already use: immediately afte
       - "No other line in the file changed"
       - "node skills/flowcharge/scripts/test/run-tests.mjs still reports 252/252 passed"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 4.2 Add the missing `author` key to tasks-from-plan-diff.md's frontmatter instruction
+  - [x] 4.2 Add the missing `author` key to tasks-from-plan-diff.md's frontmatter instruction
     ```yaml
     description: "skills/flowcharge/templates/tasks-from-plan-diff.md line 18 lists id, type: tasklist, workstream, slug, status: ready, created/updated, and depends_on with no author. Add author, sourced the same way as task 1."
     author: Anthony Koukoullis
@@ -190,10 +190,10 @@ and `fc-task-list/SKILL.md`'s own tasklist example already use: immediately afte
       - "No other line in the file changed"
       - "node skills/flowcharge/scripts/test/run-tests.mjs still reports 252/252 passed"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 4.3 Add the missing `author` key to tasks-from-issues-spec.md's frontmatter instruction
+  - [x] 4.3 Add the missing `author` key to tasks-from-issues-spec.md's frontmatter instruction
     ```yaml
     description: "skills/flowcharge/templates/tasks-from-issues-spec.md line 18 lists id, type: tasklist, workstream, slug, status: ready, created/updated, and depends_on with no author. Add author, sourced the same way as task 1."
     author: Anthony Koukoullis
@@ -219,10 +219,10 @@ and `fc-task-list/SKILL.md`'s own tasklist example already use: immediately afte
       - "No other line in the file changed"
       - "node skills/flowcharge/scripts/test/run-tests.mjs still reports 252/252 passed"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 4.4 Add the missing `author` key to tasks-from-issues-diff.md's frontmatter instruction
+  - [x] 4.4 Add the missing `author` key to tasks-from-issues-diff.md's frontmatter instruction
     ```yaml
     description: "skills/flowcharge/templates/tasks-from-issues-diff.md line 18 lists id, type: tasklist, workstream, slug, status: ready, created/updated, and depends_on with no author. Add author, sourced the same way as task 1."
     author: Anthony Koukoullis
@@ -248,7 +248,7 @@ and `fc-task-list/SKILL.md`'s own tasklist example already use: immediately afte
       - "No other line in the file changed"
       - "node skills/flowcharge/scripts/test/run-tests.mjs still reports 252/252 passed"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
