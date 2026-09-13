@@ -4,7 +4,7 @@ type: plan
 workstream: WS-6-9sylpm
 slug: execute-tasks-staleness-check
 title: "Staleness check before execute-tasks' first subagent spawn"
-status: ready
+status: done
 created: 2026-09-13
 updated: 2026-09-13
 depends_on: []
