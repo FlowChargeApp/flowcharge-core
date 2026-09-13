@@ -58,7 +58,7 @@ and `fc-task-list/SKILL.md`'s own tasklist example already use: immediately afte
     passed: true
     failures: []
   ```
-- [ ] 2. Add the missing `author` key to create-issues.md's frontmatter instruction
+- [x] 2. Add the missing `author` key to create-issues.md's frontmatter instruction
   ```yaml
   description: "skills/flowcharge/templates/create-issues.md line 19, the issuelist frontmatter instruction, lists id, type: issuelist, workstream, slug, status, created/updated with no author. Add author to that sentence, sourced the same way as task 1."
   author: Anthony Koukoullis
@@ -84,7 +84,7 @@ and `fc-task-list/SKILL.md`'s own tasklist example already use: immediately afte
     - "No other line in the file changed"
     - "node skills/flowcharge/scripts/test/run-tests.mjs still reports 252/252 passed"
   self_eval:
-    passed: false
+    passed: true
     failures: []
   ```
 - [ ] 3. Add the missing `author` key to fc-issue-list/SKILL.md's documented frontmatter example

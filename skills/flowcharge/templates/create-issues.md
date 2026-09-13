@@ -16,7 +16,7 @@ Read these to understand the structure and purpose of the app:
 ## Instructions
 File one issue per finding in Context, and save them to `{ws_dir}/<the IL ID you claim below>-issuelist.md` (if that file already exists for different findings, use `<the IL ID you claim below>-issuelist-<qualifier>.md` in the same folder). Context is the complete set: file nothing that did not arrive there, and add nothing you notice yourself while writing.
 
-The file must open with frontmatter per the skill, with `id: <the IL ID you claim below>`, `type: issuelist`, `workstream: {ws_id}`, `slug: {slug}`, `status: ready`, and today's date (from `date +%F`) in `created`/`updated`. Flat keys and inline arrays only.
+The file must open with frontmatter per the skill, with `id: <the IL ID you claim below>`, `type: issuelist`, `workstream: {ws_id}`, `slug: {slug}`, `status: ready`, today's date (from `date +%F`) in `created`/`updated`, and `author` (from `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --whoami`, per CONVENTIONS.md's author section). Flat keys and inline arrays only.
 
 File defects only: existing code that produces a wrong result, crash, corruption, leak, or failure under real input, timing or scale. If a finding's fix would add functionality the code was never built to have rather than correct code that exists, do not file it; list it under Not filed instead. The test is "add X" versus "correct X". This matters because these issues are later read by an agent that turns them into implementation tasks and builds them, so a feature filed here is a feature shipped without anyone having chosen it.
 
