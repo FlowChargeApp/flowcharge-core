@@ -4,7 +4,7 @@ type: tasklist
 workstream: WS-6-9sylpm
 slug: execute-tasks-staleness-check
 title: "Staleness check before execute-tasks' first subagent spawn"
-status: in-progress
+status: done
 created: 2026-09-13
 updated: 2026-09-13
 author: Anthony Koukoullis
@@ -146,12 +146,12 @@ land in `skills/flowcharge/SKILL.md` only; no other file changes.
       failures: []
     ```
 
-- [ ] 2. Wire the finding into the always-printed pre-execute-tasks report
+- [x] 2. Wire the finding into the always-printed pre-execute-tasks report
   ```yaml
   description: "Add a sixth clause to the 'Before execute-tasks' report bullet in the Prompts section, naming rule 13's result, so the finding reaches the user whether the prompt is asked or posted as a statement."
   ```
 
-  - [ ] 2.1 Add the sixth clause to the "Before execute-tasks" bullet
+  - [x] 2.1 Add the sixth clause to the "Before execute-tasks" bullet
     ```yaml
     description: "Append 'the staleness check's result (rule 13)' as a sixth item to the always-printed list in the 'Before execute-tasks' bullet under Prompts."
     author: Anthony Koukoullis
@@ -185,6 +185,6 @@ land in `skills/flowcharge/SKILL.md` only; no other file changes.
       - "The 'Flagged tasks' and 'Before commit' bullets that follow are untouched."
       - "No change was made to fc-validate, fc-task-list, the task-list frontmatter schema, or rule 10's settling table."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
