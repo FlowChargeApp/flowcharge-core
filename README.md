@@ -46,17 +46,17 @@ Claude Code, OpenCode and OpenAI Codex are proven.
 `<skills-dir>` below is the folder your tool loads skills from, `~/.claude/skills/`
 for Claude Code. Delete any older folder of the same name in `<skills-dir>` first.
 
-**From the release zip.** Download `flowcharge-skills-<X.Y.Z>.zip` from the
+**From the release zip.** Download `flowcharge-core-<X.Y.Z>.zip` from the
 [Releases page](https://github.com/FlowChargeApp/flowcharge-core/releases) and unzip
 it into `<skills-dir>`. The current release is `0.1.0`. The skill folders sit at the
 top level of the archive, so this is the whole install:
 
 ```bash
-unzip flowcharge-skills-<X.Y.Z>.zip -d <skills-dir>
+unzip flowcharge-core-<X.Y.Z>.zip -d <skills-dir>
 ```
 
 ```powershell
-Expand-Archive flowcharge-skills-<X.Y.Z>.zip -DestinationPath <skills-dir>
+Expand-Archive flowcharge-core-<X.Y.Z>.zip -DestinationPath <skills-dir>
 ```
 
 **From a clone.** Link the skill folders so an edit here takes effect immediately.

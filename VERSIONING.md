@@ -43,7 +43,7 @@ MAJOR/MINOR/PATCH policy.
    the annotated tag `vX.Y.Z`. It never pushes.
 3. Push the branch, then push the tag.
 
-CI then builds and publishes `flowcharge-skills-<X.Y.Z>.zip` against the pushed
+CI then builds and publishes `flowcharge-core-<X.Y.Z>.zip` against the pushed
 tag.
 
 ## How the next version is decided

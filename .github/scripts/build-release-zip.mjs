@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Builds the one release asset, dist/flowcharge-skills-<X.Y.Z>.zip. The
+// Builds the one release asset, dist/flowcharge-core-<X.Y.Z>.zip. The
 // archive's top level is the discovered skill folders themselves, each copied
 // whole at every depth, so `unzip <asset> -d <skills-dir>` installs the suite
 // in one step. No dependencies; node >= 16.
@@ -26,7 +26,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { deflateRawSync } from 'node:zlib';
 
-const HELP = `build-release-zip.mjs: writes dist/flowcharge-skills-<X.Y.Z>.zip, holding every discovered skill folder at the archive's top level.
+const HELP = `build-release-zip.mjs: writes dist/flowcharge-core-<X.Y.Z>.zip, holding every discovered skill folder at the archive's top level.
 
 Usage:
   node .github/scripts/build-release-zip.mjs <X.Y.Z>
@@ -51,7 +51,7 @@ temporary file.
         that could fail.
 
 Exit codes:
-  0  dist/flowcharge-skills-<X.Y.Z>.zip was written.
+  0  dist/flowcharge-core-<X.Y.Z>.zip was written.
   1  Invalid argument, or no skill folder was discovered. Nothing was
      written.
 `;
@@ -266,7 +266,7 @@ function main() {
   const files = [];
   for (const folder of folders) walkFolder(path.join(SKILLS_DIR, folder), folder, files);
 
-  const outPath = path.join(DIST_DIR, `flowcharge-skills-${version}.zip`);
+  const outPath = path.join(DIST_DIR, `flowcharge-core-${version}.zip`);
   fs.mkdirSync(DIST_DIR, { recursive: true });
   writeAtomic(outPath, zipBuffer(files));
 
