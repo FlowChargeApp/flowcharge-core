@@ -48,6 +48,7 @@ title: "Scope service bug-hunt findings"
 status: ready
 created: 2026-07-29
 updated: 2026-07-29
+author: Ada Lovelace
 depends_on: []
 links: []
 ---
