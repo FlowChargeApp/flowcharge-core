@@ -27,6 +27,7 @@ Usage:
   node fc-index.mjs [--root <dir>] [--no-board]
   node fc-index.mjs [--root <dir>] --check
   node fc-index.mjs [--root <dir>] --sync [--no-board]
+  node fc-index.mjs [--root <dir>] --init [--no-board]
   node fc-index.mjs [--root <dir>] --list [<scope>] [--ws <WS-id>]
                                     [--sort <key>] [--desc] [--archived]
   node fc-index.mjs [--root <dir>] --claim <TYPE> [<count>]
@@ -55,6 +56,11 @@ flags together print one stderr line and exit 1.
              status: done and updated: today. Print one SYNC line per
              change, then regenerate as the default mode does. A plan is
              never closed. Accepts --no-board only.
+  --init     Create flowcharge/workstreams/ (and, transitively,
+             flowcharge/) when it does not already exist, an idempotent
+             no-op when it does, then regenerate as the default mode
+             does. Refused when combined with --check, --list, --claim,
+             --new-ws, --sync, or --whoami. Accepts --no-board only.
   --list     Print a Markdown table of artefacts on stdout. Writes
              nothing. Exits 0.
   --claim    Claim the next <count> id(s) for <TYPE>, atomically, through
@@ -117,16 +123,18 @@ Values:
 Exit codes:
   0  The run succeeded. --check with no warning exits 0 too.
   1  Invalid arguments, an invalid flag combination, no
-     flowcharge/workstreams/ directory under the root, or a --new-ws slug
-     that is already taken.
+     flowcharge/workstreams/ directory under the root (unless --init is
+     given, which creates it instead), or a --new-ws slug that is
+     already taken.
   2  --check found at least one warning.
 
 .gitignore: every writing mode (the default, --no-board, --sync,
---claim and --new-ws) also appends to the project root's .gitignore
-whichever of flowcharge/index.md, flowcharge/kanban.md and flowcharge/ids/
-it does not already cover. Existing lines are never rewritten or
-reordered. A failed write is a warning only. --list, --check, --whoami
-and --help touch .gitignore no more than they touch anything else.
+--claim, --new-ws and --init) also appends to the project root's
+.gitignore whichever of flowcharge/index.md, flowcharge/kanban.md and
+flowcharge/ids/ it does not already cover. Existing lines are never
+rewritten or reordered. A failed write is a warning only. --list,
+--check, --whoami and --help touch .gitignore no more than they touch
+anything else.
 `;
 
 function writeAtomic(filePath, content) {
@@ -255,7 +263,22 @@ const SELF_ROOT = path.resolve(
   '..', '..', '..',
 );
 
-if (!fs.existsSync(wsRoot)) {
+// --init runs its mutual-exclusion check here, immediately after --help,
+// because it must run before or instead of this guard: the artefact scan
+// a few hundred lines below already depends on wsRoot existing, so a
+// combination with another mode flag must be refused before that scan,
+// not inside that mode's own parse*Args() function.
+const initMode = args.includes('--init');
+if (initMode) {
+  const OTHER_MODE_FLAGS = ['--check', '--list', '--claim', '--new-ws', '--sync', '--whoami'];
+  if (OTHER_MODE_FLAGS.some((f) => args.includes(f))) {
+    console.error('fc-index: --init cannot be combined with --check, --list, --claim, --new-ws, --sync, or --whoami');
+    process.exit(1);
+  }
+  // Idempotent: a no-op when wsRoot already exists, live or empty, and it
+  // never inspects or touches anything already inside it.
+  fs.mkdirSync(wsRoot, { recursive: true });
+} else if (!fs.existsSync(wsRoot)) {
   console.error(`fc-index: no flowcharge/workstreams/ directory at ${root}`);
   process.exit(1);
 }
