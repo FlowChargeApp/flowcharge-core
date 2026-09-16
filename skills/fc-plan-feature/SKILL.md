@@ -352,6 +352,6 @@ memory). Mapping:
   of a parent with one child.
 
 The export realises the plan's stages as tasks; the rest of the plan (design,
-open questions) stays in the plan file. Inside a `flowcharge` pipeline the
-`tasks-from-plan` operation owns this step, so the `create-plan` stage authors a
-plan only.
+open questions) stays in the plan file. Inside a `flowcharge` pipeline the merged
+`plan-and-tasks` operation owns this step, and it authors a plan only when its
+`{stages}` slot is set to `plan-only`.

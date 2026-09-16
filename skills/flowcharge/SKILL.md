@@ -139,12 +139,16 @@ in that case.
     exactly as rule 4 defines them. On any other branch, do nothing and leave it
     alone. Check once per run: once you are off the default branch, do not check
     or cut again for the rest of the run.
-12. **A plan is checked against its motivating scenario before tasks are
-    authored from it.** Before spawning the tasks-from-plan stage for any
-    plan, read that plan and the workstream record it belongs to (its
+12. **A plan is checked against its motivating scenario before anything is
+    built from it.** On the merged plan-and-tasks stage's return, read the
+    plan it produced and the workstream record it belongs to (its
     frontmatter `workstream:` key), then state, in one line per case, how
     the plan's design handles each concrete scenario or failure case the
-    workstream record's body names as the reason the work is needed. This
+    workstream record's body names as the reason the work is needed. There
+    is no spawn between the plan and its tasks in a merged run, which is why
+    the check reads a return rather than preceding a spawn. In a `tasks-only`
+    run the plan already exists, so the check keeps its present position and
+    fires before that stage is spawned. This
     is a trace of the plan's actual proposed text against that scenario,
     not a restatement that the plan reads as internally consistent or that
     its acceptance criteria are individually satisfiable, and it runs
@@ -154,7 +158,7 @@ in that case.
     briefing needs facts, never a subagent's. When the workstream record
     names no concrete scenario or failure case, say so in one line and
     proceed. When it names one the plan's stated design does not visibly
-    handle, halt and report instead of spawning tasks-from-plan; the user
+    handle, halt and report instead of spawning the next stage; the user
     may override, per-run, exactly as rule 5's dependency check does. This
     check supplements, and never replaces, a walkthrough task a task list
     may still place against the finished file.
@@ -311,10 +315,8 @@ Each operation names its template, its slots, what it consumes, and what it retu
 | Operation | Template | Slots | Consumes | Returns |
 |---|---|---|---|---|
 | investigate | `templates/investigate.md` | `{{context docs}}`, `{{investigation}}` | question from the request | findings summary |
-| create-plan | `templates/create-plan.md` | `{ws_dir}`, `{ws_id}`, `{slug}`, `{{context docs}}`, `{{feature briefing}}` | feature description, or investigate findings | plan path, summary, open questions |
-| create-issues | `templates/create-issues.md` | `{ws_dir}`, `{ws_id}`, `{slug}`, `{{context docs}}`, `{{findings}}` | findings the user supplies | issue list path, ISS IDs |
-| tasks-from-plan | `templates/tasks-from-plan-spec.md` or `-diff.md` | `{plan}`, `{ws_dir}`, `{ws_id}`, `{slug}`, `{{context docs}}`, `{{briefing}}` | plan path | task list path, stage→task map |
-| tasks-from-issues | `templates/tasks-from-issues-spec.md` or `-diff.md` | `{issuelist}`, `{ws_dir}`, `{ws_id}`, `{slug}`, `{{context docs}}`, `{{briefing}}` | issue list path | task list path, ISS→task map |
+| plan-and-tasks | `templates/plan-and-tasks-spec.md` or `-diff.md` | `{stages}`, `{plan}`, `{ws_dir}`, `{ws_id}`, `{slug}`, `{{context docs}}`, `{{briefing}}` | feature description, or investigate findings; a plan path in `{plan}` when `{stages}` is `tasks-only` | plan path, summary, open questions, task list path, stage→task map |
+| issues-and-tasks | `templates/issues-and-tasks-spec.md` or `-diff.md` | `{stages}`, `{issuelist}`, `{ws_dir}`, `{ws_id}`, `{slug}`, `{{context docs}}`, `{{briefing}}` | findings the user supplies; an issue list path in `{issuelist}` when `{stages}` is `tasks-only` | issue list path, ISS IDs, task list path, ISS→task map |
 | validate | `templates/validate-plan.md`, `-issues.md` or `-tasks.md` | `{artefact}`, `{source}`, `{ws_dir}`, `{{context docs}}`, `{{source material}}` | the artefact an authoring stage just returned, plus its source | one summary line, plus any open finding; correction detail withheld |
 | execute-tasks | `templates/execute-parent-task.md` (one spawn per parent task) | `{tasklist}`, `{{parent task number}}`, `{{context docs}}`, `{{briefing}}` | task list path, **PROMPTED**, deps checked per rule 5 | per-task applied/aborted status, self_eval |
 | commit | inline via the **fc-git** skill | - | completed work, plus the end-of-run upkeep writes that have already landed (issue closures, `--sync` status flips, regenerated index/board, released lease), **PROMPTED** | commit SHA |
@@ -325,9 +327,10 @@ Each operation names its template, its slots, what it consumes, and what it retu
 Notes:
 
 - **`{{context docs}}`**: the same shared Context-section block in every template.
-  It resolves to this project's own structural or reference documentation as
-  `@`-prefixed bullets, or to nothing when the project has none. Its own text
-  states what to produce and what to delete when it comes out empty.
+  It resolves to this project's own structural or reference documentation as a
+  list of repo-relative paths, one line per document saying what that document
+  covers and when to read it, or to nothing when the project has none. Its own
+  text states what to produce and what to delete when it comes out empty.
 - **ID slots** (`{ws_id}`, `{ws_dir}`): `{ws_id}` is the only artefact ID you allocate, and it
   comes from the `--new-ws` run that created the workstream folder (see FlowCharge Core
   upkeep). The folder must exist before anything is written into it. Every other
@@ -347,10 +350,11 @@ Notes:
   from what the command printed or from what the listing found. Never compose it from the
   id and the slug. `{ws_id}` keeps its present source and its present meaning. It is still
   needed for each artefact's frontmatter `workstream:` key.
-- **tasks-from-plan**: before spawning this stage for any plan, apply hard rule 12
-  — state in one line per case how the plan's design handles each scenario its
-  workstream record names, and halt instead of spawning if one is not visibly
-  handled.
+- **plan-and-tasks**: apply hard rule 12 to the plan this stage produced, on the
+  stage's return — state in one line per case how the plan's design handles each
+  scenario its workstream record names, and halt instead of going on to the next
+  stage if one is not visibly handled. In a `tasks-only` run the plan already
+  exists before the spawn, so the rule keeps its present position and fires there.
 - **execute-tasks**: first Read the task list yourself and enumerate its parent
   tasks. Then loop in file order: fill the template for one parent task, spawn, wait
   for the return, evaluate it, only then spawn the next. If a return reports an
@@ -368,9 +372,13 @@ Notes:
   record with `status: backlog`, and the board is regenerated from it.
   The subagent chooses each title, slug and tags and runs `--new-ws` itself; the
   orchestrator neither creates the folder nor claims the id.
-- **validate**: each authoring stage pairs with one template: create-plan with
-  `validate-plan.md`, create-issues with `validate-issues.md`, and both
-  tasks-from-plan and tasks-from-issues with `validate-tasks.md`. The validation
+- **validate**: each authoring stage pairs with its validation template. The merged
+  plan-and-tasks stage pairs with two, spawned one after the other after it in this
+  fixed order: `validate-plan.md` first, then `validate-tasks.md`. WS-118-xjdovc
+  later replaces that pair with a single pass; until it lands, both run, and total
+  validation coverage is unchanged. The merged issues-and-tasks stage pairs with
+  two in the same way, spawned one after the other after it in this fixed order:
+  `validate-issues.md` first, then `validate-tasks.md`. The validation
   stage is not prompted, because it neither changes project code nor commits. Its
   stage report carries the validator's summary line and any open finding only; the
   per-correction detail is printed on request and not before.
@@ -380,20 +388,22 @@ Notes:
 Map the user's English onto an ordered subset of operations. The standard chains:
 
 - "file these findings as issues [then fix them]" (findings come from the
-  conversation) → create-issues → validate → tasks-from-issues → validate →
+  conversation) → issues-and-tasks → validate-issues → validate-tasks →
   [prompt] execute-tasks → [prompt] commit
-- "plan X [and build it]" → create-plan → validate → tasks-from-plan → validate →
+- "plan X [and build it]" → plan-and-tasks → validate-plan → validate-tasks →
   [prompt] execute-tasks → [prompt] commit
-- "look into X" / "investigate X" → investigate (then stop; feed into create-plan or
+- "look into X" / "investigate X" → investigate (then stop; feed into plan-and-tasks or
   backlog-add only if asked)
-- "turn <issue list / plan> into tasks" → tasks-from-issues / tasks-from-plan
+- "turn <issue list / plan> into tasks" → issues-and-tasks / plan-and-tasks with
+  `{stages}: tasks-only`
 - "run <task list>" → execute-tasks → [prompt] commit if asked
 - "add X to the board / backlog" → backlog-add
 
 Rules of interpretation:
 
 - Only what the user asked for: "file these findings as issues" ends at
-  create-issues. Do not continue to tasks because the chain usually does. When
+  issues-and-tasks with `{stages}: issues-only`. Do not continue to tasks
+  because the chain usually does. When
   the stage the run stopped short of is a prompted one (execute-tasks or commit),
   do not put "shall I proceed to it?" into the end-of-run numbered list, and
   attach no recommendation to it. Mention it in prose as an available follow-up,
@@ -433,7 +443,9 @@ These, and nothing else:
 - Deleting the Context lead-in sentence (and, where that empties the section, its
   heading) when the `{{context docs}}` placeholder resolves to nothing. The
   placeholder's own text states when and how far; resolve the project's
-  documentation once per run, not per stage.
+  documentation once per run, not per stage. Write its one-line notes at that
+  same point, then reuse that one resolved block verbatim in every spawn of the
+  run.
 - Adjusting `{item1}` / `{item2}` bullet count in kanban-add.md to the actual number
   of items.
 - In execute-parent-task, the loop mechanics live in this skill, not the template;
@@ -441,10 +453,10 @@ These, and nothing else:
 
 ## Chaining
 
-- findings the user supplies → create-issues `{{findings}}`: carry every finding
+- findings the user supplies → issues-and-tasks `{{findings}}`: carry every finding
   with its location, failure scenario, severity and confidence, all of them,
   unfiltered; the issues subagent decides what is Not filed, not you.
-- create-issues path → `{issuelist}`; create-plan path → `{plan}`; task-list
+- issues-and-tasks path → `{issuelist}`; plan-and-tasks path → `{plan}`; task-list
   path → `{tasklist}`. Use the paths the subagents return; before the next stage,
   verify the file exists, that its frontmatter `id` matches the ID the subagent
   reported claiming, and that its `depends_on` names the upstream artefact ID you
@@ -467,6 +479,9 @@ These, and nothing else:
   first appears in a return, after the stage that needed it already ran,
   re-spawn that one stage once, with the question and the adopted answer in its
   `{{briefing}}`, rather than leaving the stage untasked.
+  After a plan-level correction, that re-spawn uses the merged plan template with
+  `{stages}: tasks-only` and `{plan}` pointing at the corrected plan, so one
+  re-spawn re-derives the task list without re-authoring the plan.
   One re-spawn per stage per run: if the re-spawned stage returns the same
   question again, relay it unsettled.
 
@@ -477,7 +492,7 @@ rationale, or its self-report, because fresh context is the active ingredient, a
 the authoring subagent's account of what it did is exactly the contamination this
 stage exists to avoid. The user's findings that feed `validate-issues.md` are not an
 exception to this: they are the source, and they reach the validation from the
-user, not from create-issues. On the no-loop carve-out: the policy section's
+user, not from issues-and-tasks. On the no-loop carve-out: the policy section's
 settling rule may re-spawn one authoring stage once when a validation finding is adopted as a
 settled question, and the re-authored artefact is not validated again, because the
 re-spawn's `{{briefing}}` already carries the finding and the answer adopted for it.
@@ -670,9 +685,10 @@ node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root>
   the first stage that changes project code, so this is the point at which the board
   must say the work is running. This step is the one and only place `in-progress` is
   ever set, for a fresh workstream and a resumed one alike.
-- **After every stage**: set the produced artefact's status (freshly authored =
+- **After every stage**: set the status of every artefact the stage produced, which
+  for a merged plan-and-tasks stage is both of them (freshly authored =
   `ready`; a task list whose execution just completed = `done`), bump `updated` on
-  everything the stage touched, then (after a create-issues or create-plan stage
+  everything the stage touched, then (after an issues-and-tasks or plan-and-tasks stage
   only) test the produced file for its trigger and, when the trigger fires, append
   the matching automatic tag to the owning workstream's `workstream.md` `tags`
   array: `issue` when any file matching `IL-*-issuelist*.md` in that
