@@ -33,6 +33,15 @@ skill mirrors it. See VERSIONING.md.
   to reading all of them, and a file a SEARCH/REPLACE block targets is always read
   first. Diff mode keeps its unconditional read, because every task there carries
   a block.
+- `flowcharge/templates/execute-parent-task.md` now branches on the task list's
+  `mode` key instead of asserting that every task carries a literal block. A
+  `diff`-mode subtask applies its SEARCH/REPLACE block verbatim, with the same
+  state test, already-applied test and stale-block abort as before. A `spec`-mode
+  subtask derives the edit from its `implement` prose and the anchor it names, and
+  aborts when that anchor is absent. A subtask that carries a block follows the
+  diff rules whatever the file's `mode` says. A task list authored before this
+  change executes unchanged, because a diff-mode list takes exactly the previous
+  path.
 
 ### Removed
 
