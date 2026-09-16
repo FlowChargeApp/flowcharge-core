@@ -4,7 +4,7 @@ type: plan
 workstream: WS-15-d5hgor
 slug: artefact-validation-cost-tiers
 title: "A validate setting and one end-of-run validation pass"
-status: ready
+status: done
 created: 2026-09-16
 updated: 2026-09-17
 author: Anthony Koukoullis
