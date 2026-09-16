@@ -4,7 +4,7 @@ type: tasklist
 workstream: WS-12-zq2ms6
 slug: generator-empty-init-mode
 title: "Add fc-index.mjs --init: empty flowcharge/ tree with zero workstreams"
-status: ready
+status: done
 created: 2026-09-16
 updated: 2026-09-16
 author: Anthony Koukoullis
@@ -516,12 +516,12 @@ figure was measured directly against that commit rather than assumed.
       failures: []
     ```
 
-- [ ] 3. Update `CONVENTIONS.md` and `CHANGELOG.md` for `--init`
+- [x] 3. Update `CONVENTIONS.md` and `CHANGELOG.md` for `--init`
   ```yaml
   description: "PLN-6-uoxfrt Stage 3: add --init to CONVENTIONS.md's .gitignore writing-mode sentence and record the new mode as one CHANGELOG.md ### Added line under ## Unreleased, per VERSIONING.md's MINOR mapping."
   ```
 
-  - [ ] 3.1 Add `--init` to `CONVENTIONS.md`'s `.gitignore` writing-mode sentence
+  - [x] 3.1 Add `--init` to `CONVENTIONS.md`'s `.gitignore` writing-mode sentence
     ```yaml
     description: "CONVENTIONS.md:395 lists the writing modes that trigger the .gitignore update: 'the plain regenerate above, --no-board, --claim, --sync, --new-ws'. Add --init so the doc matches fc-index.mjs's own HELP enumeration (task 1.4), per PLN-6-uoxfrt's Design/Stage 3."
     author: Anthony Koukoullis
@@ -548,11 +548,11 @@ figure was measured directly against that commit rather than assumed.
       - "No other sentence in the Registry or IDs sections changed"
       - "node skills/flowcharge/scripts/test/run-tests.mjs still reports 263/263 passed"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
-  - [ ] 3.2 Add the `--init` `CHANGELOG.md` entry under `## Unreleased`
+  - [x] 3.2 Add the `--init` `CHANGELOG.md` entry under `## Unreleased`
     ```yaml
     description: "CHANGELOG.md's ## Unreleased section (line 14) is currently empty, directly followed by ## 0.2.0. Add one ### Added line describing the new --init mode, per VERSIONING.md's MINOR mapping (a new capability, everything existing still working) and PLN-6-uoxfrt's Scope: 'Cutting an actual suite release... Only the CHANGELOG.md ## Unreleased line this change earns is in scope.'"
     author: Anthony Koukoullis
@@ -590,6 +590,6 @@ figure was measured directly against that commit rather than assumed.
       - "The ## 0.2.0 heading and every line below it are unchanged"
       - "node skills/flowcharge/scripts/test/run-tests.mjs still reports 263/263 passed"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```

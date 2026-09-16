@@ -392,7 +392,8 @@ move a card, change the workstream's `status` and regenerate.
 
 Because both outputs are disposable, and `flowcharge/ids/` holds only ephemeral claim
 markers, the script keeps all three out of git for you. Any run that writes (the
-plain regenerate above, `--no-board`, `--claim`, `--sync`, `--new-ws`) checks the
+plain regenerate above, `--no-board`, `--claim`, `--sync`, `--new-ws`
+and `--init`) checks the
 project root's `.gitignore` and appends whichever of `flowcharge/index.md`,
 `flowcharge/kanban.md` and `flowcharge/ids/` it does not already cover. Existing lines
 are left exactly as they are, in their original order. A broader entry that already
