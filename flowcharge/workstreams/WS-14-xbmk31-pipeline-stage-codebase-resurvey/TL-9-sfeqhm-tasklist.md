@@ -801,13 +801,13 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       failures: []
     ```
 
-- [ ] 4. Stage 4: context documents resolved once per run
+- [x] 4. Stage 4: context documents resolved once per run
 
   ```yaml
   description: "Replace the @-inlining context block in all ten surviving templates with a resolved path list carrying one-line notes, and widen SKILL.md's sanctioned-deviation bullet."
   ```
 
-  - [ ] 4.1 Replace the context block in `investigate.md` and fix the canonical wording
+  - [x] 4.1 Replace the context block in `investigate.md` and fix the canonical wording
     ```yaml
     description: "Rewrite the shared {{context docs}} placeholder as a resolved path list with one-line notes, in investigate.md, establishing the exact text the nine sibling tasks copy."
     author: Anthony Koukoullis
@@ -835,10 +835,10 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       - "Is every trace of the @-prefix instruction gone from this file?"
       - "Is the introducing sentence on line 6 unchanged?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 4.2 Replace the context block in `kanban-add.md`
+  - [x] 4.2 Replace the context block in `kanban-add.md`
     ```yaml
     description: "Copy task 4.1's canonical placeholder into kanban-add.md, preserving its variant introducing sentence."
     author: Anthony Koukoullis
@@ -862,10 +862,10 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       - "Does the #gates+ example still exist?"
       - "Are the item bullets and the four creation steps untouched?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 4.3 Replace the context block in `validate-plan.md`
+  - [x] 4.3 Replace the context block in `validate-plan.md`
     ```yaml
     description: "Copy task 4.1's canonical placeholder into validate-plan.md, changing nothing else in the template."
     author: Anthony Koukoullis
@@ -888,10 +888,10 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       - "Is the open-question return block untouched?"
       - "Does the rule H case still report ok?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 4.4 Replace the context block in `validate-issues.md`
+  - [x] 4.4 Replace the context block in `validate-issues.md`
     ```yaml
     description: "Copy task 4.1's canonical placeholder into validate-issues.md, changing nothing else in the template."
     author: Anthony Koukoullis
@@ -913,10 +913,10 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       - "Is the open-question return block untouched?"
       - "Does the rule H case still report ok?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 4.5 Replace the context block in `validate-tasks.md`
+  - [x] 4.5 Replace the context block in `validate-tasks.md`
     ```yaml
     description: "Copy task 4.1's canonical placeholder into validate-tasks.md, changing nothing else in the template."
     author: Anthony Koukoullis
@@ -939,10 +939,10 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       - "Is the open-question return block untouched?"
       - "Does the allowlisted `gate` occurrence still exist?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 4.6 Replace the context block in `execute-parent-task.md`
+  - [x] 4.6 Replace the context block in `execute-parent-task.md`
     ```yaml
     description: "Copy task 4.1's canonical placeholder into execute-parent-task.md, leaving stage 2's mode branch untouched."
     author: Anthony Koukoullis
@@ -964,10 +964,10 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       - "Is stage 2's mode branch still present and unchanged?"
       - "Is exactly one line changed relative to the end of stage 2?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 4.7 Replace the context block in `plan-and-tasks-spec.md`
+  - [x] 4.7 Replace the context block in `plan-and-tasks-spec.md`
     ```yaml
     description: "Copy task 4.1's canonical placeholder into the merged spec-mode plan-path template."
     author: Anthony Koukoullis
@@ -989,10 +989,10 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       - "Are the three read rules unchanged?"
       - "Does the rule H case still report ok?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 4.8 Replace the context block in `plan-and-tasks-diff.md`
+  - [x] 4.8 Replace the context block in `plan-and-tasks-diff.md`
     ```yaml
     description: "Copy task 4.1's canonical placeholder into the merged diff-mode plan-path template, keeping the pair byte-identical outside their mode rules."
     author: Anthony Koukoullis
@@ -1014,10 +1014,10 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       - "Are the only remaining differences between them the mode rules?"
       - "Does the rule H case still report ok?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 4.9 Replace the context block in `issues-and-tasks-spec.md`
+  - [x] 4.9 Replace the context block in `issues-and-tasks-spec.md`
     ```yaml
     description: "Copy task 4.1's canonical placeholder into the merged spec-mode issue-path template."
     author: Anthony Koukoullis
@@ -1038,10 +1038,10 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       - "Is the anchor rule still byte-exact?"
       - "Is the routing paragraph unchanged?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 4.10 Replace the context block in `issues-and-tasks-diff.md`
+  - [x] 4.10 Replace the context block in `issues-and-tasks-diff.md`
     ```yaml
     description: "Copy task 4.1's canonical placeholder into the merged diff-mode issue-path template, keeping the pair byte-identical outside their mode rules."
     author: Anthony Koukoullis
@@ -1064,10 +1064,10 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       - "Does no template under templates/ still carry an @-prefixed bullet?"
       - "Do all ten templates carry the same replacement block?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 4.11 Widen `SKILL.md`'s sanctioned-deviation bullet and update its `{{context docs}}` note
+  - [x] 4.11 Widen `SKILL.md`'s sanctioned-deviation bullet and update its `{{context docs}}` note
     ```yaml
     description: "Record that the orchestrator resolves the documents and their one-line notes once per run and reuses that block verbatim in every spawn, and stop the note describing @-prefixed bullets."
     author: Anthony Koukoullis
@@ -1091,10 +1091,10 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       - "Were no other bullets added to the sanctioned-deviations list?"
       - "Does the sweep grep over skills/ now return zero @-prefixed occurrences?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 4.12 Record stage 4 in `CHANGELOG.md`
+  - [x] 4.12 Record stage 4 in `CHANGELOG.md`
     ```yaml
     description: "Append the stage 4 entry under ## Unreleased, recording the de-inlined context documents."
     author: Anthony Koukoullis
@@ -1119,7 +1119,7 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       - "Is no version number added or bumped?"
       - "Does the test suite exit 0 at this final stage boundary?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
