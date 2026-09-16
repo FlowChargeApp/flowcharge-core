@@ -169,13 +169,13 @@ goes first and rule H fails if the file goes first.
       failures: []
     ```
 
-- [ ] 2. The two merged validation templates
+- [x] 2. The two merged validation templates
 
   ```yaml
   description: "Plan stage 2. Build the two path-specific templates from the three they replace, with the {stages} routing and the two-heading return added, and register both in the harness's rule H list and rule E allowlist. The orchestrator still runs the interim pair, so nothing changes behaviourally yet."
   ```
 
-  - [ ] 2.1 Author `templates/validate-plan-and-tasks.md`
+  - [x] 2.1 Author `templates/validate-plan-and-tasks.md`
     ```yaml
     description: "Create the plan-path merged validation template, whose comparison 1 checks the brief and workstream record against the plan and whose comparison 2 checks the plan against the task list."
     author: Anthony Koukoullis
@@ -208,10 +208,10 @@ goes first and rule H fails if the file goes first.
       - "Does comparison 2 carry `validate-tasks.md`'s verify-execution paragraph unchanged?"
       - "Does the file restate none of the /fc-validate skill's own rules?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 2.2 Author `templates/validate-issues-and-tasks.md`
+  - [x] 2.2 Author `templates/validate-issues-and-tasks.md`
     ```yaml
     description: "Create the issue-path merged validation template, whose comparison 1 checks the findings against the issue list and whose comparison 2 checks the issue list against the task list."
     author: Anthony Koukoullis
@@ -242,10 +242,10 @@ goes first and rule H fails if the file goes first.
       - "Is the `run no command` sentence scoped to comparison 1 only?"
       - "Does comparison 2 carry `validate-tasks.md`'s verify-execution paragraph unchanged?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 2.3 Extend `RULE_H_TEMPLATES` with both new templates
+  - [x] 2.3 Extend `RULE_H_TEMPLATES` with both new templates
     ```yaml
     description: "Register the two merged templates in the harness's rule H list, so the verbatim open-question block is checked in both. The three existing entries stay until stage 5."
     author: Anthony Koukoullis
@@ -268,10 +268,10 @@ goes first and rule H fails if the file goes first.
       - "Do both new entries use the same `flowcharge/templates/` prefix form as the others?"
       - "Does the rule H case pass, proving both new templates carry the verbatim block?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 2.4 Add a `DOCS_ALLOWLIST` entry for `gate` in each new template
+  - [x] 2.4 Add a `DOCS_ALLOWLIST` entry for `gate` in each new template
     ```yaml
     description: "Allow the word gate in each merged template's baseline-gate reference, so rule E stays green. The existing validate-tasks.md entry stays until stage 5."
     author: Anthony Koukoullis
@@ -293,7 +293,7 @@ goes first and rule H fails if the file goes first.
       - "Does each new entry's `why` name rule E and the baseline gate, as the existing one does?"
       - "Does the allowlist-staleness case pass, proving each new entry matches a live occurrence?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 

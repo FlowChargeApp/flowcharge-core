@@ -4717,6 +4717,20 @@ const DOCS_ALLOWLIST = [
       'gate, which is the precondition for running verify steps, not a prompt.',
   },
   {
+    file: 'flowcharge/templates/validate-plan-and-tasks.md',
+    text: 'gate',
+    why:
+      "Rule E. The template tells the validator to apply fc-validate's baseline " +
+      'gate, which is the precondition for running verify steps, not a prompt.',
+  },
+  {
+    file: 'flowcharge/templates/validate-issues-and-tasks.md',
+    text: 'gate',
+    why:
+      "Rule E. The template tells the validator to apply fc-validate's baseline " +
+      'gate, which is the precondition for running verify steps, not a prompt.',
+  },
+  {
     file: 'fc-task-list/SKILL.md',
     text: 'gated on',
     why:
@@ -4866,6 +4880,8 @@ const RULE_H_TEMPLATES = [
   'flowcharge/templates/validate-plan.md',
   'flowcharge/templates/validate-issues.md',
   'flowcharge/templates/validate-tasks.md',
+  'flowcharge/templates/validate-plan-and-tasks.md',
+  'flowcharge/templates/validate-issues-and-tasks.md',
 ];
 
 const RULE_H_BLOCK =
