@@ -5134,7 +5134,7 @@ testCase('an allowlist entry suppresses its own file only, never the same text e
 // source lines in the file.
 
 const POLICY_SECTION_OPEN = '## The prompt policy';
-const POLICY_SECTION_END = '## Operations';
+const POLICY_SECTION_END = '## The validation setting';
 const NO_RECOMMENDATION_RULE =
   '**No recommendation, no settling.** A question or a flag that states no '
   + 'recommendation, states two that conflict, or makes one conditional on something '
