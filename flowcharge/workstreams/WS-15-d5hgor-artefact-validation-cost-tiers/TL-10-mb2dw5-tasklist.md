@@ -297,13 +297,13 @@ goes first and rule H fails if the file goes first.
       failures: []
     ```
 
-- [ ] 3. The setting, defined and obeyed
+- [x] 3. The setting, defined and obeyed
 
   ```yaml
   description: "Plan stage 3. The new SKILL.md section, the fourth agents.md key, the amended standing-instruction sentence, the rewritten Operations row and **validate** note, the two collapsed chains, the Chaining bounds and the re-derivation rule, and the repointed POLICY_SECTION_END. This is the stage where the behaviour flips."
   ```
 
-  - [ ] 3.1 Add `## The validation setting` to `skills/flowcharge/SKILL.md`
+  - [x] 3.1 Add `## The validation setting` to `skills/flowcharge/SKILL.md`
     ```yaml
     description: "Add the section that defines what the validate key governs, its accepted values and its built-in default, placed immediately after the prompt policy's setting contract."
     author: Anthony Koukoullis
@@ -332,10 +332,10 @@ goes first and rule H fails if the file goes first.
       - "Does it point at `## Reporting` rather than restating the visibility mechanism?"
       - "Was no hard rule added or renumbered?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 3.2 Add the key to "Standing vs. one-off instructions"
+  - [x] 3.2 Add the key to "Standing vs. one-off instructions"
     ```yaml
     description: "Make the validation setting a reader of agents.md, add validate to the fixed key order, and give the standing write its Noted: example."
     author: Anthony Koukoullis
@@ -361,10 +361,10 @@ goes first and rule H fails if the file goes first.
       - "Were the four write rules left unchanged?"
       - "Was no new hard rule added?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 3.3 Rewrite the Operations table's `validate` row
+  - [x] 3.3 Rewrite the Operations table's `validate` row
     ```yaml
     description: "Repoint the validate row at the two merged templates, their new slots, both artefacts and the per-comparison return."
     author: Anthony Koukoullis
@@ -392,10 +392,10 @@ goes first and rule H fails if the file goes first.
       - "Does the returns column say one summary line per comparison, with correction detail withheld?"
       - "Are the other rows of the table unchanged?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 3.4 Rewrite the `**validate**` note
+  - [x] 3.4 Rewrite the `**validate**` note
     ```yaml
     description: "Replace the interim two-spawn pairing with the single-pass contract, and remove the sentence naming WS-15-d5hgor as its replacement."
     author: Anthony Koukoullis
@@ -423,10 +423,10 @@ goes first and rule H fails if the file goes first.
       - "Does it point at `skills/fc-validate/SKILL.md` for the order and the correction direction, without restating either?"
       - "Do the not-prompted sentence and the stage-report sentence survive unchanged?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 3.5 Collapse the two standard chains in "Parsing the request"
+  - [x] 3.5 Collapse the two standard chains in "Parsing the request"
     ```yaml
     description: "Fold each chain's two validate elements into one, placed after the authoring stage."
     author: Anthony Koukoullis
@@ -450,10 +450,10 @@ goes first and rule H fails if the file goes first.
       - "Are both prompted stages still marked `[prompt]`?"
       - "Are the other chain bullets unchanged?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 3.6 Rebound the Chaining section and add the re-derivation rule
+  - [x] 3.6 Rebound the Chaining section and add the re-derivation rule
     ```yaml
     description: "Change the validation bound from once per authoring stage to once per run, add the rule that a first-comparison finding re-derives the task list, and repoint the findings sentence at the new issue-path template."
     author: Anthony Koukoullis
@@ -481,10 +481,10 @@ goes first and rule H fails if the file goes first.
       - "Does the residual-gap sentence with the standalone `/fc-validate` recovery survive?"
       - "Is the findings sentence repointed at `validate-issues-and-tasks.md`?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 3.7 Repoint `POLICY_SECTION_END`
+  - [x] 3.7 Repoint `POLICY_SECTION_END`
     ```yaml
     description: "Narrow the prompt-policy pin's slice back to the prompt policy, now that a new section sits between it and ## Operations."
     author: Anthony Koukoullis
@@ -506,7 +506,7 @@ goes first and rule H fails if the file goes first.
       - "Is the empty-slice assertion unchanged?"
       - "Does the pin case still pass, proving the slice is non-empty and holds the rule?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 

@@ -193,8 +193,9 @@ in that case.
 
 ## Standing vs. one-off instructions
 
-Hard rules 3, 4, 8, 9 and 10 each read a starting default from `flowcharge/agents.md`
-and may also write it. This section is the one shared test they use to decide: does
+Hard rules 3, 4, 8, 9 and 10, and the validation setting, each read a starting default
+from `flowcharge/agents.md` and may also write it. This section is the one shared test
+they use to decide: does
 an instruction change only this run, or should it change this project's default from
 here on?
 
@@ -225,7 +226,8 @@ When both conditions hold: write or update the matching line in
 (e.g. "Noted: default subagent is now sonnet for this project.", "Noted: task-list
 mode now defaults to diff for this project.", "Noted: prompts are now set to manual
 for this project.", "Noted: prompts are now set to assist for this project.",
-"Noted: prompts are now set to cruise for this project."). No question, no
+"Noted: prompts are now set to cruise for this project.", "Noted: validation is now
+off for this project."). No question, no
 prompt: writing this file is a local, reversible, non-destructive state change,
 the same tier hard rule 8's other inline actions already sit in.
 
@@ -237,6 +239,7 @@ more than one is present:
 default_agent: <verbatim string>
 task_list_mode: spec | diff
 prompts: manual | assist | cruise
+validate: on | off
 ```
 
 A key is omitted entirely when never set, never written with a blank value. If the
@@ -308,6 +311,24 @@ written to the file (see "Standing vs. one-off instructions").
 so this section carries that note in the way this file's other unverifiable rules do
 (see DEVELOPMENT.md's note on unverifiable rules).
 
+## The validation setting
+
+`validate:` in `flowcharge/agents.md` governs whether a run checks its authored
+artefacts against the source they were authored from.
+
+Under `on`, one pass runs once per run, after the authoring stage's return and before
+the execute-tasks prompt. Under `off`, no validator is spawned.
+
+- **Accepted values:** `on`, `off`.
+- **Built-in default when the key and the file are both absent:** `on`.
+
+See `## Reporting` for how a run reports a validation that ran, was waived, or is
+missing.
+
+**No script can check** whether a run performs the pass or skips it, because no script
+reads this prose, so this section carries that note in the way this file's other
+unverifiable rules do (see DEVELOPMENT.md's note on unverifiable rules).
+
 ## Operations
 
 Each operation names its template, its slots, what it consumes, and what it returns.
@@ -317,7 +338,7 @@ Each operation names its template, its slots, what it consumes, and what it retu
 | investigate | `templates/investigate.md` | `{{context docs}}`, `{{investigation}}` | question from the request | findings summary |
 | plan-and-tasks | `templates/plan-and-tasks-spec.md` or `-diff.md` | `{stages}`, `{plan}`, `{ws_dir}`, `{ws_id}`, `{slug}`, `{{context docs}}`, `{{briefing}}` | feature description, or investigate findings; a plan path in `{plan}` when `{stages}` is `tasks-only` | plan path, summary, open questions, task list path, stage→task map |
 | issues-and-tasks | `templates/issues-and-tasks-spec.md` or `-diff.md` | `{stages}`, `{issuelist}`, `{ws_dir}`, `{ws_id}`, `{slug}`, `{{context docs}}`, `{{briefing}}` | findings the user supplies; an issue list path in `{issuelist}` when `{stages}` is `tasks-only` | issue list path, ISS IDs, task list path, ISS→task map |
-| validate | `templates/validate-plan.md`, `-issues.md` or `-tasks.md` | `{artefact}`, `{source}`, `{ws_dir}`, `{{context docs}}`, `{{source material}}` | the artefact an authoring stage just returned, plus its source | one summary line, plus any open finding; correction detail withheld |
+| validate | `templates/validate-plan-and-tasks.md` or `-issues-and-tasks.md` | `{stages}`, `{plan}` or `{issuelist}`, `{tasklist}`, `{ws_dir}`, `{{context docs}}`, `{{source material}}` | both artefacts the authoring stage returned, plus the source it authored from | one summary line per comparison, plus any open finding; correction detail withheld |
 | execute-tasks | `templates/execute-parent-task.md` (one spawn per parent task) | `{tasklist}`, `{{parent task number}}`, `{{context docs}}`, `{{briefing}}` | task list path, **PROMPTED**, deps checked per rule 5 | per-task applied/aborted status, self_eval |
 | commit | inline via the **fc-git** skill | - | completed work, plus the end-of-run upkeep writes that have already landed (issue closures, `--sync` status flips, regenerated index/board, released lease), **PROMPTED** | commit SHA |
 | backlog-add | `templates/kanban-add.md` | `{item1}`, `{item2}`, …, `{{context docs}}`, `{{briefing}}` | backlog items from the request | WS IDs, slugs, card text |
@@ -372,25 +393,25 @@ Notes:
   record with `status: backlog`, and the board is regenerated from it.
   The subagent chooses each title, slug and tags and runs `--new-ws` itself; the
   orchestrator neither creates the folder nor claims the id.
-- **validate**: each authoring stage pairs with its validation template. The merged
-  plan-and-tasks stage pairs with two, spawned one after the other after it in this
-  fixed order: `validate-plan.md` first, then `validate-tasks.md`. WS-118-xjdovc
-  later replaces that pair with a single pass; until it lands, both run, and total
-  validation coverage is unchanged. The merged issues-and-tasks stage pairs with
-  two in the same way, spawned one after the other after it in this fixed order:
-  `validate-issues.md` first, then `validate-tasks.md`. The validation
-  stage is not prompted, because it neither changes project code nor commits. Its
-  stage report carries the validator's summary line and any open finding only; the
-  per-correction detail is printed on request and not before.
+- **validate**: under `validate: on`, one pass runs once per run, spawned after the
+  authoring stage's return and before the execute-tasks prompt. The path chooses the
+  template: the plan path spawns `validate-plan-and-tasks.md`, the issue path spawns
+  `validate-issues-and-tasks.md`. `{stages}` passes through unchanged from the
+  authoring stage. The fixed comparison order and the never-align-backwards rule are
+  `skills/fc-validate/SKILL.md`'s own; this note points at that skill rather than
+  restating either. Under `validate: off`, no validation subagent is spawned at all.
+  The validation stage is not prompted, because it neither changes project code nor
+  commits. Its stage report carries the validator's summary line and any open finding
+  only; the per-correction detail is printed on request and not before.
 
 ## Parsing the request
 
 Map the user's English onto an ordered subset of operations. The standard chains:
 
 - "file these findings as issues [then fix them]" (findings come from the
-  conversation) → issues-and-tasks → validate-issues → validate-tasks →
+  conversation) → issues-and-tasks → validate →
   [prompt] execute-tasks → [prompt] commit
-- "plan X [and build it]" → plan-and-tasks → validate-plan → validate-tasks →
+- "plan X [and build it]" → plan-and-tasks → validate →
   [prompt] execute-tasks → [prompt] commit
 - "look into X" / "investigate X" → investigate (then stop; feed into plan-and-tasks or
   backlog-add only if asked)
@@ -486,16 +507,22 @@ These, and nothing else:
   question again, relay it unsettled.
 
 The validation stage is the one exception to "subagent returns feed the next
-`{{briefing}}`", and it runs at most once per authoring stage per run. Its briefing
+`{{briefing}}`", and it runs at most once per run. Its briefing
 carries the artefact and its source only, never the authoring subagent's return, its
 rationale, or its self-report, because fresh context is the active ingredient, and
 the authoring subagent's account of what it did is exactly the contamination this
-stage exists to avoid. The user's findings that feed `validate-issues.md` are not an
-exception to this: they are the source, and they reach the validation from the
-user, not from issues-and-tasks. On the no-loop carve-out: the policy section's
+stage exists to avoid. The user's findings that feed `validate-issues-and-tasks.md`
+are not an exception to this: they are the source, and they reach the validation from
+the user, not from issues-and-tasks. On the no-loop carve-out: the policy section's
 settling rule may re-spawn one authoring stage once when a validation finding is adopted as a
 settled question, and the re-authored artefact is not validated again, because the
 re-spawn's `{{briefing}}` already carries the finding and the answer adopted for it.
+Where a first-comparison finding is applied to the upstream artefact, by the
+validator-applied path or by the re-spawn path, the task list is re-derived with the
+merged authoring template at `{stages}: tasks-only` pointed at the corrected upstream
+artefact, because the existing task list derives from the uncorrected one. This
+re-spawn is the one the existing budget already allows, and the re-derived task list
+is not validated again.
 The residual gap is that a re-authored artefact may reach execution unvalidated. It is
 bounded to one artefact per run, it is named in the stage report, and it is
 recoverable with a standalone `/fc-validate`.
