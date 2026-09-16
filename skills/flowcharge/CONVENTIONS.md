@@ -262,6 +262,15 @@ Additional keys by type:
   `index.md`'s workstream table and `--list` append ` (blocked)` to the status
   cell. Nothing sets or clears the key automatically: a person writes it, and a person
   removes it.
+- `plan`: `base_commit: <short-SHA>`, **optional**. It is the short SHA of `HEAD` at
+  the moment the plan is authored, read with `git rev-parse --short HEAD`, and it dates
+  the plan's reading of the codebase. A later stage authoring tasks from the plan diffs
+  that SHA against current `HEAD` to learn which of the files the plan names have moved
+  since, and reads again only those. A plan carrying no `base_commit` is read as undated,
+  and every file it names is read again. **No script checks the key.** It is not required
+  and its absence never warns, because the rule is forward-only: every plan already on
+  disk was authored without it, so a required key would WARN across the whole existing
+  corpus, exactly as the automatic `issue` and `feature` tags above would.
 - `tasklist`: `mode: spec | diff`, and `base_commit: <short-SHA>` wherever any
   SEARCH/REPLACE block appears. (These live in frontmatter, not a separate header
   block.) **No script can check** when `base_commit` is required, because the
