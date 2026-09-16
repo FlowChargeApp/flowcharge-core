@@ -677,13 +677,13 @@ goes first and rule H fails if the file goes first.
       failures: []
     ```
 
-- [ ] 6. Documentation
+- [x] 6. Documentation
 
   ```yaml
   description: "Plan stage 6. README.md and CHANGELOG.md describe what ships. No suite version bump: the plan writes the changelog line and the maintainer decides the release."
   ```
 
-  - [ ] 6.1 Add the key to `README.md`'s `agents.md` block
+  - [x] 6.1 Add the key to `README.md`'s `agents.md` block
     ```yaml
     description: "Turn the README's three standing defaults into four, and explain in two sentences what on and off do."
     author: Anthony Koukoullis
@@ -709,10 +709,10 @@ goes first and rule H fails if the file goes first.
       - "Is the comment column still aligned?"
       - "Is the `prompts:` explanation unchanged?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 6.2 Add the CHANGELOG entries
+  - [x] 6.2 Add the CHANGELOG entries
     ```yaml
     description: "Record the key and the two templates under Added, the single pass and the visibility mechanism under Changed, and the three superseded templates under Removed, all in ## Unreleased."
     author: Anthony Koukoullis
@@ -739,7 +739,7 @@ goes first and rule H fails if the file goes first.
       - "Do all three entries sit under `## Unreleased`?"
       - "Was no version heading added and no version bumped?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 

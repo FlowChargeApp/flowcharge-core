@@ -100,13 +100,17 @@ the issue list. Any failure halts the pipeline rather than improvising around it
 
 ## How often it stops for you
 
-An optional `flowcharge/agents.md` in your project sets three standing defaults:
+An optional `flowcharge/agents.md` in your project sets four standing defaults:
 
 ```
 default_agent: <subagent type>     # which agent runs each stage
 task_list_mode: spec | diff        # how task lists are authored
 prompts: manual | assist | cruise  # how much the orchestrator decides on its own
+validate: on | off                 # whether artefacts are checked against their source
 ```
+
+`on` runs one check of the run's artefacts against what they were authored from; `off`
+runs none and is the cheaper, faster choice.
 
 `prompts:` decides how much of a run comes back to you. `manual` is the default.
 
