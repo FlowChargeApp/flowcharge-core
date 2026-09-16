@@ -48,6 +48,13 @@ skill mirrors it. See VERSIONING.md.
   diff rules whatever the file's `mode` says. A task list authored before this
   change executes unchanged, because a diff-mode list takes exactly the previous
   path.
+- Every prompt template's shared context-document block is now a resolved list of
+  repo-relative paths, one line per document saying what that document covers and
+  when to read it, in place of documents inlined in full into every spawn. The
+  harness-specific `@`-prefix file-reference syntax is gone, because
+  DEVELOPMENT.md's portability rule forbids depending on one harness's own
+  file-reference syntax. The orchestrator resolves that block once per run and
+  reuses it verbatim in every spawn of the run.
 
 ### Removed
 

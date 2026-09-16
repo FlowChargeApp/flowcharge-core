@@ -327,9 +327,10 @@ Each operation names its template, its slots, what it consumes, and what it retu
 Notes:
 
 - **`{{context docs}}`**: the same shared Context-section block in every template.
-  It resolves to this project's own structural or reference documentation as
-  `@`-prefixed bullets, or to nothing when the project has none. Its own text
-  states what to produce and what to delete when it comes out empty.
+  It resolves to this project's own structural or reference documentation as a
+  list of repo-relative paths, one line per document saying what that document
+  covers and when to read it, or to nothing when the project has none. Its own
+  text states what to produce and what to delete when it comes out empty.
 - **ID slots** (`{ws_id}`, `{ws_dir}`): `{ws_id}` is the only artefact ID you allocate, and it
   comes from the `--new-ws` run that created the workstream folder (see FlowCharge Core
   upkeep). The folder must exist before anything is written into it. Every other
@@ -442,7 +443,9 @@ These, and nothing else:
 - Deleting the Context lead-in sentence (and, where that empties the section, its
   heading) when the `{{context docs}}` placeholder resolves to nothing. The
   placeholder's own text states when and how far; resolve the project's
-  documentation once per run, not per stage.
+  documentation once per run, not per stage. Write its one-line notes at that
+  same point, then reuse that one resolved block verbatim in every spawn of the
+  run.
 - Adjusting `{item1}` / `{item2}` bullet count in kanban-add.md to the actual number
   of items.
 - In execute-parent-task, the loop mechanics live in this skill, not the template;
