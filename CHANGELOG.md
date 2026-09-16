@@ -13,6 +13,64 @@ skill mirrors it. See VERSIONING.md.
 
 ## Unreleased
 
+### Added
+
+- `flowcharge/templates/plan-and-tasks-spec.md` and
+  `flowcharge/templates/plan-and-tasks-diff.md`: one merged plan-path template per
+  mode, replacing the three that came before. A `{stages}` slot selects which
+  artefact a spawn writes, taking one of `plan-only`, `plan-and-tasks` or
+  `tasks-only`, so a plan and its task list are authored by a single subagent
+  that keeps the codebase knowledge it already built.
+- `flowcharge/templates/issues-and-tasks-spec.md` and
+  `flowcharge/templates/issues-and-tasks-diff.md`: one merged issue-path template
+  per mode, replacing the three that came before. Its `{stages}` slot takes one of
+  `issues-only`, `issues-and-tasks` or `tasks-only`, so an issue list and the task
+  list that fixes it are authored by a single subagent that keeps the codebase
+  knowledge it already built.
+- `base_commit` on a plan, an optional frontmatter key holding the short SHA of
+  `HEAD` at the moment the plan is authored. It dates the plan's reading of the
+  codebase. No script checks it, and a plan that omits it is read as undated.
+
+### Changed
+
+- Spec-mode task authoring no longer re-reads every file a plan names. It runs
+  `git diff --name-only <the plan's base_commit>..HEAD` and reads again only the
+  named files that appear in that output. A plan with no `base_commit` falls back
+  to reading all of them, and a file a SEARCH/REPLACE block targets is always read
+  first. Diff mode keeps its unconditional read, because every task there carries
+  a block.
+- `flowcharge/templates/execute-parent-task.md` now branches on the task list's
+  `mode` key instead of asserting that every task carries a literal block. A
+  `diff`-mode subtask applies its SEARCH/REPLACE block verbatim, with the same
+  state test, already-applied test and stale-block abort as before. A `spec`-mode
+  subtask derives the edit from its `implement` prose and the anchor it names, and
+  aborts when that anchor is absent. A subtask that carries a block follows the
+  diff rules whatever the file's `mode` says. A task list authored before this
+  change executes unchanged, because a diff-mode list takes exactly the previous
+  path.
+- Every prompt template's shared context-document block is now a resolved list of
+  repo-relative paths, one line per document saying what that document covers and
+  when to read it, in place of documents inlined in full into every spawn. The
+  harness-specific `@`-prefix file-reference syntax is gone, because
+  DEVELOPMENT.md's portability rule forbids depending on one harness's own
+  file-reference syntax. The orchestrator resolves that block once per run and
+  reuses it verbatim in every spawn of the run.
+
+### Removed
+
+- `flowcharge/templates/create-plan.md`,
+  `flowcharge/templates/tasks-from-plan-spec.md` and
+  `flowcharge/templates/tasks-from-plan-diff.md`, retired in favour of the merged
+  pair. Unzipping a release over an existing skill folder leaves these three files
+  on disk, because unzipping adds and overwrites but never deletes. README.md's
+  instruction to delete the older folder of the same name first applies to this
+  release.
+- `flowcharge/templates/create-issues.md`,
+  `flowcharge/templates/tasks-from-issues-spec.md` and
+  `flowcharge/templates/tasks-from-issues-diff.md`, retired in favour of the merged
+  issue-path pair. The delete-the-older-folder-first note above applies to these
+  three files too.
+
 ## 0.3.0 - 2026-09-16
 
 ### Added

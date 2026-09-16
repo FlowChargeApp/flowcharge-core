@@ -4615,6 +4615,18 @@ const DOCS_ALLOWLIST = [
       'to show one bare name to name the form it describes.',
   },
   {
+    file: 'flowcharge/SKILL.md',
+    text: 'plan-and-tasks-spec.md',
+    why:
+      'Rule C. This is a prompt template under templates/, not an artefact a ' +
+      'workstream folder holds, so it carries no id prefix and never will. The ' +
+      'name only matches because it starts with the word plan and follows a ' +
+      'slash, which clears rule C\'s (?<![\\w-]) guard. The Operations table has ' +
+      'to write the path in full, because rule G resolves every templates/*.md ' +
+      'short form in this file against disk. The -diff.md variant is written as ' +
+      'a suffix in the same cell and never matches.',
+  },
+  {
     file: 'flowcharge/CONVENTIONS.md',
     text: 'FlowCharge ID',
     why:
@@ -4830,18 +4842,18 @@ function describeDanglingPaths(dangling) {
     .join('\n');
 }
 
-// Rule H, the verbatim block. Six prompt templates can come back with an open
+// Rule H, the verbatim block. Five prompt templates can come back with an open
 // question, and the prompt policy can only settle one that arrives in a fixed
 // shape: a question field, a recommendation field, and the sentinel a subagent
-// writes when it cannot recommend anything. Each of the six therefore carries
-// the same block, and this rule pins it in all six at once.
+// writes when it cannot recommend anything. Each of the five therefore carries
+// the same block, and this rule pins it in all five at once.
 //
-// The two tasks-from-issues templates are deliberately absent from the list.
+// The two issues-and-tasks templates are deliberately absent from the list.
 // Neither returns an open question (a template that cannot author a task for an
 // issue returns that issue as skipped instead), so the block would say nothing
 // there.
 //
-// RULE_H_BLOCK is the block as it stands in create-plan.md, the master copy, with
+// RULE_H_BLOCK is the block as it stands in plan-and-tasks-spec.md, the master copy, with
 // its whitespace already collapsed. Each file's text is collapsed the same way
 // before the containment check, exactly as the hard-rule-10 prose pin below does
 // it, so a re-wrap in one template does not fail the rule spuriously.
@@ -4849,9 +4861,8 @@ function describeDanglingPaths(dangling) {
 // Like rule G this rule is per file, so it calls neither collectOccurrences nor
 // unallowedOccurrences and it adds no DOCS_ALLOWLIST entries.
 const RULE_H_TEMPLATES = [
-  'flowcharge/templates/create-plan.md',
-  'flowcharge/templates/tasks-from-plan-spec.md',
-  'flowcharge/templates/tasks-from-plan-diff.md',
+  'flowcharge/templates/plan-and-tasks-spec.md',
+  'flowcharge/templates/plan-and-tasks-diff.md',
   'flowcharge/templates/validate-plan.md',
   'flowcharge/templates/validate-issues.md',
   'flowcharge/templates/validate-tasks.md',
@@ -4965,8 +4976,8 @@ testCase('skills/**/*.md: every path written in the prose resolves on disk', () 
   );
   const present = ruleGDanglingPaths([
     { file: 'sample/SKILL.md', text: 'see skills/flowcharge/CONVENTIONS.md' },
-    { file: RULE_G_PROMPT_SHORT_FORM_FILE, text: 'run templates/create-plan.md' },
-    { file: 'sample/SKILL.md', text: 'the slot <skills-dir>/flowcharge/templates/create-plan.md' },
+    { file: RULE_G_PROMPT_SHORT_FORM_FILE, text: 'run templates/plan-and-tasks-spec.md' },
+    { file: 'sample/SKILL.md', text: 'the slot <skills-dir>/flowcharge/templates/plan-and-tasks-spec.md' },
   ]);
   assert.deepStrictEqual(present, [], 'Rule G flagged a path that does resolve, or read the placeholder form as a path');
 
