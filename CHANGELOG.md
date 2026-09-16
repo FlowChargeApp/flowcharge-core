@@ -13,6 +13,14 @@ skill mirrors it. See VERSIONING.md.
 
 ## Unreleased
 
+### Added
+
+- `fc-index.mjs` gains an `--init` mode: create `flowcharge/workstreams/`
+  (and, transitively, `flowcharge/`) when it does not already exist, then
+  regenerate `index.md`/`kanban.md` in the same run, so a caller with no
+  `flowcharge/` tree yet can produce one and its empty views in a single
+  command.
+
 ## 0.2.0 - 2026-09-13
 
 ### Added

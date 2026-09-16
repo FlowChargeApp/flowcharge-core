@@ -58,6 +58,31 @@ function withFixture(spec, fn) {
   }
 }
 
+// Like fixture(), but does not pre-create flowcharge/workstreams/: --init's
+// own happy path is proving the generator creates that directory itself, so
+// its fixture must start without it, unlike every other case in this file.
+function fixtureNoWorkstreamsTree(spec = {}) {
+  const dir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), FIXTURE_PREFIX)));
+  for (const rel of Object.keys(spec)) {
+    const filePath = path.join(dir, rel);
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, spec[rel]);
+  }
+  return dir;
+}
+
+// Runs fn against a fresh tree built by fixtureNoWorkstreamsTree() and
+// removes the tree afterwards, including when fn throws. Mirrors
+// withFixture()'s shape.
+function withNoWorkstreamsFixture(spec, fn) {
+  const dir = fixtureNoWorkstreamsTree(spec);
+  try {
+    return fn(dir);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
 // ---- artefact content builders --------------------------------------------
 
 const pad2 = (n) => String(n).padStart(2, '0');
@@ -1875,6 +1900,98 @@ testCase('--new-ws --status blocked is refused and writes nothing', () => {
   });
 });
 
+// ---- cases: --init mode ----------------------------------------------------
+// --init creates flowcharge/workstreams/ (and, transitively, flowcharge/) when
+// it does not already exist, then falls through into the same regenerate path
+// the default mode runs. These cases build from fixtureNoWorkstreamsTree()/
+// withNoWorkstreamsFixture(), not fixture()/withFixture(): the point of --init
+// is that it works when flowcharge/workstreams/ does not exist yet, the one
+// thing fixture() never leaves absent.
+
+testCase('--init on a tree with no flowcharge/ at all creates it and exits 0 with exactly two WARN lines', () => {
+  withNoWorkstreamsFixture({}, (dir) => {
+    const res = runGenerator(dir, ['--init']);
+    assert.strictEqual(res.status, 0, `--init exited ${res.status}\n${res.stderr}`);
+    assert.strictEqual(res.stderr, '', `--init wrote to stderr:\n${res.stderr}`);
+    compareWarnSets(warnLines(res.stdout), [
+      'flowcharge/tags.md missing, tag validation skipped',
+      'flowcharge/ids.md missing: create it before allocating new IDs',
+    ]);
+    assert.ok(
+      res.stdout.includes('fc-index: 0 workstreams, 0 artefacts, 0 issues (0 open)'),
+      `--init summary line changed:\n${res.stdout}`,
+    );
+    assert.ok(fs.existsSync(path.join(dir, 'flowcharge', 'workstreams')), '--init did not create flowcharge/workstreams/');
+    assert.ok(fs.existsSync(path.join(dir, 'flowcharge', 'index.md')), '--init did not write index.md');
+    assert.ok(fs.existsSync(path.join(dir, 'flowcharge', 'kanban.md')), '--init did not write kanban.md');
+  });
+});
+
+testCase('--init claims no id and writes no workstream folder or ids.md', () => {
+  withNoWorkstreamsFixture({}, (dir) => {
+    const res = runGenerator(dir, ['--init']);
+    assert.strictEqual(res.status, 0, `--init exited ${res.status}\n${res.stderr}`);
+    assert.deepStrictEqual(wsFolders(dir), [], '--init created a workstream folder');
+    assert.deepStrictEqual(idsEntries(dir), [], '--init claimed an id');
+    assert.ok(!fs.existsSync(path.join(dir, 'flowcharge', 'ids.md')), '--init wrote flowcharge/ids.md');
+  });
+});
+
+// This case cannot discriminate against an unmodified generator: with
+// flowcharge/workstreams/ already present, an unrecognised --init token is
+// silently ignored today and the run already falls through to the default
+// regenerate path with no change from this task. It is here as a regression
+// guard for the no-op contract (PLN-6-uoxfrt Scope acceptance criterion 3),
+// not as proof the flag is implemented; that proof lives in the two cases
+// above and the refusal loop below.
+testCase('--init against a tree already holding a workstream is a no-op on that data and still regenerates', () => {
+  withFixture(baseTree(), (dir) => {
+    const before = readRel(dir, WS1);
+    const res = runGenerator(dir, ['--init']);
+    assert.strictEqual(res.status, 0, `--init exited ${res.status}\n${res.stderr}`);
+    assert.strictEqual(readRel(dir, WS1), before, '--init altered an existing workstream record');
+    assert.deepStrictEqual(wsFolders(dir), ['WS-1-abcdef-alpha'], '--init changed the workstream folder set');
+    assert.ok(
+      res.stdout.includes('fc-index: 1 workstreams, 1 artefacts, 0 issues (0 open)'),
+      `--init summary line changed:\n${res.stdout}`,
+    );
+  });
+});
+
+for (const combo of [['--check'], ['--list'], ['--claim', 'WS'], ['--new-ws', 'demo', '--title', 'Demo'], ['--sync'], ['--whoami']]) {
+  testCase(`--init ${combo.join(' ')} exits 1 with one stderr line and writes nothing`, () => {
+    withFixture(EMPTY_TREE, (dir) => {
+      const res = runGenerator(dir, ['--init', ...combo]);
+      expectRefusal(res, `--init ${combo.join(' ')}`);
+      assert.deepStrictEqual(wsFolders(dir), [], `--init ${combo.join(' ')} created a workstream folder`);
+      assert.deepStrictEqual(idsEntries(dir), [], `--init ${combo.join(' ')} claimed an id`);
+      for (const rel of ['flowcharge/index.md', 'flowcharge/kanban.md', 'flowcharge/ids.md', '.gitignore']) {
+        assert.ok(!fs.existsSync(path.join(dir, rel)), `--init ${combo.join(' ')} wrote ${rel}`);
+      }
+    });
+  });
+}
+
+testCase('--init --no-board writes index.md only and leaves kanban.md untouched', () => {
+  withNoWorkstreamsFixture({}, (dir) => {
+    const res = runGenerator(dir, ['--init', '--no-board']);
+    assert.strictEqual(res.status, 0, `--init --no-board exited ${res.status}\n${res.stderr}`);
+    assert.ok(fs.existsSync(path.join(dir, 'flowcharge', 'index.md')), '--init --no-board did not write index.md');
+    assert.ok(!fs.existsSync(path.join(dir, 'flowcharge', 'kanban.md')), '--init --no-board wrote kanban.md');
+  });
+});
+
+testCase('--init appends the standard three lines to a project with no .gitignore yet', () => {
+  withNoWorkstreamsFixture({}, (dir) => {
+    const res = runGenerator(dir, ['--init']);
+    assert.strictEqual(res.status, 0, `--init exited ${res.status}\n${res.stderr}`);
+    const gi = readRel(dir, '.gitignore');
+    for (const line of ['flowcharge/index.md', 'flowcharge/kanban.md', 'flowcharge/ids/']) {
+      assert.ok(gi.includes(line), `--init did not add "${line}" to .gitignore:\n${gi}`);
+    }
+  });
+});
+
 // ---- cases: ID graph (orphan markers, counters ahead, links: and issues:) ---
 // The marker cases pin the marker directory's mtime rather than accepting
 // whatever the filesystem set at creation, because the age the WARN reports is
@@ -2104,7 +2221,7 @@ testCase('the registry --claim seeds carries the same canonical header', () => {
 // Every flag fc-index.mjs parses. A flag added to the script without an entry
 // in HELP fails the completeness case below by name.
 const HELP_FLAGS = [
-  '--root', '--no-board', '--check', '--sync', '--list', '--ws', '--sort',
+  '--root', '--no-board', '--check', '--sync', '--init', '--list', '--ws', '--sort',
   '--desc', '--archived', '--claim', '--new-ws', '--title', '--description',
   '--tags', '--status', '--whoami', '--help',
 ];
