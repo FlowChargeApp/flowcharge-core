@@ -4,7 +4,7 @@ type: plan
 workstream: WS-12-zq2ms6
 slug: generator-empty-init-mode
 title: "Add fc-index.mjs --init: create an empty flowcharge/ tree with zero workstreams"
-status: ready
+status: done
 created: 2026-09-16
 updated: 2026-09-16
 author: Anthony Koukoullis
