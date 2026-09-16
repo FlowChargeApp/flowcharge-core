@@ -13,6 +13,8 @@ skill mirrors it. See VERSIONING.md.
 
 ## Unreleased
 
+## 0.3.0 - 2026-09-16
+
 ### Added
 
 - `fc-index.mjs` gains an `--init` mode: create `flowcharge/workstreams/`
