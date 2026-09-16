@@ -2,7 +2,7 @@
 name: fc-task-list
 description: Manage FlowCharge Core task list files stored as per-workstream Markdown in ./flowcharge/workstreams/{{WS-N-SUFFIX}}-{{slug}}/{{TL-N-SUFFIX}}-tasklist.md. Read, create, update, delete tasks, understand frontmatter, task types, authoring modes, schema, global TL IDs, and rules. Part of the FlowCharge Core suite (parallel successor to ak-task-list-md).
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 ## What I do
