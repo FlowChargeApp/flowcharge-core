@@ -259,12 +259,12 @@ figure was measured directly against that commit rather than assumed.
       failures: []
     ```
 
-- [ ] 2. Add test coverage for `--init` in `run-tests.mjs`
+- [x] 2. Add test coverage for `--init` in `run-tests.mjs`
   ```yaml
   description: "PLN-6-uoxfrt Stage 2: a fixture builder that does not pre-create flowcharge/workstreams/, plus cases proving the empty-tree happy path, no ID claimed and no workstream written, a no-op against an existing workstream, the six mode-combination refusals, --no-board honoured, and .gitignore gaining its three lines; --init also joins the HELP_FLAGS inventory."
   ```
 
-  - [ ] 2.1 Add a fixture builder that does not pre-create `flowcharge/workstreams/`
+  - [x] 2.1 Add a fixture builder that does not pre-create `flowcharge/workstreams/`
     ```yaml
     description: "fixture() (run-tests.mjs:38-41) always pre-creates flowcharge/workstreams/, per its own comment, because every other mode requires it. --init's own cases need a tree that starts without it, so add fixtureNoWorkstreamsTree()/withNoWorkstreamsFixture(), mirroring fixture()/withFixture()'s own shape, right after withFixture()."
     author: Anthony Koukoullis
@@ -329,11 +329,11 @@ figure was measured directly against that commit rather than assumed.
       - "fixtureNoWorkstreamsTree() never calls mkdirSync on a workstreams/ path"
       - "node skills/flowcharge/scripts/test/run-tests.mjs still reports 252/252 passed (a new helper, no new case yet)"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
-  - [ ] 2.2 Add the `--init` mode test-case section
+  - [x] 2.2 Add the `--init` mode test-case section
     ```yaml
     description: "Add one new section, '---- cases: --init mode ----', between the existing '--new-ws --status blocked' case and the ID graph section (run-tests.mjs:1867-1878), covering PLN-6-uoxfrt Stage 2's full list: the empty-tree happy path and its exact two WARN lines; no ID claimed and no workstream folder written; a no-op against an existing workstream; the six mode-combination refusals; --no-board honoured; and .gitignore gaining its three lines."
     author: Anthony Koukoullis
@@ -474,11 +474,11 @@ figure was measured directly against that commit rather than assumed.
       - "The no-op case's comment records why it cannot discriminate against an unmodified generator, per this task's own gotcha"
       - "node skills/flowcharge/scripts/test/run-tests.mjs reports 263/263 passed (252 baseline + 11 new cases; 252/252 with none of these cases present at base_commit 69b9d90)"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
-  - [ ] 2.3 Add `--init` to the `HELP_FLAGS` inventory
+  - [x] 2.3 Add `--init` to the `HELP_FLAGS` inventory
     ```yaml
     description: "HELP_FLAGS (run-tests.mjs:2106-2110) lists every flag the 'help documents every flag' case checks for. Add '--init' so that existing case covers the new flag with no new case of its own, per PLN-6-uoxfrt Stage 2."
     author: Anthony Koukoullis
@@ -512,7 +512,7 @@ figure was measured directly against that commit rather than assumed.
       - "No existing entry in the array changed or moved"
       - "node skills/flowcharge/scripts/test/run-tests.mjs reports 263/263 passed"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
