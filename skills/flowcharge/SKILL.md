@@ -302,7 +302,7 @@ written to the file (see "Standing vs. one-off instructions").
 
 **No script can check** the tiers or the risk test, because no script reads this prose,
 so this section carries that note in the way this file's other unverifiable rules do
-(see "Maintaining this skill").
+(see DEVELOPMENT.md's note on unverifiable rules).
 
 ## Operations
 
@@ -780,30 +780,3 @@ do not summarise it, reformat it, drop columns, or fold it into prose.
   nothing more: no re-printed summary, no re-run stage or upkeep, and no
   restated counts or their breakdown. A new
   instruction starts new work as usual.
-
-## Maintaining this skill
-
-The user owns the templates. When they hand over a revised prompt template or a new
-operation, update or add the file under `templates/` verbatim and extend the Operations
-table. Do not merge their text into this file's prose. Schema changes belong in
-CONVENTIONS.md, and in the FlowCharge Core schema skills where they repeat it.
-
-A new rule added to CONVENTIONS.md ships with one of two things, and never with
-neither: a matching check in `skills/flowcharge/scripts/fc-index.mjs` plus a
-case in `skills/flowcharge/scripts/test/run-tests.mjs` that pins its output,
-or an explicit "no script can check this" note in CONVENTIONS.md next to the rule
-itself. A rule that has neither can go stale without anyone noticing, and these
-checks exist to stop that.
-
-A change to an on-disk name shape or an ID shape must grep the entire `skills/`
-tree for the old pattern before it merges. Grep every file, not only the documents
-you think of as documentation. The prompt templates under `templates/` are the layer
-both previous migrations missed. The docs-consistency check in
-`skills/flowcharge/scripts/test/run-tests.mjs` is the standing backstop for
-rules A to H, the set it already knows. That check knows only those eight rules,
-so a new shape change still needs the grep.
-
-A rule put into a numbered procedure is anchored by execution order, placed at
-the step where it must be applied, not by topical adjacency to related text.
-**No script can check** this rule, and none can check the smell test in
-CONVENTIONS.md either, so documented guidance is its only defence.
