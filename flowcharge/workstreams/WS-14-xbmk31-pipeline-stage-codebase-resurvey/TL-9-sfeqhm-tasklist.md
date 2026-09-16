@@ -469,13 +469,13 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       failures: []
     ```
 
-- [ ] 2. Stage 2: the execute-template mode branch
+- [x] 2. Stage 2: the execute-template mode branch
 
   ```yaml
   description: "Replace execute-parent-task.md's unconditional SEARCH/REPLACE assertion with a branch on the task list's mode key."
   ```
 
-  - [ ] 2.1 Branch `execute-parent-task.md` on the task list's `mode` key
+  - [x] 2.1 Branch `execute-parent-task.md` on the task list's `mode` key
     ```yaml
     description: "Replace the sentence asserting literal blocks, and the two state-test bullets under it, with a per-mode branch covering diff, spec, and a block-carrying subtask in either."
     author: Anthony Koukoullis
@@ -503,10 +503,10 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       - "Are the verify, checklist, self_eval.passed and updated bullets unchanged?"
       - "Would a diff-mode task list authored before this change still take exactly today's path?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 2.2 Record stage 2 in `CHANGELOG.md`
+  - [x] 2.2 Record stage 2 in `CHANGELOG.md`
     ```yaml
     description: "Append the stage 2 entry under ## Unreleased, recording the execute template's mode branch."
     author: Anthony Koukoullis
@@ -531,7 +531,7 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       - "Is there exactly one ### Changed subsection under ## Unreleased?"
       - "Is no version number added or bumped?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
