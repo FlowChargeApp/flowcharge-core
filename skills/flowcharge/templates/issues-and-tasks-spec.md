@@ -1,19 +1,42 @@
+# Issues and Tasks
+
+## Role
+You are a senior software engineer recording defect reports, and a senior software architect and senior software developer authoring the tasks that fix them. When you file issues you are writing up findings that already exist, not deciding what the software should become.
+
+## Skills
+/fc-dev-principles
+/fc-issue-list
+/fc-task-list
+
 ## Context
 Read these to understand the structure and purpose of the app:
 {{this project's own structural or reference documentation, listed as `@`-prefixed bullets, one per file. Look at what actually exists at the project root (a README, a `docs/` folder, an architecture, layers or conventions document) and list only files you have confirmed are there. Invent nothing and never carry a path over from another project. If the project has no such documentation, delete this block and the sentence introducing it; if that leaves this section with no other content, delete its heading too.}}
 ````md
-{{everything the subagent needs and cannot discover for itself: what these issues cover, the target files and how they relate, decisions already taken, and constraints in play, complete on those points, no padding}}
+{{everything the subagent needs and cannot discover for itself, complete on the points below, no padding. When `{stages}` is `issues-only`: every finding to be filed, each with its location, failure scenario, severity and confidence. When `{stages}` is `issues-and-tasks`: the same, plus anything the task-authoring half needs that the issues themselves will not carry, namely the target files and how they relate, the decisions already taken, and the constraints in play. When `{stages}` is `tasks-only`: what the issues at `{issuelist}` cover, the target files and how they relate, the decisions already taken, and the constraints in play.}}
 ````
 
-## Role
-You are a senior software architect and senior software developer.
+## Instructions
+This stage files issues, authors a task list, or both. Read `{stages}` and route on it. When `{stages}` is `tasks-only`, read the artefact at `{issuelist}` in full and start at Part 2. Otherwise do Part 1, and when `{stages}` is `issues-only`, stop after Part 1 and report. When `{stages}` is `issues-and-tasks`, do Part 1 and then go straight on to Part 2.
 
-## Skills
-/fc-dev-principles
-/fc-task-list
+### Part 1: file the issues
 
-## Task
-Author tasks for every **open** issue in {issuelist} (skip any whose status is `done` or `dropped`), and save them to `{ws_dir}/<the TL ID you claim below>-tasklist.md` (if that file already exists for other work, use `<the TL ID you claim below>-tasklist-<qualifier>.md` in the same folder).
+Skip this part when `{stages}` is `tasks-only`.
+
+File one issue per finding in Context, and save them to `{ws_dir}/<the IL ID you claim below>-issuelist.md` (if that file already exists for different findings, use `<the IL ID you claim below>-issuelist-<qualifier>.md` in the same folder). Context is the complete set: file nothing that did not arrive there, and add nothing you notice yourself while writing.
+
+The file must open with frontmatter per the skill, with `id: <the IL ID you claim below>`, `type: issuelist`, `workstream: {ws_id}`, `slug: {slug}`, `status: ready`, today's date (from `date +%F`) in `created`/`updated`, and `author` (from `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --whoami`, per CONVENTIONS.md's author section). Flat keys and inline arrays only.
+
+File defects only: existing code that produces a wrong result, crash, corruption, leak, or failure under real input, timing or scale. If a finding's fix would add functionality the code was never built to have rather than correct code that exists, do not file it; list it under Not filed instead. The test is "add X" versus "correct X". This matters because these issues are later read by an agent that turns them into implementation tasks and builds them, so a feature filed here is a feature shipped without anyone having chosen it.
+
+Before filing, check any project reference documentation listed in Context for standing instructions on what not to file. Such documents record design decisions that are known and accepted. File nothing against anything they mark that way. If Context lists no such documentation, skip this check.
+
+Allocate the IL ID for the file itself by running `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --claim IL`, and the ISS IDs by running the same command with `--claim ISS <count>` (count = the number of issues being filed). Use the printed ids verbatim. IDs are global and permanent across every issue list.
+
+### Part 2: author the task list
+
+Skip this part when `{stages}` is `issues-only`.
+
+Author tasks for every **open** issue in the issue list — the artefact you wrote in Part 1, or the one at `{issuelist}` when you skipped Part 1 — skipping any whose status is `done` or `dropped`, and save them to `{ws_dir}/<the TL ID you claim below>-tasklist.md` (if that file already exists for other work, use `<the TL ID you claim below>-tasklist-<qualifier>.md` in the same folder).
 
 The file must open with frontmatter per the skill: `id: <the TL ID you claim below>`, `type: tasklist`, `workstream: {ws_id}`, `slug: {slug}`, `status: ready`, today's date (from `date +%F`) in `created`/`updated`, `author` (from `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --whoami`, per CONVENTIONS.md's author section), and `depends_on: [<the issue list's ID from its own frontmatter>]`. Flat keys and inline arrays only.
 
@@ -23,7 +46,7 @@ This file is **spec mode**: set `mode: spec` in the frontmatter, and record `bas
 
 Each task must:
 
-* Record in its `issues:` key the one issue it fixes. Every task traces to exactly one open issue in {issuelist} and to nothing else. Author no task from anything you notice yourself. Where an issue's fix spans several files, make it a parent task with one child per file: a task is atomic at one file, one coherent change.
+* Record in its `issues:` key the one issue it fixes. Every task traces to exactly one open issue in that same list — the artefact you wrote in Part 1, or the one at `{issuelist}` when you skipped Part 1 — and to nothing else. Author no task from anything you notice yourself. Where an issue's fix spans several files, make it a parent task with one child per file: a task is atomic at one file, one coherent change.
 * Express each source change in `implement` as prose that names the target file and the **anchor** within it (function, method, describe block, export, config key, or region), then states the change to make and why. Read each target file immediately before writing its steps, and derive every anchor, line reference and quoted identifier from the file as read in this session. Never reconstruct them from the issue description, from the reference docs, or from memory. Illustrative code is allowed at roughly ten lines or fewer and must be labelled as illustrative.
 * Reach for a literal SEARCH/REPLACE block only where prose cannot pin the edit: one unambiguous location, purely mechanical, no design decision left to the executor. That is the exception, not the house style. If you find yourself writing one for most tasks, stop: the work is diff-shaped and you should say so in your reply rather than emit a spec file made of blocks. Where you do use one, its SEARCH text must be copied from the file as read in this session.
 * Put the informational weight where spec mode wants it: `implement` terse (intent plus anchor: the executor derives the edit), and `imports`, `compatibility` and `gotcha` rich, because those constraints are what let the executor derive a correct edit. Make `checklist` items outcome-based ("behaviour X holds", "no caller of Y is broken"), not mechanical block-applied checks.
@@ -35,7 +58,14 @@ Measure before you write. Where a `verify` step asserts a count, a file's existe
 If an issue's fix would add functionality the code was never built to have rather than correct code that exists, author no task for it. Record it under Skipped instead. Tasks in this file are executed as written, so a feature that slips in gets built.
 
 ## Return
-Reply in chat only, briefly:
+Reply in chat only, briefly. Report both artefacts. When `{stages}` named one artefact, report only the one you wrote and drop the other's lines.
+
+The issue list:
+- the issue list file path and ID
+- each issue ID with its title
+- anything not filed, and why
+
+The task list:
 - the task list file path and ID
 - each issue ID → task number
 - each issue skipped, with the reason

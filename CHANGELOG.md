@@ -21,6 +21,12 @@ skill mirrors it. See VERSIONING.md.
   artefact a spawn writes, taking one of `plan-only`, `plan-and-tasks` or
   `tasks-only`, so a plan and its task list are authored by a single subagent
   that keeps the codebase knowledge it already built.
+- `flowcharge/templates/issues-and-tasks-spec.md` and
+  `flowcharge/templates/issues-and-tasks-diff.md`: one merged issue-path template
+  per mode, replacing the three that came before. Its `{stages}` slot takes one of
+  `issues-only`, `issues-and-tasks` or `tasks-only`, so an issue list and the task
+  list that fixes it are authored by a single subagent that keeps the codebase
+  knowledge it already built.
 - `base_commit` on a plan, an optional frontmatter key holding the short SHA of
   `HEAD` at the moment the plan is authored. It dates the plan's reading of the
   codebase. No script checks it, and a plan that omits it is read as undated.
@@ -52,6 +58,11 @@ skill mirrors it. See VERSIONING.md.
   on disk, because unzipping adds and overwrites but never deletes. README.md's
   instruction to delete the older folder of the same name first applies to this
   release.
+- `flowcharge/templates/create-issues.md`,
+  `flowcharge/templates/tasks-from-issues-spec.md` and
+  `flowcharge/templates/tasks-from-issues-diff.md`, retired in favour of the merged
+  issue-path pair. The delete-the-older-folder-first note above applies to these
+  three files too.
 
 ## 0.3.0 - 2026-09-16
 

@@ -316,8 +316,7 @@ Each operation names its template, its slots, what it consumes, and what it retu
 |---|---|---|---|---|
 | investigate | `templates/investigate.md` | `{{context docs}}`, `{{investigation}}` | question from the request | findings summary |
 | plan-and-tasks | `templates/plan-and-tasks-spec.md` or `-diff.md` | `{stages}`, `{plan}`, `{ws_dir}`, `{ws_id}`, `{slug}`, `{{context docs}}`, `{{briefing}}` | feature description, or investigate findings; a plan path in `{plan}` when `{stages}` is `tasks-only` | plan path, summary, open questions, task list path, stage→task map |
-| create-issues | `templates/create-issues.md` | `{ws_dir}`, `{ws_id}`, `{slug}`, `{{context docs}}`, `{{findings}}` | findings the user supplies | issue list path, ISS IDs |
-| tasks-from-issues | `templates/tasks-from-issues-spec.md` or `-diff.md` | `{issuelist}`, `{ws_dir}`, `{ws_id}`, `{slug}`, `{{context docs}}`, `{{briefing}}` | issue list path | task list path, ISS→task map |
+| issues-and-tasks | `templates/issues-and-tasks-spec.md` or `-diff.md` | `{stages}`, `{issuelist}`, `{ws_dir}`, `{ws_id}`, `{slug}`, `{{context docs}}`, `{{briefing}}` | findings the user supplies; an issue list path in `{issuelist}` when `{stages}` is `tasks-only` | issue list path, ISS IDs, task list path, ISS→task map |
 | validate | `templates/validate-plan.md`, `-issues.md` or `-tasks.md` | `{artefact}`, `{source}`, `{ws_dir}`, `{{context docs}}`, `{{source material}}` | the artefact an authoring stage just returned, plus its source | one summary line, plus any open finding; correction detail withheld |
 | execute-tasks | `templates/execute-parent-task.md` (one spawn per parent task) | `{tasklist}`, `{{parent task number}}`, `{{context docs}}`, `{{briefing}}` | task list path, **PROMPTED**, deps checked per rule 5 | per-task applied/aborted status, self_eval |
 | commit | inline via the **fc-git** skill | - | completed work, plus the end-of-run upkeep writes that have already landed (issue closures, `--sync` status flips, regenerated index/board, released lease), **PROMPTED** | commit SHA |
@@ -376,8 +375,9 @@ Notes:
   plan-and-tasks stage pairs with two, spawned one after the other after it in this
   fixed order: `validate-plan.md` first, then `validate-tasks.md`. WS-118-xjdovc
   later replaces that pair with a single pass; until it lands, both run, and total
-  validation coverage is unchanged. create-issues pairs with `validate-issues.md`,
-  and tasks-from-issues with `validate-tasks.md`. The validation
+  validation coverage is unchanged. The merged issues-and-tasks stage pairs with
+  two in the same way, spawned one after the other after it in this fixed order:
+  `validate-issues.md` first, then `validate-tasks.md`. The validation
   stage is not prompted, because it neither changes project code nor commits. Its
   stage report carries the validator's summary line and any open finding only; the
   per-correction detail is printed on request and not before.
@@ -387,13 +387,13 @@ Notes:
 Map the user's English onto an ordered subset of operations. The standard chains:
 
 - "file these findings as issues [then fix them]" (findings come from the
-  conversation) → create-issues → validate → tasks-from-issues → validate →
+  conversation) → issues-and-tasks → validate-issues → validate-tasks →
   [prompt] execute-tasks → [prompt] commit
 - "plan X [and build it]" → plan-and-tasks → validate-plan → validate-tasks →
   [prompt] execute-tasks → [prompt] commit
 - "look into X" / "investigate X" → investigate (then stop; feed into plan-and-tasks or
   backlog-add only if asked)
-- "turn <issue list / plan> into tasks" → tasks-from-issues / plan-and-tasks with
+- "turn <issue list / plan> into tasks" → issues-and-tasks / plan-and-tasks with
   `{stages}: tasks-only`
 - "run <task list>" → execute-tasks → [prompt] commit if asked
 - "add X to the board / backlog" → backlog-add
@@ -401,7 +401,8 @@ Map the user's English onto an ordered subset of operations. The standard chains
 Rules of interpretation:
 
 - Only what the user asked for: "file these findings as issues" ends at
-  create-issues. Do not continue to tasks because the chain usually does. When
+  issues-and-tasks with `{stages}: issues-only`. Do not continue to tasks
+  because the chain usually does. When
   the stage the run stopped short of is a prompted one (execute-tasks or commit),
   do not put "shall I proceed to it?" into the end-of-run numbered list, and
   attach no recommendation to it. Mention it in prose as an available follow-up,
@@ -449,10 +450,10 @@ These, and nothing else:
 
 ## Chaining
 
-- findings the user supplies → create-issues `{{findings}}`: carry every finding
+- findings the user supplies → issues-and-tasks `{{findings}}`: carry every finding
   with its location, failure scenario, severity and confidence, all of them,
   unfiltered; the issues subagent decides what is Not filed, not you.
-- create-issues path → `{issuelist}`; plan-and-tasks path → `{plan}`; task-list
+- issues-and-tasks path → `{issuelist}`; plan-and-tasks path → `{plan}`; task-list
   path → `{tasklist}`. Use the paths the subagents return; before the next stage,
   verify the file exists, that its frontmatter `id` matches the ID the subagent
   reported claiming, and that its `depends_on` names the upstream artefact ID you
@@ -488,7 +489,7 @@ rationale, or its self-report, because fresh context is the active ingredient, a
 the authoring subagent's account of what it did is exactly the contamination this
 stage exists to avoid. The user's findings that feed `validate-issues.md` are not an
 exception to this: they are the source, and they reach the validation from the
-user, not from create-issues. On the no-loop carve-out: the policy section's
+user, not from issues-and-tasks. On the no-loop carve-out: the policy section's
 settling rule may re-spawn one authoring stage once when a validation finding is adopted as a
 settled question, and the re-authored artefact is not validated again, because the
 re-spawn's `{{briefing}}` already carries the finding and the answer adopted for it.
@@ -684,7 +685,7 @@ node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root>
 - **After every stage**: set the status of every artefact the stage produced, which
   for a merged plan-and-tasks stage is both of them (freshly authored =
   `ready`; a task list whose execution just completed = `done`), bump `updated` on
-  everything the stage touched, then (after a create-issues or plan-and-tasks stage
+  everything the stage touched, then (after an issues-and-tasks or plan-and-tasks stage
   only) test the produced file for its trigger and, when the trigger fires, append
   the matching automatic tag to the owning workstream's `workstream.md` `tags`
   array: `issue` when any file matching `IL-*-issuelist*.md` in that

@@ -535,13 +535,13 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       failures: []
     ```
 
-- [ ] 3. Stage 3: issue-path merge
+- [x] 3. Stage 3: issue-path merge
 
   ```yaml
   description: "Write both issues-and-tasks templates preserving the issue spec template's anchor rule word for word, retire the three issue-path templates, and update SKILL.md and README.md."
   ```
 
-  - [ ] 3.1 Write `skills/flowcharge/templates/issues-and-tasks-spec.md`
+  - [x] 3.1 Write `skills/flowcharge/templates/issues-and-tasks-spec.md`
     ```yaml
     description: "Create the merged spec-mode issue-path template, keeping tasks-from-issues-spec.md's read-the-target-file-and-derive-the-anchor rule word for word."
     author: Anthony Koukoullis
@@ -571,10 +571,10 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       - "Does the Return section report both artefacts, and only one when {stages} named one?"
       - "Is the open-question return block correctly absent?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 3.2 Write `skills/flowcharge/templates/issues-and-tasks-diff.md`
+  - [x] 3.2 Write `skills/flowcharge/templates/issues-and-tasks-diff.md`
     ```yaml
     description: "Create the merged diff-mode issue-path template, keeping tasks-from-issues-diff.md's rule unchanged."
     author: Anthony Koukoullis
@@ -601,10 +601,10 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       - "Is the block rule unchanged?"
       - "Is the open-question return block correctly absent?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 3.3 Replace the issue-path rows and notes in `SKILL.md`'s Operations section
+  - [x] 3.3 Replace the issue-path rows and notes in `SKILL.md`'s Operations section
     ```yaml
     description: "Fold the create-issues and tasks-from-issues Operations rows into one issues-and-tasks row, and finish the validate pairing note."
     author: Anthony Koukoullis
@@ -629,10 +629,10 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       - "Does the validate bullet now cover both merged stages, each with its two validation templates in a fixed order?"
       - "Is the backlog-add bullet untouched?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 3.4 Name the merged issue stage in `SKILL.md`'s Parsing the request chains
+  - [x] 3.4 Name the merged issue stage in `SKILL.md`'s Parsing the request chains
     ```yaml
     description: "Update the findings chain, the issue half of the turn-into-tasks line, the worked example, and the Chaining section's passing create-issues mentions to the merged issue stage."
     author: Anthony Koukoullis
@@ -659,10 +659,10 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       - "Is the Rules of interpretation worked example updated without changing its meaning?"
       - "Do the three Chaining mentions name the merged issue stage, with their slot mappings unchanged?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 3.5 Finish the automatic-tag upkeep bullet for the issue path
+  - [x] 3.5 Finish the automatic-tag upkeep bullet for the issue path
     ```yaml
     description: "Replace the remaining create-issues reference in SKILL.md's After every stage upkeep bullet with the merged issue stage."
     author: Anthony Koukoullis
@@ -686,10 +686,10 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       - "Are the other four upkeep bullets untouched?"
       - "Is fc-index.mjs still unchanged?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 3.6 Fold the issue-path rows in `README.md`'s operations table
+  - [x] 3.6 Fold the issue-path rows in `README.md`'s operations table
     ```yaml
     description: "Replace README.md's create-issues and tasks-from-issues operation rows with one issues-and-tasks row."
     author: Anthony Koukoullis
@@ -713,10 +713,10 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       - "Does README.md now name no retired stage at all?"
       - "Is the surrounding prose untouched?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 3.7 Update the rule H comment naming the excluded issue-path templates
+  - [x] 3.7 Update the rule H comment naming the excluded issue-path templates
     ```yaml
     description: "Rename the two templates the RULE_H_TEMPLATES comment records as deliberately absent, keeping the reason it already gives."
     author: Anthony Koukoullis
@@ -740,10 +740,10 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       - "Is RULE_H_TEMPLATES still five entries, with no issue-path template added?"
       - "Does the rule H case still report ok?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 3.8 Delete the three retired issue-path templates
+  - [x] 3.8 Delete the three retired issue-path templates
     ```yaml
     description: "Remove create-issues.md, tasks-from-issues-spec.md and tasks-from-issues-diff.md now that nothing names them."
     author: Anthony Koukoullis
@@ -769,10 +769,10 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       - "Does templates/ now hold exactly ten files?"
       - "Does the test suite still exit 0, with rules G and H both reporting ok?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 3.9 Record stage 3 in `CHANGELOG.md`
+  - [x] 3.9 Record stage 3 in `CHANGELOG.md`
     ```yaml
     description: "Append the stage 3 entry under ## Unreleased, recording the issue-path merge."
     author: Anthony Koukoullis
@@ -797,7 +797,7 @@ on a `RULE_H_TEMPLATES` entry whose file is absent.
       - "Is there no duplicate subsection heading under ## Unreleased?"
       - "Is no version number added or bumped?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
