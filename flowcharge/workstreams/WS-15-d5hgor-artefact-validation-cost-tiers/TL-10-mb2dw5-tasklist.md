@@ -510,13 +510,13 @@ goes first and rule H fails if the file goes first.
       failures: []
     ```
 
-- [ ] 4. The visibility mechanism, WS-106 item 4
+- [x] 4. The visibility mechanism, WS-106 item 4
 
   ```yaml
   description: "Plan stage 4. The pipeline line names the validation stage as its own element, and the end-of-run self-check reports a validation that did not run as waived or as missing. It follows stage 3 because it reports on the stage shape stage 3 creates."
   ```
 
-  - [ ] 4.1 Name the validation stage in the pipeline line
+  - [x] 4.1 Name the validation stage in the pipeline line
     ```yaml
     description: "Require one element per stage in the announced pipeline, the validation stage included, with no folding, and mark a waived validation in the line."
     author: Anthony Koukoullis
@@ -542,10 +542,10 @@ goes first and rule H fails if the file goes first.
       - "Does a waived validation still appear in the line, marked `(waived)`?"
       - "Is WS-106-6m67j5's own record untouched?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 4.2 Add the end-of-run validation self-check
+  - [x] 4.2 Add the end-of-run validation self-check
     ```yaml
     description: "Compare the stages that ran against the announced line before the consolidated summary prints, and report a validation that did not run as waived or as missing."
     author: Anthony Koukoullis
@@ -574,10 +574,10 @@ goes first and rule H fails if the file goes first.
       - "Does the check report only and start no stage?"
       - "Are exactly the two words `missing` and `waived` used?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 4.3 Walk the seven integration cases against the edited `SKILL.md`
+  - [x] 4.3 Walk the seven integration cases against the edited `SKILL.md`
     ```yaml
     description: "Run the plan's documented walkthrough, this suite's established method for rules no script can check, over the edited skills/flowcharge/SKILL.md, and record the result per case in the task return."
     author: Anthony Koukoullis
@@ -607,7 +607,7 @@ goes first and rule H fails if the file goes first.
       - "Did cases 3 and 6 confirm `waived` and `missing` are reported distinctly?"
       - "Was no file written during the walkthrough?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 

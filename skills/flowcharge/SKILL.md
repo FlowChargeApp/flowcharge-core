@@ -786,8 +786,12 @@ do not summarise it, reformat it, drop columns, or fold it into prose.
 
 ## Reporting
 
-- One line before the run: the inferred pipeline ("issues → spec tasks →
-  execute (prompted) → commit (prompted)") and the workstream it runs under.
+- One line before the run: the inferred pipeline, naming every stage the run
+  will execute, one element per stage, the validation stage included and
+  never folded into its authoring stage ("issues → spec tasks → validate →
+  execute (prompted) → commit (prompted)"), and the workstream it runs under.
+  A validation the setting turned off appears in the line as
+  `validate (waived)`.
 - After each stage: a short update, artefact path and ID, and anything the subagent
   or the index script flagged.
 - At the end: a consolidated summary, every artefact created (paths and IDs),
@@ -798,6 +802,18 @@ do not summarise it, reformat it, drop columns, or fold it into prose.
   user can answer "1 yes, 2 no" or just "go with your recommendations". A
   prompted stage this run was not asked to reach is never an item in this list.
   Mention it in prose only, per "Parsing the request".
+  Before the consolidated summary prints, compare the stages that ran
+  against the announced pipeline line. Where the validation stage did not
+  run because the run's resolved `validate` value is `off`, report it as
+  **waived**, in prose, never as a numbered item; the `validate` setting is
+  the only cause of a waiver, and there is no spoken one-run skip path.
+  Where it did not run for any other reason, report it as **missing**, and
+  give each artefact it would have checked one numbered, self-contained
+  item (ID, title, one plain sentence, per "Talking to the user")
+  recommending a standalone `/fc-validate` on that artefact.
+  The re-spawn carve-out counts as validated once and never fires this check.
+  The check reports only and starts no stage, using exactly the two words
+  `missing` and `waived`.
   A flagged task is not the prompt. When this run authored a task list that
   carries a flag but was not asked to execute it, that flag is still listed
   here, under the same **Flagged tasks** label the prompt report would have
