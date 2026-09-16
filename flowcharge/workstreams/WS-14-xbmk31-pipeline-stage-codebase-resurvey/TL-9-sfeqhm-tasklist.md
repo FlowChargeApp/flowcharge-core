@@ -4,7 +4,7 @@ type: tasklist
 workstream: WS-14-xbmk31
 slug: pipeline-stage-codebase-resurvey
 title: "Merge the paired authoring stages and stop the unconditional file re-survey"
-status: ready
+status: done
 created: 2026-09-16
 updated: 2026-09-16
 author: Anthony Koukoullis
