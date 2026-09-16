@@ -13,6 +13,37 @@ skill mirrors it. See VERSIONING.md.
 
 ## Unreleased
 
+### Added
+
+- `flowcharge/templates/plan-and-tasks-spec.md` and
+  `flowcharge/templates/plan-and-tasks-diff.md`: one merged plan-path template per
+  mode, replacing the three that came before. A `{stages}` slot selects which
+  artefact a spawn writes, taking one of `plan-only`, `plan-and-tasks` or
+  `tasks-only`, so a plan and its task list are authored by a single subagent
+  that keeps the codebase knowledge it already built.
+- `base_commit` on a plan, an optional frontmatter key holding the short SHA of
+  `HEAD` at the moment the plan is authored. It dates the plan's reading of the
+  codebase. No script checks it, and a plan that omits it is read as undated.
+
+### Changed
+
+- Spec-mode task authoring no longer re-reads every file a plan names. It runs
+  `git diff --name-only <the plan's base_commit>..HEAD` and reads again only the
+  named files that appear in that output. A plan with no `base_commit` falls back
+  to reading all of them, and a file a SEARCH/REPLACE block targets is always read
+  first. Diff mode keeps its unconditional read, because every task there carries
+  a block.
+
+### Removed
+
+- `flowcharge/templates/create-plan.md`,
+  `flowcharge/templates/tasks-from-plan-spec.md` and
+  `flowcharge/templates/tasks-from-plan-diff.md`, retired in favour of the merged
+  pair. Unzipping a release over an existing skill folder leaves these three files
+  on disk, because unzipping adds and overwrites but never deletes. README.md's
+  instruction to delete the older folder of the same name first applies to this
+  release.
+
 ## 0.3.0 - 2026-09-16
 
 ### Added

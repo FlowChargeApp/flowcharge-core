@@ -83,9 +83,8 @@ boundary. There is no script for you to run.
 | ----------------- | --------------------------------------------------------------------- | --------------------------------------------------------------- |
 | backlog-add       | Creates workstreams in the backlog column of the board                | "Create a workstream to implement an export feature"            |
 | investigate       | Reads the codebase and returns findings; goes no further unless asked | "Investigate the codebase to determine the cause of this bug"   |
-| create-plan       | Writes a staged implementation plan for a feature                     | "Write up a plan"                                               |
+| plan-and-tasks    | Writes a staged plan for a feature and authors its task list          | "Write up a plan and open tasks"                                |
 | create-issues     | Files findings as an issue list                                       | "Write up an issue list"                                        |
-| tasks-from-plan   | Authors a task list from a plan                                       | "Open tasks"                                                    |
 | tasks-from-issues | Authors a task list from an issue list                                | "Open tasks to fix the issues"                                  |
 | execute-tasks     | Runs a task list, one parent task per subagent                        | "Execute all tasks"                                             |
 | commit            | Commits the completed work                                            | "Commit all changes"                                            |
