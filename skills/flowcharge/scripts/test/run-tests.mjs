@@ -4848,7 +4848,7 @@ function describeDanglingPaths(dangling) {
 // writes when it cannot recommend anything. Each of the five therefore carries
 // the same block, and this rule pins it in all five at once.
 //
-// The two tasks-from-issues templates are deliberately absent from the list.
+// The two issues-and-tasks templates are deliberately absent from the list.
 // Neither returns an open question (a template that cannot author a task for an
 // issue returns that issue as skipped instead), so the block would say nothing
 // there.

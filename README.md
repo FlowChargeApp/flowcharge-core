@@ -79,16 +79,15 @@ You reach for `/flowcharge` again only at a new decision point, not before every
 request. The orchestrator keeps the index and the board fresh at every stage
 boundary. There is no script for you to run.
 
-| Operation         | What it does                                                          | Say something like                                              |
-| ----------------- | --------------------------------------------------------------------- | --------------------------------------------------------------- |
-| backlog-add       | Creates workstreams in the backlog column of the board                | "Create a workstream to implement an export feature"            |
-| investigate       | Reads the codebase and returns findings; goes no further unless asked | "Investigate the codebase to determine the cause of this bug"   |
-| plan-and-tasks    | Writes a staged plan for a feature and authors its task list          | "Write up a plan and open tasks"                                |
-| create-issues     | Files findings as an issue list                                       | "Write up an issue list"                                        |
-| tasks-from-issues | Authors a task list from an issue list                                | "Open tasks to fix the issues"                                  |
-| execute-tasks     | Runs a task list, one parent task per subagent                        | "Execute all tasks"                                             |
-| commit            | Commits the completed work                                            | "Commit all changes"                                            |
-| list              | Prints a table of what is in flight                                   | "List what is in flight"                                        |
+| Operation        | What it does                                                          | Say something like                                              |
+| ---------------- | --------------------------------------------------------------------- | --------------------------------------------------------------- |
+| backlog-add      | Creates workstreams in the backlog column of the board                | "Create a workstream to implement an export feature"            |
+| investigate      | Reads the codebase and returns findings; goes no further unless asked | "Investigate the codebase to determine the cause of this bug"   |
+| plan-and-tasks   | Writes a staged plan for a feature and authors its task list          | "Write up a plan and open tasks"                                |
+| issues-and-tasks | Files findings as an issue list and authors a task list from them     | "Write up an issue list and open tasks"                         |
+| execute-tasks    | Runs a task list, one parent task per subagent                        | "Execute all tasks"                                             |
+| commit           | Commits the completed work                                            | "Commit all changes"                                            |
+| list             | Prints a table of what is in flight                                   | "List what is in flight"                                        |
 
 Task lists are written in spec mode by default, and you ask for diff mode when you
 want it.
