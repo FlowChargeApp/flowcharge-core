@@ -611,13 +611,13 @@ goes first and rule H fails if the file goes first.
       failures: []
     ```
 
-- [ ] 5. Remove the superseded templates
+- [x] 5. Remove the superseded templates
 
   ```yaml
   description: "Plan stage 5. Delete the three replaced templates and repoint the harness's two hardcoded lists in the same change so nothing goes stale, then add a pin case for the correction-direction rule."
   ```
 
-  - [ ] 5.1 Delete the three templates and prune the harness's two lists
+  - [x] 5.1 Delete the three templates and prune the harness's two lists
     ```yaml
     description: "Delete validate-plan.md, validate-issues.md and validate-tasks.md, and remove their RULE_H_TEMPLATES entries and the validate-tasks.md DOCS_ALLOWLIST entry, all in one change."
     author: Anthony Koukoullis
@@ -644,10 +644,10 @@ goes first and rule H fails if the file goes first.
       - "Did all four edits land in one change, with no intermediate commit?"
       - "Does the check command pass with rules E, G, H and the staleness case green?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
-  - [ ] 5.2 Add a pin case for the correction-direction rule
+  - [x] 5.2 Add a pin case for the correction-direction rule
     ```yaml
     description: "Pin the never-align-backwards rule in skills/fc-validate/SKILL.md with a sliced containment case, built the same way as the existing prompt-policy pin."
     author: Anthony Koukoullis
@@ -673,7 +673,7 @@ goes first and rule H fails if the file goes first.
       - "Are both bounds keyed on text rather than on a line number?"
       - "Does the case fail when the pinned sentence is reworded, proven by the temporary edit?"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
