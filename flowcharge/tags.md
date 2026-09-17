@@ -10,6 +10,7 @@ nearest listed spelling when one is within a small edit distance — but a WARN 
 no suggestion still means "not listed," not "safe to leave."
 
 - board
+- configuration
 - conventions
 - correctness
 - data-integrity

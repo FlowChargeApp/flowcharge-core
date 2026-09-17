@@ -30,11 +30,41 @@ pairings are permitted, and no others.
 | a task list | its backing issue list |
 | an issue list | the findings it was filed from |
 
+A sequenced pass is also permitted: two of the four pairings above, chained in one turn,
+in a fixed order. Exactly two chains are permitted, and no others.
+
+| Chain | Order |
+|---|---|
+| The plan path | `brief and workstream record → plan`, then `plan → task list` |
+| The issue path | `findings → issue list`, then `issue list → task list` |
+
+Where a chain's first pairing has no artefact to check, or its second has none, run the
+other pairing alone, and say which one you skipped.
+
+**The first comparison completes before the second begins, and every correction it
+applies lands before the second comparison reads the upstream artefact. The upstream
+artefact is never edited to agree with the downstream one. A discrepancy the second
+comparison finds is a finding against the task list, whatever its apparent cause. Where
+the second comparison shows the upstream artefact itself is wrong against its own
+source, report that as a first-comparison finding under the first heading, and never
+apply it. The reason: a validator holding both artefacts could align the upstream one to
+the downstream one, which launders an error rather than finding it.**
+
 The issue-list source arrives as text rather than as a path, because user-supplied
 findings are never written to a file. Treat that text as the source exactly as you would
 treat a file, and never go looking for a file behind it.
 
-Where the pairing you are given is not one of these four, say so and stop.
+Where the pairing you are given is not one of these four, or the chain you are given is
+not one of these two, say so and stop.
+
+Parts 2, 3 and 4 are unchanged in substance under a sequenced pass; a sequenced pass
+changes only how each is read. The three check classes in Part 2 apply to each
+comparison against that comparison's own source. Part 3, verify execution, applies to
+the second comparison only, because only a task list carries `verify` commands. Part 4's
+correction boundary applies per comparison, reading "the artefact under validation" as
+the upstream artefact in comparison 1 and as the task list in comparison 2. The fix label
+every open finding already carries is unchanged, and it is what the orchestrator routes
+on.
 
 ## 2. The three check classes
 
@@ -266,3 +296,15 @@ This part adds no new return class and no new rule. A finding rides the existing
 open-questions channel unchanged, and the printed-versus-withheld split does not weaken
 hard rule 10, because every open finding, and the fact and the count of fixes,
 still reach the user.
+
+### A sequenced pass
+
+A sequenced pass returns one heading per comparison, in the order the comparisons ran.
+Each heading names the comparison's number, its source and its artefact, so a finding is
+never read against the wrong artefact. Each heading carries that comparison's own fixed
+summary line, in the shape above, then that comparison's open findings in the same
+open-question block. The unrun-and-unjudged clause rides comparison 2's summary line
+alone, because only a task list carries `verify` commands.
+
+The withheld part keeps its single heading, and each correction it lists names which
+comparison applied it.

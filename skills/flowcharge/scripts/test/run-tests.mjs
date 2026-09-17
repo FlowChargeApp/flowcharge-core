@@ -4710,7 +4710,14 @@ const DOCS_ALLOWLIST = [
       'trailing-plus syntax. It names no mechanism.',
   },
   {
-    file: 'flowcharge/templates/validate-tasks.md',
+    file: 'flowcharge/templates/validate-plan-and-tasks.md',
+    text: 'gate',
+    why:
+      "Rule E. The template tells the validator to apply fc-validate's baseline " +
+      'gate, which is the precondition for running verify steps, not a prompt.',
+  },
+  {
+    file: 'flowcharge/templates/validate-issues-and-tasks.md',
     text: 'gate',
     why:
       "Rule E. The template tells the validator to apply fc-validate's baseline " +
@@ -4863,9 +4870,8 @@ function describeDanglingPaths(dangling) {
 const RULE_H_TEMPLATES = [
   'flowcharge/templates/plan-and-tasks-spec.md',
   'flowcharge/templates/plan-and-tasks-diff.md',
-  'flowcharge/templates/validate-plan.md',
-  'flowcharge/templates/validate-issues.md',
-  'flowcharge/templates/validate-tasks.md',
+  'flowcharge/templates/validate-plan-and-tasks.md',
+  'flowcharge/templates/validate-issues-and-tasks.md',
 ];
 
 const RULE_H_BLOCK =
@@ -5118,7 +5124,7 @@ testCase('an allowlist entry suppresses its own file only, never the same text e
 // source lines in the file.
 
 const POLICY_SECTION_OPEN = '## The prompt policy';
-const POLICY_SECTION_END = '## Operations';
+const POLICY_SECTION_END = '## The validation setting';
 const NO_RECOMMENDATION_RULE =
   '**No recommendation, no settling.** A question or a flag that states no '
   + 'recommendation, states two that conflict, or makes one conditional on something '
@@ -5140,6 +5146,48 @@ testCase('the prompt policy still carries the no-recommendation rule', () => {
     + `requires a question or a flag that states no recommendation, states two that `
     + `conflict, or makes one conditional on something the orchestrator cannot check, to `
     + `relay unsettled at every tier:\n  ${NO_RECOMMENDATION_RULE}`,
+  );
+});
+
+// ---- case: correction-direction prose pin ----------------------------------
+// A sequenced pass runs the first comparison to completion, applying its own
+// corrections, before the second comparison reads the upstream artefact. That
+// ordering is what stops a validator holding both artefacts from aligning the
+// upstream one to the downstream one instead of finding the discrepancy. The
+// harness runs no agent, so a static prose check is the strongest available
+// pin for that instruction.
+//
+// The slice is what makes the pin worth having, exactly as it does for the
+// prompt-policy pin above: a containment check against the whole file would
+// still pass if the rule were moved out of `## 1. Inputs` into unrelated
+// prose, so the case cuts that section's own text first and searches only
+// that. The empty-slice assertion is the other half: a slice pattern that
+// stops matching would otherwise make the case pass on nothing.
+//
+// Both patterns key on text, never on a line number, and the slice's
+// whitespace is normalised before the containment check, because the rule
+// wraps across source lines in the file.
+
+const CORRECTION_DIRECTION_SECTION_OPEN = '## 1. Inputs';
+const CORRECTION_DIRECTION_SECTION_END = '## 2. The three check classes';
+const CORRECTION_DIRECTION_RULE =
+  'The upstream artefact is never edited to agree with the downstream one.';
+
+testCase('fc-validate still carries the correction-direction rule', () => {
+  const text = fs.readFileSync(path.join(SKILLS_ROOT, 'fc-validate', 'SKILL.md'), 'utf8');
+  const from = text.indexOf(CORRECTION_DIRECTION_SECTION_OPEN);
+  const to = text.indexOf(CORRECTION_DIRECTION_SECTION_END, from + 1);
+  const slice = from === -1 || to === -1 ? '' : text.slice(from, to);
+  assert.ok(
+    slice.trim().length > 0,
+    `the inputs section ("${CORRECTION_DIRECTION_SECTION_OPEN}") could not be sliced out of `
+    + `fc-validate/SKILL.md: the case would otherwise pass on an empty slice`,
+  );
+  assert.ok(
+    slice.replace(/\s+/g, ' ').includes(CORRECTION_DIRECTION_RULE),
+    `fc-validate/SKILL.md no longer carries the correction-direction rule, which requires `
+    + `the upstream artefact to never be edited to agree with the downstream one:\n  `
+    + `${CORRECTION_DIRECTION_RULE}`,
   );
 });
 

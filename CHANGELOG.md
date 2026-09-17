@@ -30,6 +30,12 @@ skill mirrors it. See VERSIONING.md.
 - `base_commit` on a plan, an optional frontmatter key holding the short SHA of
   `HEAD` at the moment the plan is authored. It dates the plan's reading of the
   codebase. No script checks it, and a plan that omits it is read as undated.
+- `validate: on | off` in `flowcharge/agents.md`, a fourth standing default
+  governing whether a run checks its authored artefacts against the source
+  they were authored from. `on` is the built-in default. Two new templates,
+  `flowcharge/templates/validate-plan-and-tasks.md` and
+  `flowcharge/templates/validate-issues-and-tasks.md`, carry the check, one
+  per path.
 
 ### Changed
 
@@ -55,6 +61,16 @@ skill mirrors it. See VERSIONING.md.
   DEVELOPMENT.md's portability rule forbids depending on one harness's own
   file-reference syntax. The orchestrator resolves that block once per run and
   reuses it verbatim in every spawn of the run.
+- Validation is now one pass per run instead of one spawn per authored
+  artefact. Under `validate: on`, a single subagent makes two comparisons in a
+  fixed order, the source against the upstream artefact first, then the
+  upstream artefact against the task list second, and the upstream artefact is
+  never edited to agree with the task list. Under `validate: off`, no
+  validator is spawned. The announced pipeline line now names the validation
+  stage as its own element, and the end-of-run summary reports a validation
+  that did not run as `waived`, when the `validate` setting caused the skip,
+  or as `missing`, for any other reason, with one numbered `/fc-validate`
+  recommendation per affected artefact.
 
 ### Removed
 
@@ -70,6 +86,10 @@ skill mirrors it. See VERSIONING.md.
   `flowcharge/templates/tasks-from-issues-diff.md`, retired in favour of the merged
   issue-path pair. The delete-the-older-folder-first note above applies to these
   three files too.
+- `flowcharge/templates/validate-plan.md`, `flowcharge/templates/validate-issues.md`
+  and `flowcharge/templates/validate-tasks.md`, retired in favour of the two
+  merged validation templates. The delete-the-older-folder-first note above
+  applies to these three files too.
 
 ## 0.3.0 - 2026-09-16
 
