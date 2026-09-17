@@ -8,7 +8,7 @@ description: "In plan-and-tasks-spec.md line 16 and plan-and-tasks-diff.md line 
 status: done
 tags: [prompts, correctness]
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-18
 author: Anthony Koukoullis
 depends_on: []
 links: []
@@ -70,3 +70,34 @@ address in a second plan:
 Scope for this round: wording and instruction-text fixes only, matching the
 first round's own scope discipline. No change to orchestrator behavior,
 runtime logic, or scripts.
+
+## Round three: direct fixes from the round-two review, no separate plan/task list
+
+A follow-up review of round two's own edits (same `cl-fable-high` reviewer,
+continued) found five more defects, all inside this workstream's scope, and
+applied them directly at the user's explicit request (no plan or task list
+authored for this round):
+
+1. `skills/flowcharge/SKILL.md` step 4 contradicted the `{{context docs}}`
+   block by narrowing "and the repo" without exempting it. Added an explicit
+   exception sentence.
+2. The `tasks-only` branches in `plan-and-tasks-spec.md`/`plan-and-tasks-diff.md`
+   (line 16) and `issues-and-tasks-spec.md`/`issues-and-tasks-diff.md` (line 15)
+   still opened with a redundant "what the plan/issues at `{plan}`/`{issuelist}`
+   changes/cover" item, discoverable from the artefact the subagent is told to
+   read in full. Deleted.
+3. The `issues-and-tasks` branch in the same two issues-and-tasks files carried
+   a serial comma on a two-item list. Removed.
+4. `TL-12-ke31sf-tasklist.md` task 1.7's checklist said "four" greps where the
+   step lists three. Corrected.
+5. `PLN-10-bymiu2-plan.md`'s Design section said step 4 "spans two lines,
+   453-454"; it spans 452-454. Corrected.
+
+The reviewer then flagged a sixth, self-introduced recurrence: its own fix
+for point 2 left "the decisions already taken, and the constraints in play."
+(comma before a two-item "and") on the same lines it had just removed that
+exact comma pattern from elsewhere. Fixed directly as well, for consistency:
+the comma is now dropped in all six occurrences across the four templates.
+
+`node skills/flowcharge/scripts/test/run-tests.mjs` passes 264/264 after all
+six round-three fixes.

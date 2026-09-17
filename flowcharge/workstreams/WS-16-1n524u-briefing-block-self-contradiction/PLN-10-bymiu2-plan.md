@@ -6,7 +6,7 @@ slug: briefing-block-self-contradiction
 title: "Close the remaining briefing-block contradictions and grammar gap"
 status: done
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-18
 author: Anthony Koukoullis
 base_commit: 73cb41c
 depends_on: []
@@ -195,8 +195,8 @@ Deletes "what they change, the files involved, and" and replaces it with
 corrects "those points" to "that point" to agree with the single remaining
 item (AC5).
 
-**SKILL.md, "Filling a template" step 4** (spans two lines, 453–454 at
-`base_commit`):
+**SKILL.md, "Filling a template" step 4** (spans lines 452–454 at
+`base_commit`; the edited sentence is 453–454):
 
 - Before: ``...satisfying exactly the points the placeholder text names. Draw facts from the conversation, the chained artefacts (read them if needed), and the repo, never invent.``
 - After: ``...satisfying exactly the points the placeholder text names. Draw facts from the conversation, the chained artefacts (read them if needed), and files under `flowcharge/`, never invent.``
