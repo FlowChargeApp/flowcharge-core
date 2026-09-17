@@ -6,7 +6,7 @@ slug: briefing-block-self-contradiction
 title: "Close the remaining briefing-block contradictions and grammar gap"
 status: done
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-18
 author: Anthony Koukoullis
 depends_on: [PLN-10-bymiu2]
 links: []
@@ -230,7 +230,7 @@ runtime logic, or script changes.
       - "git diff --stat -- skills/flowcharge/templates/plan-and-tasks-spec.md skills/flowcharge/templates/plan-and-tasks-diff.md skills/flowcharge/templates/issues-and-tasks-spec.md skills/flowcharge/templates/issues-and-tasks-diff.md skills/flowcharge/templates/execute-parent-task.md skills/flowcharge/SKILL.md  # confirm only these six files changed, and no other file in the repo (AC12's file-scope half)"
       - "node skills/flowcharge/scripts/test/run-tests.mjs  # expect the same pass count as at base_commit (264/264 passed, measured at base_commit); a regression backstop only, since none of its eight docs-consistency rules govern this prose (AC12's regression half)"
     checklist:
-      - "All four AC9-AC11 greps return zero"
+      - "All three AC9-AC11 greps return zero"
       - "git diff --stat lists exactly the six named files and no others"
       - "run-tests.mjs still reports every case passing, with no new failure"
     self_eval:
