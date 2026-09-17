@@ -43,6 +43,13 @@ there, and even if no test can prove it broken until someone tries it somewhere 
   feature of one harness — it is close to universal among coding agents, and FlowCharge
   Core's own scripts (`fc-index.mjs` and friends) already depend on a shell being available.
 
+**Node 16 or newer is the published floor** (README.md's Install section and the website
+state this; `skills/flowcharge/scripts/test/run-tests.mjs` explains why its own test
+runner is hand-rolled rather than built on `node:test`). No script under `skills/`
+may use a language feature or standard-library API newer than Node 16 provides, and none
+may take a dependency: the suite ships with no `package.json`, so the floor stays a fact
+a reader can verify by reading the script, not a claim that needs a lockfile to check.
+
 ### Before merging a change to any template, `SKILL.md`, or `CONVENTIONS.md`
 
 Ask, of every new or edited sentence:
