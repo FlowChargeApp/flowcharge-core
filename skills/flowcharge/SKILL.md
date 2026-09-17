@@ -451,7 +451,9 @@ Rules of interpretation:
    from the "ID slots" note above.
 4. Replace each `{{...}}` block with a briefing you author now, satisfying exactly
    the points the placeholder text names. Draw facts from the conversation, the
-   chained artefacts (read them if needed), and the repo, never invent.
+   chained artefacts (read them if needed), and files under `flowcharge/`, never invent.
+   The `{{context docs}}` block is the one exception: its own text names the
+   project-root files to check for.
 5. Re-scan the result against the template: outside the slots, nothing changed.
 6. Spawn the subagent per hard rule 3, applying an override only if that rule
    resolved one, and run it in the foreground: wait for its result before doing
