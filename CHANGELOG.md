@@ -91,6 +91,20 @@ skill mirrors it. See VERSIONING.md.
   merged validation templates. The delete-the-older-folder-first note above
   applies to these three files too.
 
+### Fixed
+
+- The `{{briefing}}` placeholder text in the plan-and-tasks, issues-and-tasks
+  and execute-parent-task templates told the orchestrator to include detail a
+  subagent can already discover for itself (the codebase parts a task
+  touches, or the contents of an artefact the subagent is separately told to
+  read in full), contradicting that same placeholder's own instruction to
+  include only what the subagent "cannot discover for itself." Removed the
+  redundant clauses from all five templates. `SKILL.md`'s "Filling a
+  template" step 4 carried the same problem, licensing a briefing to draw
+  facts from "the repo" generally; narrowed to files under `flowcharge/`,
+  with an explicit exception for the `{{context docs}}` block it also
+  governs, which still needs to check the project root.
+
 ## 0.3.0 - 2026-09-16
 
 ### Added
