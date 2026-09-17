@@ -4,7 +4,7 @@ type: plan
 workstream: WS-16-1n524u
 slug: briefing-block-self-contradiction
 title: "Close the remaining briefing-block contradictions and grammar gap"
-status: ready
+status: done
 created: 2026-09-17
 updated: 2026-09-17
 author: Anthony Koukoullis
