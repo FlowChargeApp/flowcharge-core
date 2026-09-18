@@ -2,7 +2,7 @@
 name: fc-git
 description: Perform any git operation on a new or existing repository the way a disciplined release engineer would (repository init, staging and committing, branching, merging and rebasing, worktrees, stashing, tagging, remotes and pushing, history inspection, and recovery/undo). Grounds every operation in the repo's actual current state (never an assumed one), keeps history clean, and requires explicit per-operation confirmation for anything destructive or outward-facing. Use whenever the user asks for git work in any phrasing ("commit this", "set up git", "init a repo", "branch off", "merge X into Y", "rebase this", "set up a worktree", "stash my changes", "tag a release", "push this", "undo that commit", "clean up branches", "what changed"), even casually phrased and even when the word "git" never appears. Also triggers on /fc-git. Creating a PR with gh after a push IS in scope. Do NOT use for reviewing pull requests or code review requests. Separate skills own those. Part of the FlowCharge Core suite (parallel successor to ak-git).
 metadata:
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # fc-git: disciplined git operations
