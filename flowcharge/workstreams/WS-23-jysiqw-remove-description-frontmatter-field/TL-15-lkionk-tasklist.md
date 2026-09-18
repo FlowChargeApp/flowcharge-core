@@ -4,7 +4,7 @@ type: tasklist
 workstream: WS-23-jysiqw
 slug: remove-description-frontmatter-field
 title: "Remove the description frontmatter field from workstream records"
-status: ready
+status: done
 created: 2026-09-18
 updated: 2026-09-18
 author: Anthony Koukoullis
@@ -1421,13 +1421,13 @@ stage's own per-file greps confirm only their own file. Ends with
       failures: []
     ```
 
-- [ ] 6. Changelog entry
+- [x] 6. Changelog entry
 
   ```yaml
   description: "Log the description field's removal in CHANGELOG.md's Unreleased/Removed section"
   ```
 
-  - [ ] 6.1 Add a Removed entry for the description field
+  - [x] 6.1 Add a Removed entry for the description field
     ```yaml
     description: "Append one bullet to CHANGELOG.md's ## Unreleased / ### Removed section documenting the description key's removal"
     author: Anthony Koukoullis
@@ -1447,7 +1447,7 @@ stage's own per-file greps confirm only their own file. Ends with
       - "The bullet mentions the 12-record migration."
       - "The three existing ### Removed bullets and the following ### Fixed heading are unchanged."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
     ```md
