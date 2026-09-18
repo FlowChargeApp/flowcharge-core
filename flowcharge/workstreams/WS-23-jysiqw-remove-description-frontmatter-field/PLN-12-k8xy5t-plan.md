@@ -4,7 +4,7 @@ type: plan
 workstream: WS-23-jysiqw
 slug: remove-description-frontmatter-field
 title: "Remove the description frontmatter field from workstream records"
-status: ready
+status: done
 created: 2026-09-18
 updated: 2026-09-18
 author: Anthony Koukoullis

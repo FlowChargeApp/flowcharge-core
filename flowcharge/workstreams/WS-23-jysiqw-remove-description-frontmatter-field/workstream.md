@@ -4,7 +4,7 @@ type: workstream
 workstream: WS-23-jysiqw
 slug: remove-description-frontmatter-field
 title: "Remove the redundant description frontmatter field from workstream records"
-status: in-progress
+status: done
 tags: [schema, conventions, generator, prompts, migration, feature]
 created: 2026-09-18
 updated: 2026-09-18
