@@ -31,7 +31,7 @@ When the user says "create a task list for X":
 
 1. Do NOT add any task to any existing file.
 2. Ask which authoring mode applies (see **Two authoring modes** below).
-3. Create `./flowcharge/workstreams/{{WS-N-SUFFIX}}-{{slug}}/{{TL-N-SUFFIX}}-tasklist.md` with the frontmatter, heading, and summary block only (no tasks). Claim its `TL-N-SUFFIX` ID from the registry first (see Frontmatter). The filename is built from it. If the workstream folder is new, it also needs a `workstream.md` record per CONVENTIONS.md.
+3. Create `./flowcharge/workstreams/{{WS-N-SUFFIX}}-{{slug}}/{{TL-N-SUFFIX}}-tasklist.md` with the frontmatter, heading, and summary block only (no tasks). Claim its `TL-N-SUFFIX` ID from the registry first (see Frontmatter). The filename is built from it. If the workstream folder is new, create it with `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --new-ws <slug> --title "<title>"`, which also writes its `workstream.md` record; fill in its body per CONVENTIONS.md.
 4. Tell the user the file was created, with its ID and mode.
 
 When the user says "add a task to X":
