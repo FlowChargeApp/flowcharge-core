@@ -158,7 +158,7 @@ commit.
     failures: []
   ```
 
-- [ ] 4. Fix the identical paragraph in plan-and-tasks-diff.md
+- [x] 4. Fix the identical paragraph in plan-and-tasks-diff.md
   ```yaml
   description: "Replace the lint/type-check/build/test verify-step guidance in plan-and-tasks-diff.md Part 2 so only lint and type-check remain admitted, and test-suite/build commands are explicitly forbidden -- the same fix task 1 applies to plan-and-tasks-spec.md."
   author: Anthony Koukoullis
@@ -185,6 +185,6 @@ commit.
     - "No other line in the file changed."
     - "The word 'lint' and the phrase 'type-check' both still appear in the replacement paragraph as admitted verify-step commands."
   self_eval:
-    passed: false
+    passed: true
     failures: []
   ```
