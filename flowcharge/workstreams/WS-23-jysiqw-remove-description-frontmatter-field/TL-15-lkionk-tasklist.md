@@ -961,13 +961,13 @@ stage's own per-file greps confirm only their own file. Ends with
       failures: []
     ```
 
-- [ ] 5. Migrate the 12 workstream records
+- [x] 5. Migrate the 12 workstream records
 
   ```yaml
   description: "Delete the description: frontmatter line from each of the 12 records in this repo that currently carries one, folding any fact the body omits into the body first"
   ```
 
-  - [ ] 5.1 Migrate WS-12-zq2ms6
+  - [x] 5.1 Migrate WS-12-zq2ms6
     ```yaml
     description: "Remove the description: line from WS-12-zq2ms6's workstream.md, after confirming its body already carries every fact the description states"
     author: Anthony Koukoullis
@@ -987,7 +987,7 @@ stage's own per-file greps confirm only their own file. Ends with
       - "The title and status lines immediately surrounding the deleted line are unchanged."
       - "The file's frontmatter still parses (node skills/flowcharge/scripts/fc-index.mjs --root . --check reports no new error for this file)."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
     ```yaml
@@ -1002,7 +1002,7 @@ stage's own per-file greps confirm only their own file. Ends with
     >>>>>>> REPLACE
     ```
 
-  - [ ] 5.2 Migrate WS-13-ywk08u
+  - [x] 5.2 Migrate WS-13-ywk08u
     ```yaml
     description: "Remove the description: line from WS-13-ywk08u's workstream.md, after confirming its body already carries every fact the description states"
     author: Anthony Koukoullis
@@ -1022,7 +1022,7 @@ stage's own per-file greps confirm only their own file. Ends with
       - "The title and status lines immediately surrounding the deleted line are unchanged."
       - "The file's frontmatter still parses cleanly."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
     ```yaml
@@ -1037,7 +1037,7 @@ stage's own per-file greps confirm only their own file. Ends with
     >>>>>>> REPLACE
     ```
 
-  - [ ] 5.3 Migrate WS-14-xbmk31
+  - [x] 5.3 Migrate WS-14-xbmk31
     ```yaml
     description: "Remove the description: line from WS-14-xbmk31's workstream.md, after confirming its body already carries every fact the description states"
     author: Anthony Koukoullis
@@ -1057,7 +1057,7 @@ stage's own per-file greps confirm only their own file. Ends with
       - "The title and status lines immediately surrounding the deleted line are unchanged."
       - "The file's frontmatter still parses cleanly."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
     ```yaml
@@ -1072,7 +1072,7 @@ stage's own per-file greps confirm only their own file. Ends with
     >>>>>>> REPLACE
     ```
 
-  - [ ] 5.4 Migrate WS-15-d5hgor
+  - [x] 5.4 Migrate WS-15-d5hgor
     ```yaml
     description: "Remove the description: line from WS-15-d5hgor's workstream.md, after confirming its body already carries every fact the description states"
     author: Anthony Koukoullis
@@ -1092,7 +1092,7 @@ stage's own per-file greps confirm only their own file. Ends with
       - "The title and status lines immediately surrounding the deleted line are unchanged."
       - "The file's frontmatter still parses cleanly."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
     ```yaml
@@ -1107,7 +1107,7 @@ stage's own per-file greps confirm only their own file. Ends with
     >>>>>>> REPLACE
     ```
 
-  - [ ] 5.5 Migrate WS-16-1n524u
+  - [x] 5.5 Migrate WS-16-1n524u
     ```yaml
     description: "Remove the description: line from WS-16-1n524u's workstream.md, after confirming its body already carries every fact the description states"
     author: Anthony Koukoullis
@@ -1127,7 +1127,7 @@ stage's own per-file greps confirm only their own file. Ends with
       - "The title and status lines immediately surrounding the deleted line are unchanged."
       - "The file's frontmatter still parses cleanly."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
     ```yaml
@@ -1142,7 +1142,7 @@ stage's own per-file greps confirm only their own file. Ends with
     >>>>>>> REPLACE
     ```
 
-  - [ ] 5.6 Migrate WS-17-m5tjnc
+  - [x] 5.6 Migrate WS-17-m5tjnc
     ```yaml
     description: "Remove the description: line from WS-17-m5tjnc's workstream.md, after confirming its body already carries every fact the description states"
     author: Anthony Koukoullis
@@ -1162,7 +1162,7 @@ stage's own per-file greps confirm only their own file. Ends with
       - "The title and status lines immediately surrounding the deleted line are unchanged."
       - "The file's frontmatter still parses cleanly."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
     ```yaml
@@ -1177,7 +1177,7 @@ stage's own per-file greps confirm only their own file. Ends with
     >>>>>>> REPLACE
     ```
 
-  - [ ] 5.7 Migrate WS-18-b52wnx
+  - [x] 5.7 Migrate WS-18-b52wnx
     ```yaml
     description: "Remove the description: line from WS-18-b52wnx's workstream.md, after confirming its body already carries every fact the description states"
     author: Anthony Koukoullis
@@ -1197,7 +1197,7 @@ stage's own per-file greps confirm only their own file. Ends with
       - "The title and status lines immediately surrounding the deleted line are unchanged."
       - "The file's frontmatter still parses cleanly."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
     ```yaml
@@ -1212,7 +1212,7 @@ stage's own per-file greps confirm only their own file. Ends with
     >>>>>>> REPLACE
     ```
 
-  - [ ] 5.8 Migrate WS-19-vncz2n
+  - [x] 5.8 Migrate WS-19-vncz2n
     ```yaml
     description: "Remove the description: line from WS-19-vncz2n's workstream.md, after confirming its body already carries every fact the description states"
     author: Anthony Koukoullis
@@ -1232,7 +1232,7 @@ stage's own per-file greps confirm only their own file. Ends with
       - "The title and status lines immediately surrounding the deleted line are unchanged."
       - "The file's frontmatter still parses cleanly."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
     ```yaml
@@ -1247,7 +1247,7 @@ stage's own per-file greps confirm only their own file. Ends with
     >>>>>>> REPLACE
     ```
 
-  - [ ] 5.9 Migrate WS-22-lq25m7
+  - [x] 5.9 Migrate WS-22-lq25m7
     ```yaml
     description: "Remove the description: line from WS-22-lq25m7's workstream.md, after confirming its body already carries every fact the description states"
     author: Anthony Koukoullis
@@ -1267,7 +1267,7 @@ stage's own per-file greps confirm only their own file. Ends with
       - "The title and status lines immediately surrounding the deleted line are unchanged."
       - "The file's frontmatter still parses cleanly."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
     ```yaml
@@ -1282,7 +1282,7 @@ stage's own per-file greps confirm only their own file. Ends with
     >>>>>>> REPLACE
     ```
 
-  - [ ] 5.10 Migrate WS-23-jysiqw (this workstream's own record)
+  - [x] 5.10 Migrate WS-23-jysiqw (this workstream's own record)
     ```yaml
     description: "Remove the description: line from WS-23-jysiqw's own workstream.md, after confirming its body already carries every fact the description states"
     author: Anthony Koukoullis
@@ -1302,8 +1302,13 @@ stage's own per-file greps confirm only their own file. Ends with
       - "The title and status lines immediately surrounding the deleted line are unchanged."
       - "The file's frontmatter still parses cleanly."
     self_eval:
-      passed: false
+      passed: true
       failures: []
+      reanchored:
+        - item: "SEARCH block's status line"
+          expected: "status: backlog"
+          found: "status: in-progress"
+          resolution: "The title and description lines matched verbatim; only status had drifted, because this workstream moved to in-progress once this run started. Re-derived the block against the file's current status value and applied title/status only, with status left at in-progress rather than reverted to the stale backlog value."
     ```
     ```yaml
     flowcharge/workstreams/WS-23-jysiqw-remove-description-frontmatter-field/workstream.md
@@ -1317,7 +1322,7 @@ stage's own per-file greps confirm only their own file. Ends with
     >>>>>>> REPLACE
     ```
 
-  - [ ] 5.11 Migrate WS-5-geob84
+  - [x] 5.11 Migrate WS-5-geob84
     ```yaml
     description: "Remove the description: line from WS-5-geob84's workstream.md, after confirming its body already carries every fact the description states"
     author: Anthony Koukoullis
@@ -1337,7 +1342,7 @@ stage's own per-file greps confirm only their own file. Ends with
       - "The title and status lines immediately surrounding the deleted line are unchanged."
       - "The file's frontmatter still parses cleanly."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
     ```yaml
@@ -1352,7 +1357,7 @@ stage's own per-file greps confirm only their own file. Ends with
     >>>>>>> REPLACE
     ```
 
-  - [ ] 5.12 Migrate WS-8-r6d8n6
+  - [x] 5.12 Migrate WS-8-r6d8n6
     ```yaml
     description: "Remove the description: line from WS-8-r6d8n6's workstream.md, after confirming its body already carries every fact the description states"
     author: Anthony Koukoullis
@@ -1372,8 +1377,12 @@ stage's own per-file greps confirm only their own file. Ends with
       - "The title and status lines immediately surrounding the deleted line are unchanged."
       - "The file's frontmatter still parses cleanly."
     self_eval:
-      passed: false
+      passed: true
       failures: []
+      folds:
+        - item: "Schema-silence fact"
+          found: "The body's Root cause list covered the templates, fc-task-list/SKILL.md, and fc-index.mjs --check gaps, but never stated that CONVENTIONS.md (the schema) itself names no forbidding rule for folded block scalars on task-level string fields, a fact the description stated."
+          resolution: "Added a fourth Root cause bullet to the body, in the record's own words, naming CONVENTIONS.md's silence on the rule, before deleting the description: line."
     ```
     ```yaml
     flowcharge/workstreams/WS-8-r6d8n6-prevent-non-conforming-task-yaml/workstream.md
@@ -1387,7 +1396,7 @@ stage's own per-file greps confirm only their own file. Ends with
     >>>>>>> REPLACE
     ```
 
-  - [ ] 5.13 Verify zero description keys remain in this repo's workstream records
+  - [x] 5.13 Verify zero description keys remain in this repo's workstream records
     ```yaml
     description: "Repo-wide check that no workstream record under flowcharge/workstreams/ carries a description: frontmatter line, after all 12 per-record migrations have landed"
     author: Anthony Koukoullis
@@ -1408,7 +1417,7 @@ stage's own per-file greps confirm only their own file. Ends with
       - "No workstream record outside those 12 was touched."
       - "No new description: line was introduced anywhere else in flowcharge/workstreams/."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 

@@ -4,7 +4,6 @@ type: workstream
 workstream: WS-8-r6d8n6
 slug: prevent-non-conforming-task-yaml
 title: "Task lists can be authored with YAML block scalars the schema never sanctions"
-description: "Nothing in the schema states folded block scalars (>-) as a forbidden form for task-level string fields, nothing in the generator's --check validates it, and fc-task-list/SKILL.md gives no scalar-style rule at all — confirmed by direct inspection of this repository's own skill and generator, not carried over as an assumption."
 status: dropped
 tags: [skills, schema, generator, feature]
 created: 2026-09-13
@@ -34,6 +33,9 @@ Root cause, confirmed directly against this repository's own files:
   single-line mention.
 - `skills/flowcharge/scripts/fc-index.mjs`'s `--check` validates no task-level YAML
   field shape at all, so a non-conforming file would pass silently.
+- `skills/flowcharge/CONVENTIONS.md` (the schema) states no forbidding rule either:
+  nothing there names a folded block scalar (`>-`) as a disallowed form for a
+  task-level string field.
 
 Recommended fixes, to be turned into spec tasks, in this order:
 1. State the required single-line form as a rule in `skills/fc-task-list/SKILL.md`.

@@ -4,7 +4,6 @@ type: workstream
 workstream: WS-23-jysiqw
 slug: remove-description-frontmatter-field
 title: "Remove the redundant description frontmatter field from workstream records"
-description: "Every workstream record already carries an unlimited-length markdown body that holds the full detail of its originating request, and all 88 existing records use it that way. The optional frontmatter description key was added earlier, before that was understood, because title alone felt too thin. All 32 records that carry description restate their own body and add no fact the body lacks, so the key is pure duplication. Remove it from the schema, the generator, and the authoring prompts, and migrate the 32 records that still carry it. The dashboard app already renders the body instead of description on its own side, in a separate repo, so that half is out of scope here."
 status: in-progress
 tags: [schema, conventions, generator, prompts, migration, feature]
 created: 2026-09-18
