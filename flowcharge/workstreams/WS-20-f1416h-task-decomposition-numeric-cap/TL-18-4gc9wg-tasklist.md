@@ -4,7 +4,7 @@ type: tasklist
 workstream: WS-20-f1416h
 slug: task-decomposition-numeric-cap
 title: "Stop authoring and validating project-wide test/build commands in tasks"
-status: ready
+status: done
 mode: diff
 base_commit: 52421d2
 created: 2026-09-19
