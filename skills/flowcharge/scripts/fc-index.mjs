@@ -32,8 +32,7 @@ Usage:
                                     [--sort <key>] [--desc] [--archived]
   node fc-index.mjs [--root <dir>] --claim <TYPE> [<count>]
   node fc-index.mjs [--root <dir>] --new-ws <slug> --title "<title>"
-                                    [--description "<text>"] [--tags a,b]
-                                    [--status <enum>]
+                                    [--tags a,b] [--status <enum>]
   node fc-index.mjs [--root <dir>] --whoami
   node fc-index.mjs --help
 
@@ -95,12 +94,6 @@ Options:
   --archived        Include archived artefacts in --list. They are
                     excluded by default.
   --title "<title>" The workstream title. Required with --new-ws.
-  --description "<text>"
-                    A fuller one-line explanation of the request, for
-                    --new-ws. Written as the record's description key,
-                    and rendered as the card's first body line. The key
-                    is omitted when the flag is absent or empty.
-                    Default: none.
   --tags a,b        Comma-separated workstream tags for --new-ws.
                     Default: none.
 
@@ -315,10 +308,6 @@ const ORPHAN_GRACE_DAYS = 1;
 // The board truncates a workstream's card description at this width, so a
 // longer first body line loses its tail on the board.
 const CARD_DESC_MAX = 200;
-// The soft cap on a workstream's description key. The board writes the
-// description in full, so a longer one loses nothing. It only crowds the
-// card. The cap is therefore advisory: it is reported, never enforced.
-const DESC_MAX = 1000;
 // A workstream lease held past this many minutes is reported as stale. The
 // value SKILL.md publishes as LEASE_STALE_MINUTES; the two must not drift.
 const LEASE_STALE_MINUTES = 60;
@@ -534,12 +523,6 @@ function checkShape(a) {
   else if (first.length > CARD_DESC_MAX) {
     out.push(`${a.id} (${a.file}): first body line is ${first.length} characters: the board shows only ${CARD_DESC_MAX}`);
   }
-  // A separate statement, not another else-if: a record can carry both an
-  // over-long first body line and an over-long description, and both are
-  // reported. An absent description is the empty string, so it never trips.
-  if (a.description.length > DESC_MAX) {
-    out.push(`${a.id} (${a.file}): description is ${a.description.length} characters, longer than the ${DESC_MAX} a card should carry`);
-  }
   // fmKeys is what separates an absent key from an empty one: a record with no
   // blocked key is simply not blocked, while a present-but-empty one carries no
   // reason and is a defect. A whitespace-only value trims to empty and is caught
@@ -624,7 +607,7 @@ function parseSyncArgs(argv) {
 }
 
 // Returns null if --new-ws absent. Otherwise
-// { slug, title, tags, status, description }, or exits via die() on invalid
+// { slug, title, tags, status }, or exits via die() on invalid
 // input. Mirrors parseClaimArgs' shape and die() style.
 function parseNewWsArgs(argv) {
   const ni = argv.indexOf('--new-ws');
@@ -664,11 +647,6 @@ function parseNewWsArgs(argv) {
       die(`invalid --tags entry "${tag}" (expected the tag pool character class: [a-z0-9-])`);
     }
   }
-  const di = argv.indexOf('--description');
-  const description = di !== -1 && argv[di + 1] && !argv[di + 1].startsWith('--') ? argv[di + 1] : '';
-  if (CONTROL_CHARS.test(description)) {
-    die('--description must not hold a line break or any other control character');
-  }
   let status = NEW_WS_STATUS;
   const si = argv.indexOf('--status');
   if (si !== -1) {
@@ -677,7 +655,7 @@ function parseNewWsArgs(argv) {
       die(`unknown --status "${status || ''}" (expected: ${STATUSES.join(', ')})`);
     }
   }
-  return { slug, title, tags, status, description };
+  return { slug, title, tags, status };
 }
 
 // Returns null if --whoami absent, {} otherwise, or exits via die() on an
@@ -1096,7 +1074,6 @@ for (const rootSpec of ROOTS) {
         title: fm.title || '', status: fm.status || '', created: fm.created || '',
         updated: fm.updated || '', depends_on: fm.depends_on || [], links: fm.links || [],
         tags: fm.tags || [], mode: fm.mode || '', author: fm.author || '',
-        description: fm.description || '',
         blocked: (fm.blocked || '').trim(),
         file: rel, archived: rootSpec.archived,
         // Fields the schema, freshness and shape checks need. fmKeys is the raw
@@ -1205,7 +1182,7 @@ if (claimOpts) {
 // checks or the index/board writes. It does not acquire the lease. That stays
 // in SKILL.md, which runs after the folder exists either way.
 if (newWsOpts) {
-  const { slug, title, tags, status, description } = newWsOpts;
+  const { slug, title, tags, status } = newWsOpts;
 
   // Collision first, claim second: an ID claimed and then abandoned leaves an
   // orphan marker directory behind, so the common failure is checked before
@@ -1262,10 +1239,6 @@ if (newWsOpts) {
     // JSON.stringify emits a correctly escaped YAML double-quoted scalar, and
     // is byte-identical to hand-placed quotes for an ordinary value.
     `title: ${JSON.stringify(title)}`,
-    // Optional, and omitted entirely when unset: a record scaffolded without
-    // --description is byte-for-byte the record this writer produced before
-    // the flag existed.
-    ...(description.trim() ? [`description: ${JSON.stringify(description)}`] : []),
     `status: ${status}`,
     `tags: [${tags.join(', ')}]`,
     `created: ${day}`,
@@ -1548,7 +1521,6 @@ if (!noBoard) {
     const tags = ws.tags.map((t) => `#${t.toLowerCase()}`).join(' ');
     let card = `\t- ## ${ws.id} ${ws.title || ws.slug}${tags ? ' ' + tags : ''}\n`;
     if (ws.blocked) card += `\t\t**Blocked:** ${ws.blocked}\n`;
-    if (ws.description) card += `\t\t${ws.description}\n`;
     if (desc) card += `\t\t${desc}\n`;
     card += `\t\tby ${ws.author || 'unknown'}\n`;
     card += `\t\t→ ${path.dirname(ws.file)}/\n`;

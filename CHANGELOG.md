@@ -90,6 +90,13 @@ skill mirrors it. See VERSIONING.md.
   and `flowcharge/templates/validate-tasks.md`, retired in favour of the two
   merged validation templates. The delete-the-older-folder-first note above
   applies to these three files too.
+- The optional workstream `description` frontmatter key, which restated the
+  record's own body and added no fact the body lacked. Removed from
+  `skills/flowcharge/CONVENTIONS.md`'s schema, `skills/flowcharge/scripts/fc-index.mjs`'s
+  CLI flag, parsing, storage, WARN and board rendering, and
+  `skills/flowcharge/SKILL.md` and `skills/flowcharge/templates/kanban-add.md`'s
+  authoring guidance. The 12 workstream records in this repo that carried the
+  key had it migrated out of their frontmatter.
 
 ### Fixed
 
