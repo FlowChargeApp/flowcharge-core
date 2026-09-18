@@ -4,6 +4,6 @@ Last-issued ID per type. To claim IDs, run node <skills-dir>/flowcharge/scripts/
 
 - WS: 23
 - PLN: 12
-- IL: 4
-- TL: 15
-- ISS: 8
+- IL: 5
+- TL: 16
+- ISS: 9
