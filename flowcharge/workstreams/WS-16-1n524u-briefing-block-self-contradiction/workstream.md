@@ -4,7 +4,6 @@ type: workstream
 workstream: WS-16-1n524u
 slug: briefing-block-self-contradiction
 title: "Self-contradicting instruction in the plan-and-tasks briefing block"
-description: "In plan-and-tasks-spec.md line 16 and plan-and-tasks-diff.md line 16, the briefing placeholder text the orchestrator fills before every plan-authoring spawn contains one self-contradicting sentence: it opens with everything the subagent needs and cannot discover for itself and closes with the parts of the codebase it touches, which is exactly what the subagent can discover itself. Fix: delete the and the parts of the codebase it touches clause so the two clauses stop disagreeing. Evidence this is not cosmetic: on the run-3 benchmark the candidate orchestrator took 326 seconds and made 30 Bash calls and 13 Reads before its first spawn, 9 of them project source files that the authoring subagent then read again from a cold context moments later. Baseline orchestrator read zero project source files and took 102 seconds. Scope: the wording fix alone."
 status: done
 tags: [prompts, correctness]
 created: 2026-09-17

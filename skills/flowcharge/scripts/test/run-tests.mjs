@@ -126,10 +126,6 @@ function record(type, o = {}) {
     links: arr(o.links),
   };
   if (type === 'workstream') keys.tags = arr(o.tags);
-  // Opt-in and workstream-only: a fixture carries the optional description key
-  // only when the case asks for one, so every existing fixture stays
-  // byte-identical to what it produced before the key existed.
-  if (type === 'workstream' && o.description !== undefined) keys.description = `"${o.description}"`;
   // The blocked key opts in the same way and for the same reason. Both land
   // after the array keys rather than in the documented write position, because
   // parseFrontmatter reads key order not at all and every existing fixture must
@@ -770,95 +766,11 @@ testCase('clean: a board card in the column its status names warns about nothing
   });
 });
 
-// ---- cases: the card body's optional description line -----------------------
-// The generated card body carries the record's optional description first, then
-// the body's first line, then the author line, then the folder pointer. The pair
-// below pins the body either side of the key's presence.
-
-testCase('a workstream carrying a description writes it as the card body first line', () => {
-  withFixture(baseTree({
-    [WS1]: workstream({
-      id: 'WS-1-abcdef',
-      slug: 'alpha',
-      title: 'Alpha',
-      description: 'A fuller explanation of the request, on one line.',
-      body: 'The card description line.\n',
-    }),
-  }), (dir) => {
-    const { status, stderr } = runGenerator(dir, []);
-    assert.strictEqual(status, 0, `default mode exited ${status}\n${stderr}`);
-    const expected =
-      '\t- ## WS-1-abcdef Alpha\n' +
-      '\t\tA fuller explanation of the request, on one line.\n' +
-      '\t\tThe card description line.\n' +
-      '\t\tby unknown\n' +
-      '\t\t→ flowcharge/workstreams/WS-1-abcdef-alpha/\n';
-    const boardText = readRel(dir, 'flowcharge/kanban.md');
-    assert.ok(
-      boardText.includes(expected),
-      `card body does not match\n  expected:\n${JSON.stringify(expected)}\n  board:\n${JSON.stringify(boardText)}`,
-    );
-  });
-});
-
-testCase('a workstream with no description key writes the unchanged three-line card body', () => {
-  withFixture(baseTree({
-    [WS1]: workstream({
-      id: 'WS-1-abcdef',
-      slug: 'alpha',
-      title: 'Alpha',
-      body: 'The card description line.\n',
-    }),
-  }), (dir) => {
-    const { status, stderr } = runGenerator(dir, []);
-    assert.strictEqual(status, 0, `default mode exited ${status}\n${stderr}`);
-    const expected =
-      '\t- ## WS-1-abcdef Alpha\n' +
-      '\t\tThe card description line.\n' +
-      '\t\tby unknown\n' +
-      '\t\t→ flowcharge/workstreams/WS-1-abcdef-alpha/\n';
-    const boardText = readRel(dir, 'flowcharge/kanban.md');
-    assert.ok(
-      boardText.includes(expected),
-      `card body does not match\n  expected:\n${JSON.stringify(expected)}\n  board:\n${JSON.stringify(boardText)}`,
-    );
-  });
-});
-
 // ---- cases: the card body's optional blocked line ---------------------------
-// The blocked line sits directly under the title line, above the description and
-// above the card-description line. The pair below pins the body either side of a
-// description, so the two optional lines cannot swap places unnoticed.
+// The blocked line sits directly under the title line, above the
+// card-description line.
 
-testCase('a workstream carrying a blocked reason writes it above its description', () => {
-  withFixture(baseTree({
-    [WS1]: workstream({
-      id: 'WS-1-abcdef',
-      slug: 'alpha',
-      title: 'Alpha',
-      blocked: 'waiting on the vendor API key',
-      description: 'A fuller explanation of the request, on one line.',
-      body: 'The card description line.\n',
-    }),
-  }), (dir) => {
-    const { status, stderr } = runGenerator(dir, []);
-    assert.strictEqual(status, 0, `default mode exited ${status}\n${stderr}`);
-    const expected =
-      '\t- ## WS-1-abcdef Alpha\n' +
-      '\t\t**Blocked:** waiting on the vendor API key\n' +
-      '\t\tA fuller explanation of the request, on one line.\n' +
-      '\t\tThe card description line.\n' +
-      '\t\tby unknown\n' +
-      '\t\t→ flowcharge/workstreams/WS-1-abcdef-alpha/\n';
-    const boardText = readRel(dir, 'flowcharge/kanban.md');
-    assert.ok(
-      boardText.includes(expected),
-      `card body does not match\n  expected:\n${JSON.stringify(expected)}\n  board:\n${JSON.stringify(boardText)}`,
-    );
-  });
-});
-
-testCase('a blocked workstream with no description key writes the blocked line under the title', () => {
+testCase('a blocked workstream writes the blocked line under the title', () => {
   withFixture(baseTree({
     [WS1]: workstream({
       id: 'WS-1-abcdef',
@@ -1561,24 +1473,6 @@ testCase('clean: a workstream first body line of 200 characters warns about noth
   });
 });
 
-// The description cap is soft (the board writes the value in full), so the
-// boundary is asserted either side: 1001 characters warns, 1000 does not.
-testCase('a workstream description of 1001 characters warns', () => {
-  withFixture(baseTree({
-    [WS1]: workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', description: 'x'.repeat(1001) }),
-  }), (dir) => {
-    expectWarns(dir, [`WS-1-abcdef (${WS1}): description is 1001 characters, longer than the 1000 a card should carry`]);
-  });
-});
-
-testCase('clean: a workstream description of 1000 characters warns about nothing', () => {
-  withFixture(baseTree({
-    [WS1]: workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', description: 'x'.repeat(1000) }),
-  }), (dir) => {
-    expectWarns(dir, []);
-  });
-});
-
 // A present blocked key with no reason in it is a defect: an absent key already
 // says "not blocked". Whitespace-only is the same defect, because the record
 // field is trimmed at scan time.
@@ -1659,9 +1553,7 @@ testCase('clean: tags listed in the pool warn about nothing', () => {
 // flowcharge/ids/ so a leaked claim cannot pass unnoticed.
 
 // The exact record --new-ws writes: every required key at a valid value, in
-// CONVENTIONS.md's key order, and an empty body. description is optional and
-// appears only when the case passes one, so every other call site still
-// produces the record the command wrote before the flag existed.
+// CONVENTIONS.md's key order, and an empty body.
 const newWsRecord = (id, slug, title, o = {}) =>
   [
     '---',
@@ -1670,7 +1562,6 @@ const newWsRecord = (id, slug, title, o = {}) =>
     `workstream: ${id}`,
     `slug: ${slug}`,
     `title: "${title}"`,
-    ...(o.description !== undefined ? [`description: "${o.description}"`] : []),
     `status: ${o.status !== undefined ? o.status : 'backlog'}`,
     `tags: [${(o.tags || []).join(', ')}]`,
     `created: ${o.day}`,
@@ -1765,59 +1656,6 @@ testCase('--new-ws with no --status writes the literal line status: backlog', ()
       outLines(readRel(dir, rel)).includes('status: backlog'),
       `the record does not carry the line "status: backlog":\n${readRel(dir, rel)}`,
     );
-  });
-});
-
-// --description is optional, so it is pinned either side of its presence: the
-// whole record is byte-compared with the flag and without it, because the key's
-// position after title is a contract the board and the schema both rest on.
-
-testCase('--new-ws honours --description and writes the key after title', () => {
-  const day = today();
-  const description = 'A fuller explanation of the request, on one line.';
-  withFixture(EMPTY_TREE, (dir) => {
-    const res = runGenerator(dir, [
-      '--new-ws', 'demo', '--title', 'Demo workstream', '--description', description,
-    ]);
-    assert.strictEqual(res.status, 0, `--new-ws exited ${res.status}\n${res.stderr}`);
-    const id = outLines(res.stdout)[0];
-    assertIdShape(id, 'WS', '--new-ws printed id');
-    const rel = `flowcharge/workstreams/${id}-demo/workstream.md`;
-    assert.strictEqual(readRel(dir, rel), newWsRecord(id, 'demo', 'Demo workstream', { day, description }));
-    assert.deepStrictEqual(idsEntries(dir), [id], 'the marker directory for the claimed id is missing');
-  });
-});
-
-testCase('--new-ws with no --description writes no description line', () => {
-  const day = today();
-  withFixture(EMPTY_TREE, (dir) => {
-    const res = runGenerator(dir, ['--new-ws', 'demo', '--title', 'Demo workstream']);
-    assert.strictEqual(res.status, 0, `--new-ws exited ${res.status}\n${res.stderr}`);
-    const id = outLines(res.stdout)[0];
-    assertIdShape(id, 'WS', '--new-ws printed id');
-    const rel = `flowcharge/workstreams/${id}-demo/workstream.md`;
-    // The record the command wrote before the flag existed, byte for byte.
-    assert.strictEqual(readRel(dir, rel), newWsRecord(id, 'demo', 'Demo workstream', { day }));
-    assert.deepStrictEqual(idsEntries(dir), [id], 'the marker directory for the claimed id is missing');
-  });
-});
-
-testCase('a tree scaffolded by --new-ws --description produces no new WARN', () => {
-  // The pool file is the one thing the tree carries: --new-ws does not seed it,
-  // and its absence would add an advisory line to the set asserted below.
-  withFixture({ 'flowcharge/tags.md': tagPool() }, (dir) => {
-    const scaffold = runGenerator(dir, [
-      '--new-ws', 'demo', '--title', 'Demo workstream', '--description', 'A fuller explanation.',
-    ]);
-    assert.strictEqual(scaffold.status, 0, `--new-ws exited ${scaffold.status}\n${scaffold.stderr}`);
-    const id = outLines(scaffold.stdout)[0];
-    assertIdShape(id, 'WS', '--new-ws printed id');
-    // The same single warning the no-description scaffold draws: the body the
-    // command deliberately leaves for the agent to append. The description is
-    // not a body, so it silences nothing and adds nothing.
-    expectWarns(dir, [
-      `${id} (flowcharge/workstreams/${id}-demo/workstream.md): body has no card-description line`,
-    ]);
   });
 });
 
@@ -2222,7 +2060,7 @@ testCase('the registry --claim seeds carries the same canonical header', () => {
 // in HELP fails the completeness case below by name.
 const HELP_FLAGS = [
   '--root', '--no-board', '--check', '--sync', '--init', '--list', '--ws', '--sort',
-  '--desc', '--archived', '--claim', '--new-ws', '--title', '--description',
+  '--desc', '--archived', '--claim', '--new-ws', '--title',
   '--tags', '--status', '--whoami', '--help',
 ];
 

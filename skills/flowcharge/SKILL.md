@@ -663,7 +663,7 @@ node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root>
   problem or feature in the target project, never a FlowCharge Core stage or an
   artefact-authoring act. Apply CONVENTIONS.md's smell test before you create the
   folder. Then run
-  `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --new-ws <slug> --title "<title>" [--description "<text>"] [--tags a,b]`.
+  `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --new-ws <slug> --title "<title>" [--tags a,b]`.
   It claims the id, creates the folder as `flowcharge/workstreams/WS-N-SUFFIX-<slug>/`, writes
   its `workstream.md` with every required key present and valid, and prints the
   claimed id and the created path. A folder this run creates is not promoted here: its
@@ -671,11 +671,6 @@ node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root>
   execution starts. Its body is empty. Append the body yourself: first
   line the card description, then as much of the request's own detail as it carried,
   with no length cap (CONVENTIONS.md, `workstream` body).
-  Pass `--description "<text>"` when the originating request carries enough upfront
-  detail to warrant a fuller explanation than the title gives; omit the flag when the
-  request is a one-line ask. **No script can check** that judgment: the generator
-  checks the value's length, never whether the field should have been filled. A
-  description never stands in for the body: append the body either way.
   For `tags`: read `flowcharge/tags.md` first. If the request contains `#word` tokens,
   lowercase each; for each, check the pool for a spelling that already covers the same
   idea, including a different grammatical form of the same word, and reuse that

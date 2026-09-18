@@ -4,7 +4,6 @@ type: workstream
 workstream: WS-12-zq2ms6
 slug: generator-empty-init-mode
 title: "Give fc-index.mjs a mode to initialize an empty flowcharge/ tree with no workstream"
-description: "fc-index.mjs currently has no way to create an empty, valid flowcharge/ tree (folder, workstreams/, index.md, kanban.md) with zero workstreams. --new-ws is the only path that creates the tree from scratch, and it always seeds one workstream as a side effect of allocating a WS id. A sibling project (the FlowCharge web app) wants to vendor this script to auto-initialize a brand-new project's flowcharge/ folder from its Add Project flow, and needs a clean empty-board init with no placeholder workstream."
 status: done
 tags: [generator, usability]
 created: 2026-09-16
