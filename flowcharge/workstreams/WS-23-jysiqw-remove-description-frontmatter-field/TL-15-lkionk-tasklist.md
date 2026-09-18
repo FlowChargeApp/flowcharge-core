@@ -360,13 +360,13 @@ stage's own per-file greps confirm only their own file. Ends with
     >>>>>>> REPLACE
     ```
 
-- [ ] 2. Generator tests (`run-tests.mjs`)
+- [x] 2. Generator tests (`run-tests.mjs`)
 
   ```yaml
   description: "Bring the pinning test suite back into agreement with the generator's removed description behaviour"
   ```
 
-  - [ ] 2.1 Remove description opt-in from the workstream() fixture helper
+  - [x] 2.1 Remove description opt-in from the workstream() fixture helper
     ```yaml
     description: "Delete the workstream() fixture helper's conditional description key and its comment"
     author: Anthony Koukoullis
@@ -386,7 +386,7 @@ stage's own per-file greps confirm only their own file. Ends with
       - "keys.tags assignment immediately above is unchanged."
       - "node --check skills/flowcharge/scripts/test/run-tests.mjs exits 0."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
     ```js
@@ -404,7 +404,7 @@ stage's own per-file greps confirm only their own file. Ends with
     >>>>>>> REPLACE
     ```
 
-  - [ ] 2.2 Remove the two card-body description test cases
+  - [x] 2.2 Remove the two card-body description test cases
     ```yaml
     description: "Delete the 'card body's optional description line' test section: its comment header and its two test cases"
     author: Anthony Koukoullis
@@ -424,7 +424,7 @@ stage's own per-file greps confirm only their own file. Ends with
       - "The preceding and following test sections are unchanged."
       - "node --check skills/flowcharge/scripts/test/run-tests.mjs exits 0."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
     ```js
@@ -491,7 +491,7 @@ stage's own per-file greps confirm only their own file. Ends with
     >>>>>>> REPLACE
     ```
 
-  - [ ] 2.3 Collapse the blocked-line test pair into one description-free case
+  - [x] 2.3 Collapse the blocked-line test pair into one description-free case
     ```yaml
     description: "Rewrite the two blocked-line card-body test cases (with/without description) into the single case that remains meaningful: the blocked line renders directly under the title line"
     author: Anthony Koukoullis
@@ -513,7 +513,7 @@ stage's own per-file greps confirm only their own file. Ends with
       - "The comment header no longer refers to a description."
       - "node --check skills/flowcharge/scripts/test/run-tests.mjs exits 0."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
     ```js
@@ -562,7 +562,7 @@ stage's own per-file greps confirm only their own file. Ends with
     >>>>>>> REPLACE
     ```
 
-  - [ ] 2.4 Remove the DESC_MAX boundary test pair
+  - [x] 2.4 Remove the DESC_MAX boundary test pair
     ```yaml
     description: "Delete the two test cases pinning the description-length WARN boundary at 1000/1001 characters"
     author: Anthony Koukoullis
@@ -582,7 +582,7 @@ stage's own per-file greps confirm only their own file. Ends with
       - "The following blocked-empty-value test section is unchanged."
       - "node --check skills/flowcharge/scripts/test/run-tests.mjs exits 0."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
     ```js
@@ -610,7 +610,7 @@ stage's own per-file greps confirm only their own file. Ends with
     >>>>>>> REPLACE
     ```
 
-  - [ ] 2.5 Remove description from the newWsRecord() frontmatter-builder helper
+  - [x] 2.5 Remove description from the newWsRecord() frontmatter-builder helper
     ```yaml
     description: "Drop the conditional description: line and its comment from the --new-ws test helper newWsRecord()"
     author: Anthony Koukoullis
@@ -630,7 +630,7 @@ stage's own per-file greps confirm only their own file. Ends with
       - "The title line and status line immediately surrounding the deleted entry are unchanged and adjacent."
       - "node --check skills/flowcharge/scripts/test/run-tests.mjs exits 0."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
     ```js
@@ -665,7 +665,7 @@ stage's own per-file greps confirm only their own file. Ends with
     >>>>>>> REPLACE
     ```
 
-  - [ ] 2.6 Remove the three --new-ws --description test cases
+  - [x] 2.6 Remove the three --new-ws --description test cases
     ```yaml
     description: "Delete the comment and all three test cases exercising --new-ws --description (with the flag, without it, and the WARN-free scaffold check)"
     author: Anthony Koukoullis
@@ -687,7 +687,7 @@ stage's own per-file greps confirm only their own file. Ends with
       - "grep -n -- '--description' skills/flowcharge/scripts/test/run-tests.mjs returns only the HELP_FLAGS hit."
       - "The full suite fails only the --help flag-completeness case, pending task 2.7."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
     ```js
@@ -752,7 +752,7 @@ stage's own per-file greps confirm only their own file. Ends with
     >>>>>>> REPLACE
     ```
 
-  - [ ] 2.7 Remove --description from the HELP_FLAGS completeness list
+  - [x] 2.7 Remove --description from the HELP_FLAGS completeness list
     ```yaml
     description: "Drop the '--description' entry from HELP_FLAGS, the flag inventory the --help completeness test checks against"
     author: Anthony Koukoullis
@@ -774,7 +774,7 @@ stage's own per-file greps confirm only their own file. Ends with
       - "No other HELP_FLAGS entry moved."
       - "The full suite (node skills/flowcharge/scripts/test/run-tests.mjs) reports 256/256 cases passed."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
     ```js
