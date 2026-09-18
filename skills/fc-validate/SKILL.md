@@ -161,8 +161,7 @@ Judge per task. Never per command.
 - A task whose **entire** runnable `verify` list passes at `base_commit` is
   tautological, and that is a finding. The work the list verifies has not been applied
   yet, so a list that already passes proves nothing about it.
-- A task with at least one step that fails at `base_commit` passes this check. A
-  project-wide lint or test step that passes is expected and is not itself a defect.
+- A task with at least one step that fails at `base_commit` passes this check.
 - A task whose every step was unrun is reported as **unjudged**, not as a pass.
 
 You change no file in the working tree while running commands.
