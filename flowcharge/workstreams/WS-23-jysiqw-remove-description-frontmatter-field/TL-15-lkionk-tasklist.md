@@ -843,13 +843,13 @@ stage's own per-file greps confirm only their own file. Ends with
     >>>>>>> REPLACE
     ```
 
-- [ ] 4. Authoring prompts (`SKILL.md`, `templates/kanban-add.md`)
+- [x] 4. Authoring prompts (`SKILL.md`, `templates/kanban-add.md`)
 
   ```yaml
   description: "Stop the orchestrator SKILL.md and the kanban-add.md template from instructing an agent to resolve or write description"
   ```
 
-  - [ ] 4.1 Remove --description guidance from SKILL.md's Start-of-run upkeep step
+  - [x] 4.1 Remove --description guidance from SKILL.md's Start-of-run upkeep step
     ```yaml
     description: "Delete the [--description \"<text>\"] token from the --new-ws command line, and the paragraph telling the agent when to pass it"
     author: Anthony Koukoullis
@@ -869,7 +869,7 @@ stage's own per-file greps confirm only their own file. Ends with
       - "The body-authoring sentence before it and the tags paragraph after it are unchanged."
       - "The file still renders as valid Markdown."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
     ```md
@@ -902,7 +902,7 @@ stage's own per-file greps confirm only their own file. Ends with
     >>>>>>> REPLACE
     ```
 
-  - [ ] 4.2 Remove description guidance from templates/kanban-add.md
+  - [x] 4.2 Remove description guidance from templates/kanban-add.md
     ```yaml
     description: "Delete step 2's description-deciding sentence and step 3's [--description] token from kanban-add.md"
     author: Anthony Koukoullis
@@ -922,7 +922,7 @@ stage's own per-file greps confirm only their own file. Ends with
       - "Step 3's optional-flags sentence reads '--title is required, --tags is optional'."
       - "The file still renders as valid Markdown."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
     ```md
@@ -936,7 +936,7 @@ stage's own per-file greps confirm only their own file. Ends with
     >>>>>>> REPLACE
     ```
 
-  - [ ] 4.3 Verify zero description references remain in skills/flowcharge/ (aggregate)
+  - [x] 4.3 Verify zero description references remain in skills/flowcharge/ (aggregate)
     ```yaml
     description: "Repo-wide check that skills/flowcharge/ carries no remaining reference to the workstream description key, after stages 1-4 have landed"
     author: Anthony Koukoullis
@@ -957,7 +957,7 @@ stage's own per-file greps confirm only their own file. Ends with
       - "No file outside stages 1-4's own scope was touched to make this check pass."
       - "Tasks 1.1 through 4.2 are all marked complete before this task is run."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
