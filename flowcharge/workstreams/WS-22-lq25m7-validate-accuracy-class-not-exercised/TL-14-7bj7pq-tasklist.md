@@ -4,7 +4,7 @@ type: tasklist
 workstream: WS-22-lq25m7
 slug: validate-accuracy-class-not-exercised
 title: "Make fc-validate's Accuracy class exercised, not just defined"
-status: ready
+status: done
 created: 2026-09-18
 updated: 2026-09-18
 author: Anthony Koukoullis
@@ -211,7 +211,7 @@ capability is added; `SKILL.md:102-104`'s bounded-survey guard is untouched.
       - "The bullet reads 'Anchors, paths, counts, commands with their flags and arguments, and claims...' verbatim."
       - "No other part of the bullet or surrounding prose changed."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
@@ -247,7 +247,7 @@ capability is added; `SKILL.md:102-104`'s bounded-survey guard is untouched.
       failures: []
     ```
 
-- [ ] 2. Run the test/lint backstop and confirm the baseline (plan Stage 2: AC8)
+- [x] 2. Run the test/lint backstop and confirm the baseline (plan Stage 2: AC8)
   ```yaml
   description: "Run this suite's only automated check after all seven edits (tasks 1.1-1.7) land, and confirm it still reports 264/264 with no regression."
   author: Anthony Koukoullis
@@ -267,6 +267,6 @@ capability is added; `SKILL.md:102-104`'s bounded-survey guard is untouched.
     - "The reported count is 264/264, with no new failures introduced by the seven edits."
     - "No file outside the three named in tasks 1.1-1.7 was modified in the course of this task."
   self_eval:
-    passed: false
+    passed: true
     failures: []
   ```
