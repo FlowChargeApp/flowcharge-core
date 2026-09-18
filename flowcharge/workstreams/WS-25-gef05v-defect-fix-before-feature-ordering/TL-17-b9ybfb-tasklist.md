@@ -26,7 +26,7 @@ divergence from what the plan assumes.
 
 ## Tasks
 
-### 1. Name the ordered pattern in "Parsing the request" (plan Stage 1 / gap 1)
+- [x] 1. Name the ordered pattern in "Parsing the request" (plan Stage 1 / gap 1)
 
 - type: task
 - author: Anthony Koukoullis
@@ -55,7 +55,7 @@ verify:
 - `grep -c 'fix what blocks X, then plan X' skills/flowcharge/SKILL.md` returns `1` (returned
   `0` at `base_commit`).
 
-### 2. Fix the validation bound's once-per-run/once-per-authoring-stage contradiction (plan Stage 2 / gap 2)
+- [x] 2. Fix the validation bound's once-per-run/once-per-authoring-stage contradiction (plan Stage 2 / gap 2)
 
 - type: task
 - author: Anthony Koukoullis
@@ -107,7 +107,7 @@ verify:
   `base_commit`: the pre-existing line at 562 names the bound as "once-per-authoring-stage", a
   hyphenated form this exact phrase does not match).
 
-### 3. Point the dependency carve-out at the fixing task list, not the issue list (plan Stage 3 / gap 3)
+- [x] 3. Point the dependency carve-out at the fixing task list, not the issue list (plan Stage 3 / gap 3)
 
 - type: task
 - author: Anthony Koukoullis
@@ -157,7 +157,7 @@ verify:
   `base_commit`).
 - `grep -c 'No script can check this' skills/flowcharge/CONVENTIONS.md` returns `1` or more.
 
-### 4. Stop hard rule 12 asking the plan to absorb an already-fixed defect (plan Stage 4 / gap 4)
+- [x] 4. Stop hard rule 12 asking the plan to absorb an already-fixed defect (plan Stage 4 / gap 4)
 
 - type: task
 - author: Anthony Koukoullis
@@ -184,7 +184,7 @@ verify:
 - `grep -c 'prerequisite defect' skills/flowcharge/SKILL.md` returns `1` or more (returned `0`
   at `base_commit`).
 
-### 5. Fix hard rule 13's drift-check cadence to match its own per-stage scope (plan Stage 5 / accepted fifth fix)
+- [x] 5. Fix hard rule 13's drift-check cadence to match its own per-stage scope (plan Stage 5 / accepted fifth fix)
 
 - type: task
 - author: Anthony Koukoullis
@@ -210,7 +210,7 @@ verify:
 - `grep -c 'once per execute-tasks stage' skills/flowcharge/SKILL.md` returns `1` (returned `0`
   at `base_commit`).
 
-### 6. Whole-suite regression check
+- [x] 6. Whole-suite regression check
 
 - type: task
 - author: Anthony Koukoullis
