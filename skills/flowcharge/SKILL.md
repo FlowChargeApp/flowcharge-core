@@ -159,7 +159,9 @@ in that case.
     names no concrete scenario or failure case, say so in one line and
     proceed. When it names one the plan's stated design does not visibly
     handle, halt and report instead of spawning the next stage; the user
-    may override, per-run, exactly as rule 5's dependency check does. This
+    may override, per-run, exactly as rule 5's dependency check does. Where the record names a
+    scenario as a prerequisite defect an earlier stage of this run already fixed, name that fix
+    as the answer: the plan's design is not required to handle it, and must not absorb it. This
     check supplements, and never replaces, a walkthrough task a task list
     may still place against the finished file.
 13. **A task list is checked for drift against the branch before
@@ -185,9 +187,9 @@ in that case.
     upstream plan or issue list, before proceeding. This is a stated
     recommendation, folded into the always-printed "Before
     execute-tasks" report content, never a halt and never a new
-    prompt. Run this check once per run, immediately before the first
-    parent-task spawn; do not repeat it before later parent tasks in
-    the same run. It is the orchestrator's own reading, under rule 8's
+    prompt. Run this check once per execute-tasks stage, immediately before that
+    stage's first parent-task spawn; do not repeat it before later parent tasks in
+    the same stage. It is the orchestrator's own reading, under rule 8's
     carve-out for reading artefact files when a briefing needs facts,
     never a subagent's.
 
@@ -316,8 +318,8 @@ so this section carries that note in the way this file's other unverifiable rule
 `validate:` in `flowcharge/agents.md` governs whether a run checks its authored
 artefacts against the source they were authored from.
 
-Under `on`, one pass runs once per run, after the authoring stage's return and before
-the execute-tasks prompt. Under `off`, no validator is spawned.
+Under `on`, one pass runs once per authoring stage, after that stage's return and before the
+execute-tasks prompt that follows it. Under `off`, no validator is spawned.
 
 - **Accepted values:** `on`, `off`.
 - **Built-in default when the key and the file are both absent:** `on`.
@@ -393,8 +395,8 @@ Notes:
   record with `status: backlog`, and the board is regenerated from it.
   The subagent chooses each title, slug and tags and runs `--new-ws` itself; the
   orchestrator neither creates the folder nor claims the id.
-- **validate**: under `validate: on`, one pass runs once per run, spawned after the
-  authoring stage's return and before the execute-tasks prompt. The path chooses the
+- **validate**: under `validate: on`, one pass runs once per authoring stage, spawned after
+  that stage's return and before the execute-tasks prompt that follows it. The path chooses the
   template: the plan path spawns `validate-plan-and-tasks.md`, the issue path spawns
   `validate-issues-and-tasks.md`. `{stages}` passes through unchanged from the
   authoring stage. The fixed comparison order and the never-align-backwards rule are
@@ -413,6 +415,9 @@ Map the user's English onto an ordered subset of operations. The standard chains
   [prompt] execute-tasks → [prompt] commit
 - "plan X [and build it]" → plan-and-tasks → validate →
   [prompt] execute-tasks → [prompt] commit
+- "fix what blocks X, then plan X" → issues-and-tasks → validate → [prompt] execute-tasks →
+  [prompt] commit → plan-and-tasks → validate → [prompt] execute-tasks → [prompt] commit. One
+  workstream, two authoring stages. Each per-authoring-stage bound applies to each stage.
 - "look into X" / "investigate X" → investigate (then stop; feed into plan-and-tasks or
   backlog-add only if asked)
 - "turn <issue list / plan> into tasks" → issues-and-tasks / plan-and-tasks with
@@ -490,7 +495,8 @@ These, and nothing else:
 - Downstream artefacts record their inputs as data: a task list authored from
   IL-3-k9d2s5 carries `depends_on: [IL-3-k9d2s5]`; one authored from PLN-2-m7v1q4
   carries `depends_on: [PLN-2-m7v1q4]`. The authoring templates instruct this;
-  verify it landed.
+  verify it landed. A prerequisite-defect constraint records the fixing task list's ID, never
+  the issue list's. Only a `tasklist` dependency waits for the fix to land.
 - Open ends terminate chains: an issue skipped as a feature, a plan stage left
   untasked, an aborted subtask. None of these flow downstream. They flow up, to the
   user, in your reports. A question settled under "The prompt policy" (rule 10)
@@ -509,7 +515,7 @@ These, and nothing else:
   question again, relay it unsettled.
 
 The validation stage is the one exception to "subagent returns feed the next
-`{{briefing}}`", and it runs at most once per run. Its briefing
+`{{briefing}}`", and it runs at most once per authoring stage. Its briefing
 carries the artefact and its source only, never the authoring subagent's return, its
 rationale, or its self-report, because fresh context is the active ingredient, and
 the authoring subagent's account of what it did is exactly the contamination this
