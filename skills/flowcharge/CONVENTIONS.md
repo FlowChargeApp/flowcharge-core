@@ -269,6 +269,12 @@ Additional keys by type:
 `depends_on` is data, not prose. Ordering constraints between workstreams or
 artefacts go here, never only in a card's or file's body text.
 
+Where the constraint is that defects must be fixed before this work starts, record the
+fixing task list's ID, not the issue list's. A `tasklist` dependency requires `done`; an
+issue-list dependency is met once authored, which is not the wait you mean. **No script can
+check this**: whether a given `depends_on` entry expresses that constraint is a fact about the
+author's intent, not the file's shape, so documented guidance is its only defence.
+
 **Author attribution.** `author` is a plaintext name carried by all six record
 kinds: the four artefact kinds above in their frontmatter (`workstream`, `plan`,
 `issuelist`, `tasklist`), plus each issue inside an issue list and each adult or
