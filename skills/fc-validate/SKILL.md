@@ -130,17 +130,20 @@ Where the gate fails you run nothing. Report the drift and name which half faile
 
 ### The runnable command class
 
-Run a `verify` step only when it is one of the project's own fast, side-effect-free
-checks.
+Run a `verify` step only when it asserts something specific to the task's own change:
+a `grep`, a count, a file-existence check, or an equivalent read-only assertion about
+a named file.
 
-Admitted: linting, type-checking, a unit or single-file test run, `grep`, and
-file-existence checks.
+Excluded: lint, type-check, test suites, builds, deploys, package installs, database
+or network operations, anything that needs a service to be up, and anything that
+writes outside a temporary directory.
 
-Excluded: builds, deploys, package installs, database or network operations, anything
-that needs a service to be up, and anything that writes outside a temporary directory.
-
-In this repository the class admits `node skills/flowcharge/scripts/test/run-tests.mjs`,
-which is the project's own check command.
+Lint, type-check and test commands are excluded although they are fast and
+side-effect-free. They assert nothing about the task, so they pass at `base_commit`
+as readily as after the change, and a tautology finding against one is unactionable:
+the correction boundary's remedy is a replacement step that fails at `base_commit`,
+and no project-wide command can fail on unmodified code. The executor runs them after
+the change lands, which is where they catch something.
 
 A step outside the class is reported as **unrun**. You never execute it, and an unrun
 step is neither a pass nor a failure.
@@ -158,8 +161,7 @@ Judge per task. Never per command.
 - A task whose **entire** runnable `verify` list passes at `base_commit` is
   tautological, and that is a finding. The work the list verifies has not been applied
   yet, so a list that already passes proves nothing about it.
-- A task with at least one step that fails at `base_commit` passes this check. A
-  project-wide lint or test step that passes is expected and is not itself a defect.
+- A task with at least one step that fails at `base_commit` passes this check.
 - A task whose every step was unrun is reported as **unjudged**, not as a pass.
 
 You change no file in the working tree while running commands.
