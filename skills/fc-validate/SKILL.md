@@ -2,7 +2,7 @@
 name: fc-validate
 description: Validate an authored FlowCharge Core artefact against the source it was authored from, a plan against the brief and workstream record behind it, a task list against its backing plan or issue list, an issue list against the findings it was filed from. Checks three classes (coverage of the source, content with no source behind it, and accuracy of anchors, paths, counts and claims about other artefacts) and, for a task list, runs the verify steps it may run at the recorded baseline to catch a task that verifies nothing. Applies only provable in-field corrections, reports every coverage gap and every piece of invented content as an open question carrying a recommendation, and never edits frontmatter. Use whenever the user asks to validate, check, cross-check or sanity-check an authored artefact against its source, asks "does this task list cover the plan", "did the plan miss anything from the brief", "check the issues against the findings", "was anything invented here", or takes up the closing offer one of the generating skills prints after writing a new artefact. Also triggers on /fc-validate. Do NOT use to hunt defects in code, and do NOT use for pull-request or code review work, which a separate skill handles. This skill compares an authored document with the source it came from; it never judges the code an executor produced or whether a task's chosen approach is right, but how that approach is expressed — every command, flag, argument, path, anchor and count — is in scope wherever a file the artefact cites disproves it. Part of the FlowCharge Core suite.
 metadata:
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # Validate

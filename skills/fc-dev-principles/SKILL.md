@@ -12,7 +12,7 @@ description: >-
   a design or implementation decision. Also useful when decomposing work
   into sub-tasks and wanting to keep scope disciplined and modular.
 metadata:
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # Software Development Principles Guidance
