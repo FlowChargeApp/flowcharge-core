@@ -17,6 +17,7 @@ no suggestion still means "not listed," not "safe to leave."
 - gates
 - generator
 - git
+- migration
 - orchestration
 - prompts
 - quality
