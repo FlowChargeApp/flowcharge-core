@@ -26,7 +26,7 @@ The workstream's folder is `{{WS-N-SUFFIX}}-{{slug}}` (for example `WS-4-a3x9k2-
 
 If no workstream is specified in a request, consult `index.md` (regenerate it if stale); if it stays undecidable, ask the user. Cross-cutting issues go in a `misc` workstream. Issues that span workstreams are filed under the most relevant one, with all affected areas in the `affected` key.
 
-If the target file does not exist, create it with frontmatter and the heading only (no issues) before adding the first issue. If `flowcharge/` or the workstream folder is missing, create them; a new workstream also needs a `workstream.md` record (see CONVENTIONS.md).
+If the target file does not exist, create it with frontmatter and the heading only (no issues) before adding the first issue. If `flowcharge/` is missing, run `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --init` to create it. If the workstream folder is missing, run `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --new-ws <slug> --title "<title>"` to create it; a new workstream also needs a `workstream.md` record (see CONVENTIONS.md).
 
 To query across workstreams (e.g. all open issues), read `index.md` (it lists every open issue with severity and file) or grep `flowcharge/workstreams/*/IL-*-issuelist*.md` for `status:` values. Regenerate the index after any edit here:
 
