@@ -788,13 +788,13 @@ stage's own per-file greps confirm only their own file. Ends with
     >>>>>>> REPLACE
     ```
 
-- [ ] 3. Schema doc (`CONVENTIONS.md`)
+- [x] 3. Schema doc (`CONVENTIONS.md`)
 
   ```yaml
   description: "Remove the description key's schema definition and update blocked's positioning rule now that description cannot appear"
   ```
 
-  - [ ] 3.1 Delete the description bullet from the workstream schema
+  - [x] 3.1 Delete the description bullet from the workstream schema
     ```yaml
     description: "Delete the entire `description` schema bullet from CONVENTIONS.md's workstream key list"
     author: Anthony Koukoullis
@@ -814,7 +814,7 @@ stage's own per-file greps confirm only their own file. Ends with
       - "No other bullet in the list shifted content."
       - "The file still renders as valid Markdown (no broken list nesting)."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
     ```md
