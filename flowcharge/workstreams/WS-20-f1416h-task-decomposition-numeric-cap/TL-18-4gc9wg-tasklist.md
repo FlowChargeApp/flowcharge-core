@@ -62,7 +62,7 @@ commit.
     failures: []
   ```
 
-- [ ] 2. Narrow the validator's runnable command class
+- [x] 2. Narrow the validator's runnable command class
   ```yaml
   description: "Replace fc-validate/SKILL.md's `### The runnable command class` section body so it admits only task-specific, read-only assertions and excludes lint/type-check/test/build, dropping the run-tests.mjs example."
   author: Anthony Koukoullis
@@ -123,7 +123,7 @@ commit.
     - "The 'unrun' closing paragraph is present, unchanged, at the end of the replaced section."
     - "The immediately following paragraph referencing execute-parent-task.md is untouched."
   self_eval:
-    passed: false
+    passed: true
     failures: []
   ```
 
