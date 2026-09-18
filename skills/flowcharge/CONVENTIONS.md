@@ -237,19 +237,8 @@ Additional keys by type:
   generator, so the body may use them freely. What the body is **not** is a running
   log: it records the request as given, while analysis, design decisions and progress
   notes belong in the plan / issue list / task list.
-  `description`: **optional**, workstream records only, and a single-line
-  double-quoted scalar like `title`, written immediately after `title`. It carries a
-  fuller upfront explanation of the request. The three are distinct, and none replaces
-  another: `title` names the work in one short phrase; the body's **first line** is the
-  one scannable card-description line, capped at 200 characters; `description` is the
-  fuller explanation, with a **soft cap of 1000 characters**. The generator checks that
-  length and WARNs past it, while writing the value in full either way. It renders in
-  one place only: the kanban card's **first body line**, above the card-description
-  line. It reaches neither `index.md`'s workstream table nor `--list`. The key is
-  optional and its absence never warns, so no existing record needs a change.
   `blocked`: **optional**, workstream records only, and a single-line double-quoted
-  scalar like `description`. Write it immediately after `description` when the record
-  carries one, and immediately after `title` when it does not, always before
+  scalar like `title`. Write it immediately after `title`, always before
   `status`. Its value is the reason the work cannot proceed. An absent key means the
   record is not blocked, and there is no boolean form, so a key that is present
   carries a non-empty reason. A record may carry it at any status. It has five
