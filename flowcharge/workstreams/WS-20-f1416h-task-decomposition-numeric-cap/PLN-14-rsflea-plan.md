@@ -4,7 +4,7 @@ type: plan
 workstream: WS-20-f1416h
 slug: task-decomposition-numeric-cap
 title: "Stop authoring project-wide test/build commands into tasks, and stop validating them"
-status: ready
+status: done
 created: 2026-09-19
 updated: 2026-09-19
 author: Anthony Koukoullis

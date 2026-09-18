@@ -4,7 +4,7 @@ type: workstream
 workstream: WS-20-f1416h
 slug: task-decomposition-numeric-cap
 title: "Project-wide lint, type-check and test commands are authored into every task and executed where they cannot fail"
-status: in-progress
+status: done
 tags: [schema, prompts, conventions, generator, feature]
 created: 2026-09-17
 updated: 2026-09-19
