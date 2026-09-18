@@ -4,7 +4,7 @@ type: plan
 workstream: WS-25-gef05v
 slug: defect-fix-before-feature-ordering
 title: "Close the defect-fix-before-feature ordering gap with guidance-only wording fixes"
-status: ready
+status: done
 created: 2026-09-18
 updated: 2026-09-18
 author: Anthony Koukoullis
