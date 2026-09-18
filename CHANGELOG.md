@@ -11,7 +11,7 @@ add the brackets.
 Versions follow Semantic Versioning. There is one FlowCharge Core suite version and every
 skill mirrors it. See VERSIONING.md.
 
-## Unreleased
+## 0.4.0 - 2026-09-18
 
 ### Added
 
