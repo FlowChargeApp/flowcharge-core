@@ -691,8 +691,13 @@ node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root>
   Never invent a near-miss variant of a spelling already in the pool.
   That first line must name the problem or feature in the target project, never a
   FlowCharge Core stage or an artefact-authoring act, the same rule the title passed before
-  the folder was created. If `flowcharge/` itself is missing, create it plus a zeroed `ids.md`
-  first. Once the workstream folder exists, acquire its lease before any artefact
+  the folder was created. If `flowcharge/` itself is missing, run
+  `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --init`
+  first: it creates `flowcharge/workstreams/` and, transitively, `flowcharge/`, and is
+  a no-op when they already exist. `--init` does not create `ids.md`, and its WARN that
+  `ids.md` is missing needs no action here: the `--new-ws` run that follows seeds
+  `ids.md`, as `--claim` does (CONVENTIONS.md, IDs: Registry). Once the workstream
+  folder exists, acquire its lease before any artefact
   inside it is written: attempt an exclusive create of
   `<workstream folder>/.lease`, e.g. `node -e "try{require('fs').writeFileSync('<path>/.lease','session: '+process.env.CLAUDE_CODE_SESSION_ID+'\nacquired: '+new Date().toISOString()+'\n',{flag:'wx'})}catch(e){process.exit(e.code==='EEXIST'?1:2)}"`,
   which fails with `EEXIST` (exit 1) only if a lease already exists. On success,
