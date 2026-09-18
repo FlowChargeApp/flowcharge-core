@@ -4,7 +4,7 @@ type: plan
 workstream: WS-22-lq25m7
 slug: validate-accuracy-class-not-exercised
 title: "Make fc-validate's Accuracy class exercised, not just defined"
-status: ready
+status: done
 created: 2026-09-18
 updated: 2026-09-18
 author: Anthony Koukoullis

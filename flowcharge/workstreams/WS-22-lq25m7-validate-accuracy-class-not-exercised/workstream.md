@@ -5,7 +5,7 @@ workstream: WS-22-lq25m7
 slug: validate-accuracy-class-not-exercised
 title: "fc-validate's Accuracy class is defined but not exercised, so technical inaccuracies pass through"
 description: "Benchmark audits on 2026-09-18 found fc-validate repeatedly missing technical inaccuracies (a wrong line count, a false import claim, a miscounted set, a missing required CLI flag) that its own Accuracy class at SKILL.md:90-100 already covers. The mandate was never too narrow; three separate causes stop it being exercised: the skill's description reads as a blanket licence not to check technical correctness, the Accuracy bullet list is restated (not referenced) in both validate templates so a SKILL.md-only fix would stay invisible, and one ambiguous template sentence ('go looking for no file behind them') gets over-applied as grounds for checking nothing. Seven edits across three files close all three, with no new pipeline stage and no added time."
-status: in-progress
+status: done
 tags: [quality, correctness, prompts]
 created: 2026-09-18
 updated: 2026-09-18
