@@ -127,7 +127,7 @@ commit.
     failures: []
   ```
 
-- [ ] 3. Delete the dead clause in the validator's judgment section
+- [x] 3. Delete the dead clause in the validator's judgment section
   ```yaml
   description: "Shorten the judgment section's second bullet in fc-validate/SKILL.md to drop the now-impossible 'project-wide lint or test step that passes is expected' sentence."
   author: Anthony Koukoullis
@@ -154,7 +154,7 @@ commit.
     - "The first bullet (tautology definition) and third bullet (unjudged) are byte-identical to before."
     - "The remaining second bullet still ends with a period and reads as a complete sentence."
   self_eval:
-    passed: false
+    passed: true
     failures: []
   ```
 
