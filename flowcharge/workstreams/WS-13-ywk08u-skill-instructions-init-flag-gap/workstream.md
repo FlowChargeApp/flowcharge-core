@@ -4,11 +4,10 @@ type: workstream
 workstream: WS-13-ywk08u
 slug: skill-instructions-init-flag-gap
 title: "flowcharge skill instructions never reference fc-index.mjs's --init mode"
-description: "WS-12-zq2ms6 shipped fc-index.mjs --init (creates an empty flowcharge/ tree with zero workstreams) and was merged and released as done. Its own task list scoped documentation updates to only CONVENTIONS.md and CHANGELOG.md. It never touched skills/flowcharge/SKILL.md, whose Start of run upkeep section still only says: 'If flowcharge/ itself is missing, create it plus a zeroed ids.md first,' with no mention of --init as the proper command. A separate agent asked to initialize a new project folder was unaware --init existed and created the tree by hand instead. The fix belongs in this repo's skill sources (this project's skills/flowcharge/ folder), not in the already-closed WS-12."
-status: backlog
-tags: [skills, conventions, generator]
+status: done
+tags: [skills, conventions, generator, issue]
 created: 2026-09-16
-updated: 2026-09-16
+updated: 2026-09-18
 author: Anthony Koukoullis
 depends_on: []
 links: []
