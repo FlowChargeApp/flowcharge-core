@@ -187,9 +187,9 @@ in that case.
     upstream plan or issue list, before proceeding. This is a stated
     recommendation, folded into the always-printed "Before
     execute-tasks" report content, never a halt and never a new
-    prompt. Run this check once per run, immediately before the first
-    parent-task spawn; do not repeat it before later parent tasks in
-    the same run. It is the orchestrator's own reading, under rule 8's
+    prompt. Run this check once per execute-tasks stage, immediately before that
+    stage's first parent-task spawn; do not repeat it before later parent tasks in
+    the same stage. It is the orchestrator's own reading, under rule 8's
     carve-out for reading artefact files when a briefing needs facts,
     never a subagent's.
 
