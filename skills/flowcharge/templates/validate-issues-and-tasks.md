@@ -18,11 +18,11 @@ Run a sequenced pass under the contract the /fc-validate skill defines: comparis
 
 `{stages}` routes which comparisons run. Under `issues-only`, comparison 2 is skipped, and the return names it as skipped. Under `issues-and-tasks`, both comparisons run. Under `tasks-only`, comparison 1 is skipped, and the return names it as skipped.
 
-**Comparison 1: the issue list against the findings.** Read `{issuelist}` in full, then read the source material block in full. The findings in that block are the whole source: go looking for no file behind them. Then check all three of the skill's classes:
+**Comparison 1: the issue list against the findings.** Read `{issuelist}` in full, then read the source material block in full. The findings in that block are the whole source, and no file holds them, so look for none. That limits where the source lives, not which files you may open to check the issue list's own claims. Then check all three of the skill's classes:
 
 - **Coverage.** Every finding that should have been filed as an issue is filed as one.
 - **Invented content.** No issue lacks a finding behind it.
-- **Accuracy.** Anchors, paths, counts, and claims about another artefact that the issue list itself names by ID or by path. Follow only the references the issue list makes, and never survey the workstream or the repository for related artefacts.
+- **Accuracy.** Anchors, paths, counts, commands with their flags and arguments, and claims about another artefact that the issue list itself names by ID or by path. Follow only the references the issue list makes, and never survey the workstream or the repository for related artefacts.
 
 Run no command as part of comparison 1. Executing a `verify` step is comparison 2's business alone. Prove a comparison 1 accuracy finding by reading the file the issue list itself cites.
 
@@ -30,7 +30,7 @@ Run no command as part of comparison 1. Executing a `verify` step is comparison 
 
 - **Coverage.** Every filed issue in `{issuelist}` that should be realised as a task is realised as one.
 - **Invented content.** No task lacks a source behind it in `{issuelist}`.
-- **Accuracy.** Anchors, paths, counts, `depends_on` IDs, and claims about another artefact that the task list itself names by ID or by path. Follow only the references the task list makes, and never survey the workstream or the repository for related artefacts.
+- **Accuracy.** Anchors, paths, counts, commands with their flags and arguments, `depends_on` IDs, and claims about another artefact that the task list itself names by ID or by path. Follow only the references the task list makes, and never survey the workstream or the repository for related artefacts.
 
 Then run the task list's `verify` steps. Apply the baseline gate, the runnable command class, and the per-task judgment exactly as the /fc-validate skill defines all three. Restate none of them here and add no boundary of your own: that skill holds the single definition of each, and this template only tells you to apply it.
 
