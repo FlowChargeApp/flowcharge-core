@@ -90,7 +90,7 @@ in that case.
 8. **You orchestrate; subagents work.** Never perform a stage's work inline. The
    only inline actions are: filling and dispatching subagent prompts, the commit stage (via
    the fc-git skill), cutting the run's feature branch (rule 11), workstream ID
-   allocation via `fc-index.mjs --new-ws` for the run's own workstream, as "Start of run" directs, never for a `backlog-add` item, whose workstreams the spawned subagent creates (see "ID slots" below), workstream-record and artefact frontmatter bookkeeping (`status`, `tags`, and `updated` bumps, including the `updated` bump after a validator-applied edit),
+   allocation via `fc-index.mjs --new-ws` for the run's own workstream, as "Start of run" directs, never for a `backlog-add` item, whose workstreams the spawned subagent creates (see "ID slots" below), workstream-record and artefact frontmatter bookkeeping (`status`, `tags`, and `updated` bumps, including the `updated` bump after a validation stage or hand-back turn that applied one or more fixes),
    running the index generator, running a read-only artefact listing (see
    "Listing artefacts"), writing `flowcharge/agents.md` when a standing preference
    is recognized (see "Standing vs. one-off instructions"), and reading artefact
@@ -118,13 +118,15 @@ in that case.
     Settling is never unrecorded: record the question, the answer you adopted, and
     the preference that let you adopt it, in the settled-decisions record "Reporting"
     defines, printed on request, its fixes counted always.
-    A correction fc-validate applies on its own authority (under its
-    correction boundary, mechanical and provable, with no recommendation and
-    no settling involved) is never a settled question and never enters this
-    rule, however a return or a report phrases it. Only an open finding that
-    passed this rule's settle-or-relay test counts as settled. The printed
-    count line combines both as "N fixes applied"; the settled-decisions
-    record and fc-validate's withheld detail keep them apart.
+    A fix fc-validate applies on its own authority (under its correction
+    rule, proved against the source or a cited file, with no recommendation
+    and no settling involved) is never a settled question and never enters
+    this rule, however a return or a report phrases it. Only an open finding
+    that passed this rule's settle-or-relay test counts as settled, and a
+    settled validation finding reaches its artefact by the hand-back path
+    "Chaining" defines. The printed count line reports both as "N fixes
+    applied"; the settled-decisions record and fc-validate's withheld detail
+    keep them apart.
 11. **Work happens off the default branch.** Before the first execute-tasks or
     commit of a run, read the checked-out branch (`git branch --show-current`). If
     it is the repo's default branch (`main`, or `master` where that is the
@@ -140,20 +142,23 @@ in that case.
     alone. Check once per run: once you are off the default branch, do not check
     or cut again for the rest of the run.
 12. **A plan is checked against its motivating scenario before anything is
-    built from it.** On the merged plan-and-tasks stage's return, read the
-    plan it produced and the workstream record it belongs to (its
-    frontmatter `workstream:` key), then state, in one line per case, how
-    the plan's design handles each concrete scenario or failure case the
-    workstream record's body names as the reason the work is needed. There
-    is no spawn between the plan and its tasks in a merged run, which is why
-    the check reads a return rather than preceding a spawn. In a `tasks-only`
-    run the plan already exists, so the check keeps its present position and
+    built from it.** The check reads the plan as validation left it. Under
+    `validate: on`, it runs on the return of the validation stage that
+    follows the merged plan-and-tasks stage; under `validate: off`, it runs
+    on the plan-and-tasks stage's own return. Read the plan and the
+    workstream record it belongs to (its frontmatter `workstream:` key),
+    then state, in one line per case, how the plan's design handles each
+    concrete scenario or failure case the workstream record's body names as
+    the reason the work is needed. There is no spawn between the plan and
+    its tasks in a merged run, which is why the check reads a return rather
+    than preceding a spawn. In a `tasks-only` run the plan already exists
+    and validation does not compare it against its source, so the check
     fires before that stage is spawned. This
     is a trace of the plan's actual proposed text against that scenario,
     not a restatement that the plan reads as internally consistent or that
     its acceptance criteria are individually satisfiable, and it runs
     whether the plan was authored earlier in this same run or in an earlier
-    one. State the trace in that stage's report. It is the orchestrator's
+    one. State the trace in the report of the stage whose return it read. It is the orchestrator's
     own reading, under rule 8's carve-out for reading artefact files when a
     briefing needs facts, never a subagent's. When the workstream record
     names no concrete scenario or failure case, say so in one line and
@@ -300,6 +305,11 @@ Three rules bind every cell of that table:
   skipped issue, an untasked stage and a divergence still relay unsettled at every
   tier, and hard rule 7 still halts the pipeline on a failure.
 
+The validation stage runs identically at every tier. fc-validate fixes what it can
+prove wrong in place, on its own authority, under the correction rule
+`skills/fc-validate/SKILL.md` defines, and no value of `prompts:` widens or narrows
+that. Only an open finding it reports enters the table above.
+
 An explicit instruction in the request still wins for one run, exactly as hard rules 3,
 4 and 9 already provide, and the standing-versus-one-off test decides whether it is
 written to the file (see "Standing vs. one-off instructions").
@@ -319,7 +329,9 @@ so this section carries that note in the way this file's other unverifiable rule
 artefacts against the source they were authored from.
 
 Under `on`, one pass runs once per authoring stage, after that stage's return and before the
-execute-tasks prompt that follows it. Under `off`, no validator is spawned.
+execute-tasks prompt that follows it. The pass fixes every defect it can prove wrong in
+place, at every `prompts:` tier, and reports only what its correction rule says to
+report. Under `off`, no validator is spawned.
 
 - **Accepted values:** `on`, `off`.
 - **Built-in default when the key and the file are both absent:** `on`.
@@ -374,10 +386,11 @@ Notes:
   id and the slug. `{ws_id}` keeps its present source and its present meaning. It is still
   needed for each artefact's frontmatter `workstream:` key.
 - **plan-and-tasks**: apply hard rule 12 to the plan this stage produced, on the
-  stage's return — state in one line per case how the plan's design handles each
-  scenario its workstream record names, and halt instead of going on to the next
-  stage if one is not visibly handled. In a `tasks-only` run the plan already
-  exists before the spawn, so the rule keeps its present position and fires there.
+  return of the validation stage that follows it, or on this stage's own return
+  under `validate: off` — state in one line per case how the plan's design handles
+  each scenario its workstream record names, and halt instead of going on to the
+  next stage if one is not visibly handled. In a `tasks-only` run the plan already
+  exists before the spawn, so the rule fires there.
 - **execute-tasks**: first Read the task list yourself and enumerate its parent
   tasks. Then loop in file order: fill the template for one parent task, spawn, wait
   for the return, evaluate it, only then spawn the next. If a return reports an
@@ -403,8 +416,10 @@ Notes:
   `skills/fc-validate/SKILL.md`'s own; this note points at that skill rather than
   restating either. Under `validate: off`, no validation subagent is spawned at all.
   The validation stage is not prompted, because it neither changes project code nor
-  commits. Its stage report carries the validator's summary line and any open finding
-  only; the per-correction detail is printed on request and not before.
+  commits. It fixes in place on its own authority; "Chaining" states what you owe it
+  afterwards. Its stage report carries the validator's summary line and any open
+  finding only; the per-fix detail is printed on request and not before. On the plan
+  path, hard rule 12's scenario trace runs on this stage's return.
 
 ## Parsing the request
 
@@ -508,11 +523,9 @@ These, and nothing else:
   first appears in a return, after the stage that needed it already ran,
   re-spawn that one stage once, with the question and the adopted answer in its
   `{{briefing}}`, rather than leaving the stage untasked.
-  After a plan-level correction, that re-spawn uses the merged plan template with
-  `{stages}: tasks-only` and `{plan}` pointing at the corrected plan, so one
-  re-spawn re-derives the task list without re-authoring the plan.
   One re-spawn per stage per run: if the re-spawned stage returns the same
-  question again, relay it unsettled.
+  question again, relay it unsettled. A validation finding never takes this
+  re-spawn route; the paragraphs below give it its own.
 
 The validation stage is the one exception to "subagent returns feed the next
 `{{briefing}}`", and it runs at most once per authoring stage. Its briefing
@@ -521,58 +534,42 @@ rationale, or its self-report, because fresh context is the active ingredient, a
 the authoring subagent's account of what it did is exactly the contamination this
 stage exists to avoid. The user's findings that feed `validate-issues-and-tasks.md`
 are not an exception to this: they are the source, and they reach the validation from
-the user, not from issues-and-tasks. On the no-loop carve-out: the policy section's
-settling rule may re-spawn one authoring stage once when a validation finding is adopted as a
-settled question, and the re-authored artefact is not validated again, because the
-re-spawn's `{{briefing}}` already carries the finding and the answer adopted for it.
-Where a first-comparison finding is applied to the upstream artefact, by the
-validator-applied path or by the re-spawn path, the task list is re-derived with the
-merged authoring template at `{stages}: tasks-only` pointed at the corrected upstream
-artefact, because the existing task list derives from the uncorrected one. This
-re-spawn is the one the existing budget already allows, and the re-derived task list
-is not validated again.
-The residual gap is that a re-authored artefact may reach execution unvalidated. It is
-bounded to one artefact per run, it is named in the stage report, and it is
-recoverable with a standalone `/fc-validate`.
+the user, not from issues-and-tasks.
 
-Rule 10 settles a validation finding exactly as it does today, its risk test included.
-What follows changes only how the settled answer reaches the artefact. Where the
-settled finding is non-risky and the validator's label says its recommended fix is
-localised, hand the finding and the answer you adopted back to the validation subagent
-that reported it, and that subagent applies the edit. Where the finding is risky (at
-every tier), where the label says structural, where the finding
-carries no label, where the environment
-cannot continue a subagent that already ran, or where the validator declines and
-reports the fix as structural, take the re-spawn path the settling rule above already
-describes.
+The validator fixes what it can prove wrong in place, on its own authority, under the
+correction rule `skills/fc-validate/SKILL.md` defines, at every `prompts:` tier. A fix
+it applies needs nothing from you but the `updated` bump below: no settling, no
+re-spawn of the authoring stage, and no re-derivation of the task list, because the
+validator's second comparison already checks the task list against the upstream
+artefact as its first comparison left it. The pipeline continues on the validator's
+return.
 
-A settled validation finding therefore reaches its artefact by exactly one of two named
-paths (the validator-applied path, or the re-spawn path) and never by briefing-carry
-alone. The briefing-carry-only route above, which puts a question the input artefact
-already carries into the next briefing before the spawn rather than re-running the
-stage afterwards, is the route that sentence excludes. Route on the label the validator
-wrote: you never classify the fix yourself, and a finding that carries no label is
-structural. You never apply the edit yourself either: rule 8 forbids it, and nothing
-here loosens it.
+An open finding the validator reports is an ordinary open question under rule 10, with
+one difference in how a settled answer reaches its artefact. Where rule 10 settles it,
+hand the finding and the answer you adopted back to the validation subagent that
+reported it, and that subagent applies the edit under its own correction rule. Where
+the environment cannot continue a subagent that already ran, spawn a fresh validation
+subagent from the same template, with the same artefacts and source, and with the
+finding and the adopted answer in its `{{source material}}` block as a decision
+already taken, and say so in the stage report. This hand-back is the only path by
+which a settled validation finding reaches its artefact: never a re-spawn of the
+authoring stage, never a briefing carry into a later stage, and never your own edit,
+which rule 8 forbids. A hand-back turn is not a second run of the validation stage,
+so the once-per-authoring-stage bound above holds. Where rule 10 relays the finding
+instead, it flows up to the user in your reports as any open question does. A finding
+the validator reports as irreversible relays at every tier, because criterion (a) is
+never silenced.
 
-The follow-up message never instructs a frontmatter change, `updated` included: the
-validator's contract forbids frontmatter edits, and no coordinator instruction lifts
-that. The schema's bump-`updated`-on-every-edit rule is yours to satisfy instead:
-once the validator confirms the edit landed, bump the artefact's `updated` inline.
-That bump is frontmatter bookkeeping under rule 8's carve-out, not the finding's fix,
-so it does not breach the sentence above.
+The hand-back message never instructs a change to `id`, `status`, `base_commit`,
+`created` or `updated`: the validator's contract keeps those keys off limits, and no
+coordinator instruction lifts that. The schema's bump-`updated`-on-every-edit rule is
+yours to satisfy instead: after a validation stage or a hand-back turn whose summary
+line reports one or more fixes, bump the artefact's `updated` inline. That bump is
+frontmatter bookkeeping under rule 8's carve-out, not the finding's fix.
 
-The validator-applied path does not consume the one re-spawn the re-spawn path allows,
-so a decline still leaves that re-spawn available. A follow-up turn to the validation
-subagent is not a second run of the validation stage, so the validation stage's own
-once-per-authoring-stage bound above still holds and is not being widened. Where the
-environment cannot continue a subagent that already ran, take the re-spawn path and say
-so in the stage report. The pipeline never halts for this.
-
-The validator-applied path names its own residual gap, as the carve-out above names
-its: the applied edit is not independently re-checked. That gap is narrower, because
-the edit is bounded to sections the artefact already has, and the agent that applied it
-had already read the artefact against its source.
+The residual gap is that a validator's fix is not independently re-checked. It is
+bounded to the artefact under validation, it is proved in the withheld part of the
+validator's return, and it is recoverable with a standalone `/fc-validate`.
 
 ## Talking to the user
 
@@ -819,7 +816,6 @@ do not summarise it, reformat it, drop columns, or fold it into prose.
   give each artefact it would have checked one numbered, self-contained
   item (ID, title, one plain sentence, per "Talking to the user")
   recommending a standalone `/fc-validate` on that artefact.
-  The re-spawn carve-out counts as validated once and never fires this check.
   The check reports only and starts no stage, using exactly the two words
   `missing` and `waived`.
   A flagged task is not the prompt. When this run authored a task list that
@@ -828,12 +824,11 @@ do not summarise it, reformat it, drop columns, or fold it into prose.
   used, per "Prompts".
   What fc-validate fixed is never re-enumerated here or in any stage report,
   at every tier: print, per validated artefact, the
-  one combined "N fixes applied" figure its summary line returned, with any
+  one "N fixes applied" figure its summary line returned, with any
   unrun/unjudged clause that line carries, and nothing more. Anything settled
   under "The prompt policy" (rule 10) joins a per-run settled-decisions record
-  instead: one entry per question, naming the answer adopted, the stage it
-  came from, and which path applied it, the validator or a re-authored
-  artefact, with any entry rule 10's risk test called risky marked and listed
+  instead: one entry per question, naming the answer adopted and the stage it
+  came from, with any entry rule 10's risk test called risky marked and listed
   first. Produce that record every run. Of it, the summary prints exactly one
   line, verbatim with K filled in ("K decisions were settled automatically;
   say 'show them' to see them."), omitted when K is 0. The summary never

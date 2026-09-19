@@ -18,23 +18,25 @@ Run a sequenced pass under the contract the /fc-validate skill defines: comparis
 
 `{stages}` routes which comparisons run. Under `issues-only`, comparison 2 is skipped, and the return names it as skipped. Under `issues-and-tasks`, both comparisons run. Under `tasks-only`, comparison 1 is skipped, and the return names it as skipped.
 
-**Comparison 1: the issue list against the findings.** Read `{issuelist}` in full, then read the source material block in full. The findings in that block are the whole source, and no file holds them, so look for none. That limits where the source lives, not which files you may open to check the issue list's own claims. Then check all three of the skill's classes:
+**Comparison 1: the issue list against the findings.** Read `{issuelist}` in full, then read the source material block in full. The findings in that block are the whole source, and no file holds them, so look for none. That limits where the source lives, not which files you may open to check the issue list's own claims. Then check all four of the skill's classes:
 
 - **Coverage.** Every finding that should have been filed as an issue is filed as one.
 - **Invented content.** No issue lacks a finding behind it.
 - **Accuracy.** Anchors, paths, counts, commands with their flags and arguments, and claims about another artefact that the issue list itself names by ID or by path. Follow only the references the issue list makes, and never survey the workstream or the repository for related artefacts.
+- **Form.** Spelling, formatting, and YAML and schema conformance per `fc-issue-list`.
 
 Run no command as part of comparison 1. Executing a `verify` step is comparison 2's business alone. Prove a comparison 1 accuracy finding by reading the file the issue list itself cites.
 
-**Comparison 2: the task list against the issue list.** Read `{tasklist}` in full, against `{issuelist}` as it then stands. Then check all three of the skill's classes:
+**Comparison 2: the task list against the issue list.** Read `{tasklist}` in full, against `{issuelist}` as it then stands. Then check all four of the skill's classes:
 
 - **Coverage.** Every filed issue in `{issuelist}` that should be realised as a task is realised as one.
 - **Invented content.** No task lacks a source behind it in `{issuelist}`.
 - **Accuracy.** Anchors, paths, counts, commands with their flags and arguments, `depends_on` IDs, and claims about another artefact that the task list itself names by ID or by path. Follow only the references the task list makes, and never survey the workstream or the repository for related artefacts.
+- **Form.** Spelling, formatting, and YAML and schema conformance per `fc-task-list`.
 
 Then run the task list's `verify` steps. Apply the baseline gate, the runnable command class, and the per-task judgment exactly as the /fc-validate skill defines all three. Restate none of them here and add no boundary of your own: that skill holds the single definition of each, and this template only tells you to apply it.
 
-Apply a correction only where the skill's correction boundary permits one, and report everything else as an open finding. Coverage gaps, invented content and cross-artefact claims always report and are never applied. Frontmatter is never edited.
+Fix every defect the skill's correction rule lets you prove wrong, in place and on your own authority, adding, rewriting or deleting items as the proof requires, and report only a finding that rule says to report: one whose fix would be irreversible, or one whose correct content the source does not determine. Edit frontmatter only within the limits that rule sets, and never `id`, `status`, `base_commit`, `created` or `updated`.
 
 ## Return
 Reply in chat with the two-part return the /fc-validate skill defines. Take its shape from the skill, and do not restate that shape here.
