@@ -4,7 +4,7 @@ type: tasklist
 workstream: WS-17-m5tjnc
 slug: orchestrator-duplicate-source-reads
 title: "Bound the orchestrator's briefing reads to flowcharge/, closing the artefact-files carve-out"
-status: ready
+status: done
 created: 2026-09-19
 updated: 2026-09-20
 author: Anthony Koukoullis
