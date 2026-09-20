@@ -178,13 +178,13 @@ later `SKILL.md` anchor sits one line lower once 1.1 has landed.
       failures: []
     ```
 
-- [ ] 2. Point the `plan-and-tasks-*.md` briefing placeholders at the workstream record and add the prohibition
+- [x] 2. Point the `plan-and-tasks-*.md` briefing placeholders at the workstream record and add the prohibition
 
   ```yaml
   description: "In the line-16 {{briefing}} placeholder of plan-and-tasks-spec.md and plan-and-tasks-diff.md, tell the orchestrator to point at {ws_dir}/workstream.md rather than restate it, and append the sentence forbidding it to open a file outside flowcharge/ to fill the block. The line lands character-for-character identically in both files."
   ```
 
-  - [ ] 2.1 Edit `plan-and-tasks-spec.md` line 16
+  - [x] 2.1 Edit `plan-and-tasks-spec.md` line 16
     ```yaml
     description: "Insert 'pointing at `{ws_dir}/workstream.md` rather than restating its body,' into the plan-only clause and append 'Never open a file outside `flowcharge/` to fill this block.' after the tasks-only clause on line 16 of plan-and-tasks-spec.md."
     author: Anthony Koukoullis
@@ -211,11 +211,11 @@ later `SKILL.md` anchor sits one line lower once 1.1 has landed.
       - "No file other than plan-and-tasks-spec.md was modified by this task (AC7)."
       - "The new text names no model, vendor, or harness product (AC8)."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
-  - [ ] 2.2 Edit `plan-and-tasks-diff.md` line 16 identically
+  - [x] 2.2 Edit `plan-and-tasks-diff.md` line 16 identically
     ```yaml
     description: "Apply the identical line-16 change to plan-and-tasks-diff.md and confirm the two templates' line 16 stays byte-identical."
     author: Anthony Koukoullis
@@ -243,6 +243,6 @@ later `SKILL.md` anchor sits one line lower once 1.1 has landed.
       - "No file other than plan-and-tasks-diff.md was modified by this task; across the whole task list only the three files named in the plan's Scope differ from base_commit (AC7)."
       - "The new text names no model, vendor, or harness product (AC8)."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
