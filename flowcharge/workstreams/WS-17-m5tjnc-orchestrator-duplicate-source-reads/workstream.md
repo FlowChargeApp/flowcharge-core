@@ -29,3 +29,45 @@ Files: `skills/flowcharge/templates/plan-and-tasks-spec.md` line 16 and `plan-an
 Confidence: CONFIRMED — the duplicate reconnaissance and its cost are measured directly from transcripts, not inferred.
 
 Cross-cutting context from the same review: reaching a 50 percent total reduction is not realistic while validation runs at full strength. Stacking Items 2 (this one), 3 and 5 gets to roughly 38 percent off baseline; adding Item 4 gets to roughly 43 percent. Reaching 50 percent appears to need `validate: off` combined with this item and Item 5 — "the only path in the data" to that target.
+
+## Reopened 2026-09-20: the first fix did not hold in a live benchmark
+
+PLN-16-zn02av and TL-20-swnqz1 shipped the first fix (bound rule 8/12/13 to "files under
+`flowcharge/`", added a prohibition to "Filling a template" step 4, added a pointer
+sentence to both `plan-and-tasks-*.md` templates) and executed it on commit `a835a70`.
+A self-benchmark run the same day (baseline `v0.4.0` vs. candidate `a835a70`, fresh
+feature brief, real FlowCharge app — see
+`../../../../flowcharge-benchmarks/runs/2026-09-20-card-last-touched-badge/` and its
+write-up in the private vault) found the candidate's orchestrator still opened
+`src/public/app.ts` and an e2e fixtures file directly to fill its plan-authoring
+briefing, producing a briefing with exact line numbers and verbatim quoted source the
+prompt never supplied — recurring verbatim in a second spawn later in the same session.
+One part of the first fix did land and hold: the briefing's `plan-only` clause correctly
+pointed at `{ws_dir}/workstream.md` instead of retyping it.
+
+The reviewing subagent's diagnosis, on being shown the transcripts: the prohibition was
+placed too late (step 4, after the tempting reads already happen at request intake) and
+scoped to one purpose ("to fill this block"), so reading a file "to understand the
+request" was never covered. Its recommendations, to become this reopened workstream's
+next plan:
+
+1. Move the prohibition to "Parsing the request", unconditional, before the operation
+   chains — not only where the briefing gets drafted.
+2. Add a checkable content rule at step 5 (re-scanning the template): a filled briefing
+   containing a path outside `flowcharge/`, a line number, or quoted source has that
+   content deleted before the spawn runs.
+3. Reword the `{{briefing}}` placeholder to drop the "complete on the points below"
+   pressure toward thoroughness; ask for constraints on the outcome, not findings about
+   the code.
+4. Narrow the `{{context docs}}` exception to a bare listing: name project-root
+   documents by path and by what their filename implies, never open them.
+5. Two smaller follow-ons from the same diagnosis: forbid reusing an earlier briefing
+   verbatim in a later re-spawn (author every briefing fresh), and reword rule 8's
+   clause so it no longer frames briefing-writing as "a briefing needs facts" (the
+   failure mode) but as restating an already-known decision or constraint.
+
+Explicitly out of scope for this reopened workstream: a scripted `fc-index.mjs --check`
+enforcement of the content rule (the subagent's own recommendation 5 in its original
+numbering) — it named that a separate workstream, since it needs a new persisted-prompt
+file class and a `CONVENTIONS.md` entry. A user-level `CLAUDE.md` backstop outside the
+skill was also proposed but is not a FlowCharge Core change.
