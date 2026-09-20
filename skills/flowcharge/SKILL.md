@@ -93,8 +93,9 @@ in that case.
    allocation via `fc-index.mjs --new-ws` for the run's own workstream, as "Start of run" directs, never for a `backlog-add` item, whose workstreams the spawned subagent creates (see "ID slots" below), workstream-record and artefact frontmatter bookkeeping (`status`, `tags`, and `updated` bumps, including the `updated` bump after a validation stage or hand-back turn that applied one or more fixes),
    running the index generator, running a read-only artefact listing (see
    "Listing artefacts"), writing `flowcharge/agents.md` when a standing preference
-   is recognized (see "Standing vs. one-off instructions"), and reading artefact
-   files when a stage's return needs verifying or a briefing needs facts.
+   is recognized (see "Standing vs. one-off instructions"), and reading
+   files under `flowcharge/` (plus the project-root check the `{{context docs}}`
+   block names) when a stage's return needs verifying or a briefing needs facts.
 9. **Task-list mode defaults to spec.** Use the `-spec` template unless the user
    says diff. If they name neither and the work is plainly diff-shaped (the
    authoring subagent says so in its return), relay that observation. Don't switch
@@ -159,8 +160,8 @@ in that case.
     its acceptance criteria are individually satisfiable, and it runs
     whether the plan was authored earlier in this same run or in an earlier
     one. State the trace in the report of the stage whose return it read. It is the orchestrator's
-    own reading, under rule 8's carve-out for reading artefact files when a
-    briefing needs facts, never a subagent's. When the workstream record
+    own reading, under rule 8's carve-out for reading files under `flowcharge/`
+    when a briefing needs facts, never a subagent's. When the workstream record
     names no concrete scenario or failure case, say so in one line and
     proceed. When it names one the plan's stated design does not visibly
     handle, halt and report instead of spawning the next stage; the user
@@ -195,7 +196,7 @@ in that case.
     prompt. Run this check once per execute-tasks stage, immediately before that
     stage's first parent-task spawn; do not repeat it before later parent tasks in
     the same stage. It is the orchestrator's own reading, under rule 8's
-    carve-out for reading artefact files when a briefing needs facts,
+    carve-out for reading files under `flowcharge/` when a briefing needs facts,
     never a subagent's.
 
 ## Standing vs. one-off instructions
@@ -471,9 +472,9 @@ Rules of interpretation:
    from the "ID slots" note above.
 4. Replace each `{{...}}` block with a briefing you author now, satisfying exactly
    the points the placeholder text names. Draw facts from the conversation, the
-   chained artefacts (read them if needed), and files under `flowcharge/`, never invent.
-   The `{{context docs}}` block is the one exception: its own text names the
-   project-root files to check for.
+   chained artefacts (read them if needed), and files under `flowcharge/`; never
+   invent, never open a file outside `flowcharge/`. The `{{context docs}}` block is
+   the one exception: its own text names the project-root files to check for.
 5. Re-scan the result against the template: outside the slots, nothing changed.
 6. Spawn the subagent per hard rule 3, applying an override only if that rule
    resolved one, and run it in the foreground: wait for its result before doing
