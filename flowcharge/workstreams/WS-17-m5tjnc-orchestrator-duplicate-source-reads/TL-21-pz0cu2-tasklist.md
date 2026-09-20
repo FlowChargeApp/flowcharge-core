@@ -4,7 +4,7 @@ type: tasklist
 workstream: WS-17-m5tjnc
 slug: orchestrator-duplicate-source-reads
 title: "Forbid project reads at request intake and strip source facts from every briefing"
-status: ready
+status: done
 created: 2026-09-20
 updated: 2026-09-20
 author: Anthony Koukoullis
@@ -259,13 +259,13 @@ task's `pattern` states where its anchor sits once the earlier tasks have landed
 Implements `PLN-17-2ai3df`, stage 2 (the two `plan-and-tasks-*.md` templates). Lines 14 and 16
 are byte-identical between the two files at `base_commit` and must stay so.
 
-- [ ] 2. Reword the `{{context docs}}` and `{{briefing}}` placeholders in both `plan-and-tasks-*.md` templates
+- [x] 2. Reword the `{{context docs}}` and `{{briefing}}` placeholders in both `plan-and-tasks-*.md` templates
 
   ```yaml
   description: "Four edits: in each of plan-and-tasks-spec.md and plan-and-tasks-diff.md, narrow line 14's {{context docs}} placeholder to a bare listing and rewrite line 16's {{briefing}} placeholder to ask for only what the subagent cannot discover, with the content rule stated at the point of drafting. Each line lands character-for-character identically in both files."
   ```
 
-  - [ ] 2.1 Narrow `plan-and-tasks-spec.md` line 14 to a bare listing
+  - [x] 2.1 Narrow `plan-and-tasks-spec.md` line 14 to a bare listing
     ```yaml
     description: "Rewrite the {{context docs}} placeholder on line 14 of plan-and-tasks-spec.md so it lists the project root and names documents by what their filename implies, never opening one."
     author: Anthony Koukoullis
@@ -292,11 +292,11 @@ are byte-identical between the two files at `base_commit` and must stay so.
       - "No file other than plan-and-tasks-spec.md was modified by this task (AC8)."
       - "The new text names no model, vendor or harness product (AC9)."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
-  - [ ] 2.2 Rewrite `plan-and-tasks-spec.md` line 16 to ask only for what the subagent cannot discover
+  - [x] 2.2 Rewrite `plan-and-tasks-spec.md` line 16 to ask only for what the subagent cannot discover
     ```yaml
     description: "Rewrite the {{briefing}} placeholder on line 16 of plan-and-tasks-spec.md: drop 'complete on the points below', ask for the request, decisions and constraints on the outcome, state the content rule, keep the {ws_dir}/workstream.md pointer, and require a fresh briefing."
     author: Anthony Koukoullis
@@ -323,11 +323,11 @@ are byte-identical between the two files at `base_commit` and must stay so.
       - "No file other than plan-and-tasks-spec.md was modified by this task (AC8)."
       - "The new text names no model, vendor or harness product (AC9)."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
-  - [ ] 2.3 Narrow `plan-and-tasks-diff.md` line 14 identically
+  - [x] 2.3 Narrow `plan-and-tasks-diff.md` line 14 identically
     ```yaml
     description: "Apply the identical line-14 change to plan-and-tasks-diff.md and confirm the two templates' line 14 stays byte-identical."
     author: Anthony Koukoullis
@@ -352,11 +352,11 @@ are byte-identical between the two files at `base_commit` and must stay so.
       - "No other line in the file changed (AC8)."
       - "No file other than plan-and-tasks-diff.md was modified by this task (AC8)."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
-  - [ ] 2.4 Rewrite `plan-and-tasks-diff.md` line 16 identically
+  - [x] 2.4 Rewrite `plan-and-tasks-diff.md` line 16 identically
     ```yaml
     description: "Apply the identical line-16 change to plan-and-tasks-diff.md and confirm the two templates' line 16 stays byte-identical."
     author: Anthony Koukoullis
@@ -384,6 +384,6 @@ are byte-identical between the two files at `base_commit` and must stay so.
       - "Across the whole task list only the three files named in the plan's Scope differ from base_commit (AC8)."
       - "The new text names no model, vendor or harness product (AC9)."
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
