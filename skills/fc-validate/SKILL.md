@@ -278,8 +278,12 @@ A handed-back answer you applied counts as one fix.
 Then, only where `M` is not zero, each open finding. Phrase every finding as an open
 question carrying its own recommendation, so that it reads cold to somebody who was not
 here, and so that it lands in the channel hard rule 10 already defines for an open
-question. Write every open finding in the fixed open-question block the prompt templates
-carry, and in no other shape:
+question. Write every open finding in this block, the one the plan-and-tasks template
+also carries, and in no other shape.
+
+**Open questions, the return shape**
+
+Return every open question in this shape, and no other:
 
 - **Question:** the question in one sentence that reads cold to somebody who was not here.
 - **Recommendation:** the option you would take, and a one-line reason for it. Where you cannot recommend one, write `No recommendation possible` in this field, followed by the reason you cannot. A question carrying that sentinel never settles at any tier.

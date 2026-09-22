@@ -4454,15 +4454,14 @@ const DOCS_ALLOWLIST = [
   },
   {
     file: 'flowcharge/SKILL.md',
-    text: 'plan-and-tasks-spec.md',
+    text: 'plan-and-tasks.md',
     why:
       'Rule C. This is a prompt template under templates/, not an artefact a ' +
       'workstream folder holds, so it carries no id prefix and never will. The ' +
       'name only matches because it starts with the word plan and follows a ' +
-      'slash, which clears rule C\'s (?<![\\w-]) guard. The Operations table has ' +
-      'to write the path in full, because rule G resolves every templates/*.md ' +
-      'short form in this file against disk. The -diff.md variant is written as ' +
-      'a suffix in the same cell and never matches.',
+      'slash, which clears rule C\'s (?<![\\w-]) guard. The Operations table and ' +
+      'the prompt policy have to write the path in full, because rule G resolves ' +
+      'every templates/*.md short form in this file against disk.',
   },
   {
     file: 'flowcharge/CONVENTIONS.md',
@@ -4533,29 +4532,7 @@ const DOCS_ALLOWLIST = [
       'sense out, not to name a mechanism.',
   },
   {
-    file: 'flowcharge/SKILL.md',
-    text: 'gates',
-    why:
-      'Rule E. The `#gates+` tag-token example in "FlowCharge Core upkeep", a ' +
-      'sample tag word showing the trailing-plus syntax. It names no mechanism, ' +
-      'and it is the only sense this entry covers.',
-  },
-  {
-    file: 'flowcharge/templates/kanban-add.md',
-    text: 'gates',
-    why:
-      'Rule E. The `#gates+` tag-token example, a sample word showing the ' +
-      'trailing-plus syntax. It names no mechanism.',
-  },
-  {
-    file: 'flowcharge/templates/validate-plan-and-tasks.md',
-    text: 'gate',
-    why:
-      "Rule E. The template tells the validator to apply fc-validate's baseline " +
-      'gate, which is the precondition for running verify steps, not a prompt.',
-  },
-  {
-    file: 'flowcharge/templates/validate-issues-and-tasks.md',
+    file: 'flowcharge/templates/validate.md',
     text: 'gate',
     why:
       "Rule E. The template tells the validator to apply fc-validate's baseline " +
@@ -4687,29 +4664,29 @@ function describeDanglingPaths(dangling) {
     .join('\n');
 }
 
-// Rule H, the verbatim block. Five prompt templates can come back with an open
-// question, and the prompt policy can only settle one that arrives in a fixed
-// shape: a question field, a recommendation field, and the sentinel a subagent
-// writes when it cannot recommend anything. Each of the five therefore carries
-// the same block, and this rule pins it in all five at once.
+// Rule H, the verbatim block. Two spawns can come back with an open question,
+// and the prompt policy can only settle one that arrives in a fixed shape: a
+// question field, a recommendation field, and the sentinel a subagent writes
+// when it cannot recommend anything. The block therefore lives in exactly two
+// canonical copies, one per reader that needs it in context: the plan-and-tasks
+// template, whose subagent loads no skill that carries it, and fc-validate's
+// SKILL.md, which the validate template points at for its return shape. This
+// rule pins both copies at once.
 //
-// The two issues-and-tasks templates are deliberately absent from the list.
-// Neither returns an open question (a template that cannot author a task for an
-// issue returns that issue as skipped instead), so the block would say nothing
-// there.
+// The issues-and-tasks template is deliberately absent. It never returns an
+// open question (a template that cannot author a task for an issue returns
+// that issue as skipped instead), so the block would say nothing there.
 //
-// RULE_H_BLOCK is the block as it stands in plan-and-tasks-spec.md, the master copy, with
+// RULE_H_BLOCK is the block as it stands in plan-and-tasks.md, the master copy, with
 // its whitespace already collapsed. Each file's text is collapsed the same way
 // before the containment check, exactly as the hard-rule-10 prose pin below does
-// it, so a re-wrap in one template does not fail the rule spuriously.
+// it, so a re-wrap in one copy does not fail the rule spuriously.
 //
 // Like rule G this rule is per file, so it calls neither collectOccurrences nor
 // unallowedOccurrences and it adds no DOCS_ALLOWLIST entries.
 const RULE_H_TEMPLATES = [
-  'flowcharge/templates/plan-and-tasks-spec.md',
-  'flowcharge/templates/plan-and-tasks-diff.md',
-  'flowcharge/templates/validate-plan-and-tasks.md',
-  'flowcharge/templates/validate-issues-and-tasks.md',
+  'flowcharge/templates/plan-and-tasks.md',
+  'fc-validate/SKILL.md',
 ];
 
 const RULE_H_BLOCK =
@@ -4820,8 +4797,8 @@ testCase('skills/**/*.md: every path written in the prose resolves on disk', () 
   );
   const present = ruleGDanglingPaths([
     { file: 'sample/SKILL.md', text: 'see skills/flowcharge/CONVENTIONS.md' },
-    { file: RULE_G_PROMPT_SHORT_FORM_FILE, text: 'run templates/plan-and-tasks-spec.md' },
-    { file: 'sample/SKILL.md', text: 'the slot <skills-dir>/flowcharge/templates/plan-and-tasks-spec.md' },
+    { file: RULE_G_PROMPT_SHORT_FORM_FILE, text: 'run templates/plan-and-tasks.md' },
+    { file: 'sample/SKILL.md', text: 'the slot <skills-dir>/flowcharge/templates/plan-and-tasks.md' },
   ]);
   assert.deepStrictEqual(present, [], 'Rule G flagged a path that does resolve, or read the placeholder form as a path');
 
@@ -4833,7 +4810,7 @@ testCase('skills/**/*.md: every path written in the prose resolves on disk', () 
   );
 });
 
-testCase('every open-question-capable prompt template carries the verbatim return block', () => {
+testCase('both canonical copies of the open-question return block are verbatim', () => {
   // In-memory samples first, for the same reason rule G checks them: the live
   // tree passes today, so the discriminating half has to be pinned separately.
   const sampleMissing = ruleHTemplatesMissingBlock(
@@ -4855,7 +4832,107 @@ testCase('every open-question-capable prompt template carries the verbatim retur
   assert.deepStrictEqual(
     missing,
     [],
-    `Rule H: an open-question-capable prompt template no longer carries the fixed return block:\n${missing.map((m) => `  skills/${m.file}: ${m.reason}`).join('\n')}`,
+    `Rule H: a canonical copy no longer carries the fixed open-question return block:\n${missing.map((m) => `  skills/${m.file}: ${m.reason}`).join('\n')}`,
+  );
+});
+
+// ---- cases: single-copy and pointer-resolution pins ------------------------
+// Consolidation moved each shared rule into one canonical file and left a
+// pointer behind everywhere else. Nothing runs the prose, so two static checks
+// stand in for the discipline: a phrase that identifies a canonical rule may
+// appear only in the files listed for it, so a copy pasted back somewhere else
+// fails; and every `(CONVENTIONS.md, <Section>)` pointer must name a section
+// that exists, as a `## ` heading or a `**<Section>.**` lead, so a renamed or
+// deleted section fails every pointer that still names it.
+//
+// A phrase's file list is the complete set of files allowed to carry it; an
+// empty list means the phrase must appear nowhere, which pins a deletion. The
+// pointer regex admits only a plain section name, so the older
+// `(CONVENTIONS.md, IDs: Registry)` and `(CONVENTIONS.md, \`workstream\` body)`
+// forms stay out of its reach and are not checked.
+const SINGLE_COPY_PHRASES = [
+  { phrase: 'never open one to describe it', files: ['flowcharge/SKILL.md'] },
+  { phrase: "the authoring subagent's return, its rationale", files: ['flowcharge/SKILL.md'] },
+  { phrase: 'Measure before you write', files: ['fc-task-list/SKILL.md'] },
+  { phrase: 'Never add a test-suite or build command', files: ['fc-task-list/SKILL.md'] },
+  { phrase: 'prints exactly one line and writes nothing', files: ['flowcharge/CONVENTIONS.md'] },
+  { phrase: 'local attribution, not a verified identity', files: ['flowcharge/CONVENTIONS.md'] },
+  { phrase: 'trailing `+`', files: ['flowcharge/CONVENTIONS.md'] },
+  { phrase: 'Archive by moving the ENTIRE folder', files: ['flowcharge/CONVENTIONS.md'] },
+  { phrase: 'refuses a taken slug', files: ['flowcharge/CONVENTIONS.md'] },
+  { phrase: "sed -E 's/^WS-", files: [] },
+  { phrase: 'this project\'s own structural or reference documentation', files: ['flowcharge/SKILL.md'] },
+];
+
+const POINTER_TARGET_FILE = 'flowcharge/CONVENTIONS.md';
+const POINTER_RE = /\(CONVENTIONS\.md, ([A-Za-z][A-Za-z ]*[A-Za-z])\)/g;
+
+// Whitespace is collapsed on both sides before the containment test, as rule H
+// does it, because a phrase wraps across source lines in the prose.
+function singleCopyViolations(sources, phrases = SINGLE_COPY_PHRASES) {
+  const norm = (s) => s.replace(/\s+/g, ' ');
+  const out = [];
+  for (const { phrase, files } of phrases) {
+    const p = norm(phrase);
+    for (const src of sources) {
+      if (norm(src.text).includes(p) && !files.includes(src.file)) {
+        out.push({ file: src.file, phrase });
+      }
+    }
+    for (const file of files) {
+      const src = sources.find((s) => s.file === file);
+      if (!src || !norm(src.text).includes(p)) out.push({ file, phrase, missing: true });
+    }
+  }
+  return out;
+}
+
+function sectionExists(text, name) {
+  return text.includes(`\n## ${name}\n`) || text.includes(`**${name}.**`) || text.includes(`**${name}**`);
+}
+
+function unresolvedPointers(sources, targetFile = POINTER_TARGET_FILE) {
+  const target = sources.find((s) => s.file === targetFile);
+  const out = [];
+  for (const src of sources) {
+    const lines = src.text.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      for (const m of lines[i].matchAll(POINTER_RE)) {
+        if (!target || !sectionExists(target.text, m[1])) out.push({ file: src.file, line: i + 1, section: m[1] });
+      }
+    }
+  }
+  return out;
+}
+
+testCase('every consolidated rule lives only in its canonical file', () => {
+  const sample = singleCopyViolations(
+    [
+      { file: 'a.md', text: 'Measure before you write.' },
+      { file: 'b.md', text: 'Measure before you write.' },
+    ],
+    [{ phrase: 'Measure before you write', files: ['a.md'] }],
+  );
+  assert.deepStrictEqual(sample, [{ file: 'b.md', phrase: 'Measure before you write' }], 'the single-copy check did not flag a second copy');
+  const found = singleCopyViolations(skillMarkdownSources());
+  assert.deepStrictEqual(
+    found,
+    [],
+    `a consolidated rule is duplicated outside its canonical file, or missing from it:\n${found.map((f) => `  skills/${f.file}: "${f.phrase}"${f.missing ? ' (missing)' : ''}`).join('\n')}`,
+  );
+});
+
+testCase('every (CONVENTIONS.md, <Section>) pointer names a section that exists', () => {
+  const sample = unresolvedPointers([
+    { file: POINTER_TARGET_FILE, text: '\n## Archiving\n\n**Slugs.** text\n' },
+    { file: 'x.md', text: 'see (CONVENTIONS.md, Archiving) and (CONVENTIONS.md, Slugs) and (CONVENTIONS.md, Nowhere)' },
+  ]);
+  assert.deepStrictEqual(sample.map((p) => p.section), ['Nowhere'], 'the pointer check did not resolve headings and bold leads correctly');
+  const dangling = unresolvedPointers(skillMarkdownSources());
+  assert.deepStrictEqual(
+    dangling,
+    [],
+    `a pointer names a CONVENTIONS.md section that does not exist:\n${dangling.map((d) => `  skills/${d.file}:${d.line}: ${d.section}`).join('\n')}`,
   );
 });
 

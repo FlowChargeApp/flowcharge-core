@@ -66,7 +66,11 @@ Any "yes" to 1 or 2, or "no" to 3, means rewrite it generically before it ships.
 The user owns the templates. When they hand over a revised prompt template or a new
 operation, update or add the file under `templates/` verbatim and extend the Operations
 table. Do not merge their text into `SKILL.md`'s prose. Schema changes belong in
-CONVENTIONS.md, and in the FlowCharge Core schema skills where they repeat it.
+CONVENTIONS.md alone; a skill points at the section (`CONVENTIONS.md, <Section>`) and
+never restates it. A rule that must reach a subagent inside a spawn prompt lives once,
+in the template or in the skill that template loads, never in both. The single-copy
+and pointer-resolution cases in `skills/flowcharge/scripts/test/run-tests.mjs` pin
+both: add the phrase or the pointer there when you move a rule.
 
 A new rule added to CONVENTIONS.md ships with one of two things, and never with
 neither: a matching check in `skills/flowcharge/scripts/fc-index.mjs` plus a
@@ -97,3 +101,11 @@ carrying 100% of the originally intended information. Cut a word only if removin
 no instruction, no constraint, and no nuance. Never cut a word that trades clarity for
 brevity; a shorter instruction a model follows incorrectly is not efficient.
 
+## Rationale kept out of the agent-facing files
+
+The validation stage's `{{source material}}` block excludes the authoring subagent's
+return, rationale and self-report because fresh context is the active ingredient of
+validation: the author's own account of what it did is exactly the contamination the
+stage exists to avoid. The user's findings that feed the issue path are the source,
+not an exception; they reach validation from the user, never from the issues-and-tasks
+stage.
