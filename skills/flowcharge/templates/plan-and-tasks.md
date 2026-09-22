@@ -34,6 +34,7 @@ You are running without a user, so answer the skill's prompts yourself rather th
 - Do not stop for blocking questions, or for deployment and release constraints. Take the most reasonable reading, state it in the plan as an explicit assumption in the plan's Scope section, and raise a would-have-asked item as an Open question only where a wrong answer is not recoverable by a later follow-up change.
 - Do not stop for approach approval. Weigh the candidate approaches, commit to one, and record the alternatives and why you rejected them in the plan.
 - Never invent a requirement to fill a gap. Anything Context leaves unsettled is an assumption or an open question, recorded as one.
+- A value Context does not supply (copy, palette, typography, layout, config, schema) is yours to decide, not a requirement: state it in the plan's Content specification or Design, record it under assumptions, and raise it as an Open question only where a wrong choice is not recoverable. A task list is never the first place a value appears.
 
 What you leave unresolved is honoured downstream: Part 2 authors nothing for a stage resting on an open question. Raising a question costs one round trip. A fabricated decision gets built as if the user had chosen it.
 
@@ -51,7 +52,7 @@ The file is **{mode} mode**. Do not ask which mode to use and do not add smoke-t
 
 Mirror the plan's scope, design and stage order; the decomposition into tasks is yours:
 
-* One parent task per plan stage, in the plan's order. Decompose each stage into atomic child tasks yourself, derived from the stage's goal, the plan's Design contracts, and its acceptance criteria; the plan carries no per-task detail to copy. Atomic per the fc-task-list skill: one file, one coherent change, one verify sequence, and in diff mode one SEARCH/REPLACE block.
+* One parent task per plan stage, in the plan's order. Decompose each stage into atomic child tasks yourself, derived from the stage's goal, the plan's Design contracts and Content specification values, and its acceptance criteria; the plan carries no per-task detail to copy. Atomic per the fc-task-list skill: one file, one coherent change, one verify sequence, and in diff mode one SEARCH/REPLACE block.
 * Cover every stage. This plan exists because partial implementation is the failure mode, and an untasked stage is how that happens.
 * Carry the plan's acceptance criteria into the tasks that satisfy them, as `verify` steps or `checklist` items, keeping the plan's own measurable form (e.g. a grep that must return zero).
 * Honour the plan's exclusions: anything it says a change must not touch stays untouched. Build what the plan specifies and nothing beyond it: no extra abstractions, options, or capabilities you judge would help.

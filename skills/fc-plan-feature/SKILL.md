@@ -1,6 +1,6 @@
 ---
 name: fc-plan-feature
-description: Produce an optimal, codebase-grounded implementation plan for a new feature in an existing application. Acts as a senior architect/tech lead: restates the requirement and asks blocking questions first, performs read-only codebase reconnaissance, presents 2-3 candidate approaches and STOPS for approval, then delivers a detailed staged plan (acceptance criteria, contracts-first design, riskiest-first vertical slices, data/compatibility notes, testing strategy, open questions) and finishes WITHOUT implementing anything. Use whenever the user asks to plan a feature, scope out work, design an implementation plan, asks "how should we build X", "what's the best way to add X", "I want to add X to the app", or wants a roadmap or task breakdown for new functionality, even casually phrased and even when no files are named. Also triggers on /fc-plan-feature. Do NOT use for bug fixing or debugging, refactoring or cleanup requests (optimize-code owns that), code review, or when the user asks to actually implement or build something now. This skill plans only. Part of the FlowCharge Core suite (parallel successor to ak-plan-feature).
+description: Produce an optimal, codebase-grounded implementation plan for a new feature, code or content, in an existing application. Acts as a senior architect/tech lead: restates the requirement and asks blocking questions first, performs read-only codebase reconnaissance, presents 2-3 candidate approaches and STOPS for approval, then delivers a detailed staged plan (acceptance criteria, contracts-first design, riskiest-first vertical slices, data/compatibility notes, testing strategy, open questions) and finishes WITHOUT implementing anything. Use whenever the user asks to plan a feature, scope out work, design an implementation plan, asks "how should we build X", "what's the best way to add X", "I want to add X to the app", or wants a roadmap or task breakdown for new functionality, even casually phrased and even when no files are named. Also triggers on /fc-plan-feature. Do NOT use for bug fixing or debugging, refactoring or cleanup requests (optimize-code owns that), code review, or when the user asks to actually implement or build something now. This skill plans only. Part of the FlowCharge Core suite (parallel successor to ak-plan-feature).
 metadata:
   version: "0.4.0"
 ---
@@ -30,13 +30,21 @@ ordered list of phases, each small enough to finish and verify in one sitting.
 - **Grounded, not generic.** Every design claim cites real files, functions, or
   patterns found during reconnaissance (`file:line` where useful). If you haven't
   looked, you don't assert. A plan that could have been written without reading this
-  codebase is a failed plan.
+  codebase is a failed plan. Where nothing in the codebase attaches to the feature
+  (a new page, a fresh project), ground in what does exist (brand assets, style
+  tokens, config, sibling pages), say so, and ground the rest in the brief and
+  stated assumptions. Never hedge a decision because there was no file to cite.
 - **No silent new dependencies.** Any new package, framework, or external service in
   the plan is flagged as a separate decision, with at least one alternative (including
   "build the minimal version in-repo") and a recommendation.
-- **Ambiguity is never resolved by assumption** on anything that changes the design.
+- **Ambiguity is never resolved by assumption** on anything that changes the approach.
   Ask at intake, or list it under Open Questions. Small ambiguities that don't affect
   structure may be assumed, but stated as assumptions in the Scope section.
+- **A value the brief does not supply is a design decision.** Copy, palette,
+  typography, layout, config and schema values the deliverable needs: decide each in
+  the plan, record it under assumptions, and raise an Open question only where a
+  wrong choice is not recoverable by a later change. A task list is never the first
+  place a value appears.
 - **Weigh alternatives briefly, then commit.** The approval prompt presents options; the
   final plan presents one approach and justifies it. Never deliver a survey of options
   as the end product.
@@ -88,7 +96,8 @@ Study the code before proposing anything. Map:
 - **Data models** the feature touches or extends, and where they're defined.
 - **Existing patterns and utilities to reuse**: how similar features in this codebase
   are structured, error handling, validation, logging, config access. Find the
-  nearest existing feature and read it end to end. It's the template.
+  nearest existing feature and read it end to end. It's the template. With no near
+  feature, the nearest assets (brand, style tokens, config, sibling pages) are.
 - **Conventions to follow**: naming, file layout, layering, test placement.
 - **Existing behavior the feature must not break**: current consumers of anything
   you'll change, API contracts, data invariants.
@@ -160,45 +169,69 @@ states decisions as facts, never as its own authoring history: no reference to
 prior drafts, revisions, or when in the session a decision was reached. Write in
 decided voice. Every choice reads as settled. Use each concept name identically
 everywhere; no aliases. Use a table only where content is relational
-or enumerable. Before finishing, check the acceptance criteria pairwise for
+or enumerable. Write the plan as token-efficient as possible while keeping it
+100% as effective and 100% of its intended information: state each decision
+once, never restate, justify, or explain what a section already carries.
+Before finishing, check the acceptance criteria pairwise for
 contradiction: resolve it, or flag it under Open questions.
 
 Use these sections, in this order:
 
-- **Summary.** The feature, the chosen approach, and why, in a few sentences.
+- **Summary.** The problem, who it is for, what success looks like, the chosen
+  approach, and why, one line each.
+- **Requirements.** Every capability the feature needs, one per line, uncapped,
+  tiered Must / Should / Could / Won't (this release). State the capability, never
+  how it is built. Must rows are what the brief demands; Won't rows make each
+  deferral explicit.
 - **Scope.** In-scope behavior as acceptance criteria (concrete, testable
-  statements: "a user who X sees Y", not "improve the X experience"); out-of-scope
-  items; assumptions the user confirmed vs assumptions still open. At most 8
-  acceptance criteria, one line each; a criterion's sub-bullets count against the
-  cap, so nesting does not evade it. A criterion that needs commands or multi-line
-  mechanics states the outcome here and leaves the mechanics to the matching
-  task's verification in the task list. Capped means relocated, never deleted.
+  statements: "a user who X sees Y", not "improve the X experience"), each tagged
+  with the Requirements row it tests; out-of-scope items; assumptions the user
+  confirmed vs assumptions still open, including every value decided under the
+  hard rule above. One criterion per Must row, plus one per edge case that changes
+  observable behavior; a criterion testing a Should or Could row is marked
+  conditional. One line each, no sub-bullets. A criterion that needs commands or
+  multi-line mechanics states the outcome here and leaves the mechanics to the
+  matching task's verification in the task list.
 - **Key flows.** Only where the feature has user-visible behavior; omit the
   section otherwise. One short block per flow, inline bold labels, no
   subheadings: **<Flow name>**: **Actor:** … **Preconditions:** … **Main
-  flow:** … **Outcome:** … **Edge cases:** … Edge-case behavior lives here and
-  in task verification, never as extra acceptance criteria.
+  flow:** … **Outcome:** … **Edge cases:** … Edge-case behavior is narrated here;
+  one that changes observable behavior also gets its one criterion in Scope.
 - **Design.** How the feature attaches to the existing architecture: new/changed
   data models, API/interface contracts (define these first: they're the hardest to
   change later), module boundaries, and which existing patterns/utilities are reused.
   Cite actual files. State what each new module knows about and what it must NOT
-  know about. Design states contracts (signatures, data shapes, field names,
-  types, nullability) and decisions, never algorithms: step-by-step procedures,
-  command sequences with bodies, and a deliverable file's literal text belong to
-  the task list. For a file the plan will cause to be
-  written, name the file and state its required content here, but do not
-  pre-write the implementation.
+  know about. Design states decisions, never mechanics. A decision is any value
+  the executor would otherwise have to choose. For code, the contract (signatures,
+  data shapes, field names, types, nullability) is the decision and the body is the
+  executor's. For a content, configuration or design-token deliverable, the value
+  itself is the decision and it goes in Content specification. Mechanics
+  (step-by-step procedures, command sequences with bodies, SEARCH/REPLACE bodies,
+  how a file is produced) belong to the task list. Test: if a task author would
+  have to invent a value the user could reasonably reject, the plan states it.
+  For a file the plan will cause to be written, name it here.
+- **Content specification.** Only where a deliverable is content-bearing (copy,
+  palette, typography, spacing, layout, config or schema values); omit otherwise.
+  One table per artefact: element, exact value, one-line rationale where a choice
+  was made. Values verbatim: the headline text, the hex, the size with its unit.
+  A value decided under an assumption names that assumption in its rationale.
 - **Stages.** Ordered vertical slices, riskiest first, each leaving the app
   working and demonstrable. One line per stage: its goal, why it holds this
-  position, and what is observable when it ends. No per-task detail. Files
+  position, and what is observable when it ends. For a content deliverable the
+  line also names the content block it lands. No per-task detail. Files
   touched, effort, and verify steps belong to the task list, whose skill
   decomposes each stage.
 - **Data & compatibility.** Migrations needed; backward compatibility with existing
   data, APIs, and clients; the rollback story if the feature must be pulled after
   partial or full rollout.
+- **Non-functional requirements.** Performance, security, accessibility,
+  observability and platform support, proportionally (see Non-functional
+  requirements under Planning principles). Behavioral targets, never
+  implementation.
 - **Testing strategy.** What gets unit vs integration coverage, per stage. This is
   a pointer for a later test-writing pass (the write-tests skill), not the tests
-  themselves.
+  themselves. For a content deliverable, review criteria instead: what a reviewer
+  checks and the measurable threshold (copy length, contrast ratio, breakpoints).
 - **Open questions.** Genuine unknowns only, each with the options and your
   recommendation. A routine detail left open is not a question: pick a
   well-accepted default, write the body as settled, and record the choice under
@@ -265,8 +298,8 @@ work that depends on them. They're the most expensive things to change later.
 
 - Define the new table/collection schema and the API request/response shapes in the
   Design section (every field, type and nullability) before any phase references
-  them. The contract, not the finished artefact: a deliverable's literal text
-  belongs to the task that writes it.
+  them. For code the contract is the decision, not the body; a content value is
+  itself the decision and is stated in Content specification.
 - If two phases share a new module, the plan writes that module's public interface
   (function signatures, types) in Design so both phases build against the same thing.
 - An external-facing contract (webhook payload, public API field) gets extra
@@ -323,6 +356,7 @@ would fit any feature.
 - Observability: what to log or measure to know the feature works in production,
   e.g. "log export failures with the document id; count exports per day". For an
   internal-only utility, "existing request logging suffices" is a complete answer.
+  These answers fill the Non-functional requirements section.
 
 ## Task list export (only on request)
 

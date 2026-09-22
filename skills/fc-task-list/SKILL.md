@@ -263,8 +263,9 @@ Both modes use the same schema, but the informational load moves. Filling every 
 | `verify` | May require judgement about the result. | Should be a runnable command with an unambiguous pass/fail. |
 
 When a plan backs the list, each parent task realises one plan stage, and its child
-tasks are derived from that stage's goal, the plan's Design contracts, and its
-acceptance criteria. The plan carries no per-task detail to copy. A list authored
+tasks are derived from that stage's goal, the plan's Design contracts and Content
+specification values, and its acceptance criteria. The plan carries no per-task
+detail to copy. A list authored
 from an issue list is unaffected.
 
 ### Self-evaluation
