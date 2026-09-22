@@ -113,12 +113,25 @@ automatic. Rules:
 **Slugs.** The folder name is `WS-N-SUFFIX-<slug>`, the workstream's full ID
 followed by the slug, while the frontmatter `slug` key itself stays the bare, unprefixed
 kebab-case slug describing the *specific* work (`scope-service-bug-fixes`, not
-`scope-service`). Reuse a slug only to continue that same workstream. Before
-adopting a new slug, collision-check: every directory in `flowcharge/workstreams/`
-carries a `WS-N-SUFFIX-` prefix, so strip that prefix before comparing
-(`ls flowcharge/workstreams/ | sed -E 's/^WS-[0-9]+-[0-9a-z]{6}-//'`). If the name
-already belongs to different work, pick a distinct one; never rename or displace
-another workstream's folder.
+`scope-service`), reading as related to earlier work it extends. Reuse a slug, byte for
+byte, only to continue that same workstream. `--new-ws` refuses a slug a live or archived
+workstream already carries: pick a distinct one, and never rename or displace another
+workstream's folder.
+
+**Creating a workstream.** One command, and no other way:
+
+```bash
+node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --new-ws <slug> --title "<title>" [--tags a,b]
+```
+
+It claims the WS id, creates `flowcharge/workstreams/<WS-id>-<slug>/`, writes
+`workstream.md` there with every required key present and valid at `status: backlog`,
+refuses a taken slug with nothing claimed, and prints two lines: the claimed id, then
+the record's path relative to the project root. Use both verbatim. The body is left
+empty: the caller appends it (`workstream` body, below) and regenerates. If `flowcharge/`
+is missing, run `--init` first; it is a no-op when the tree exists, and its WARN that
+`ids.md` is missing needs no action, because `--new-ws` seeds the registry as `--claim`
+does.
 
 ## IDs
 
@@ -200,12 +213,12 @@ links: []                 # related IDs, non-blocking
 
 Additional keys by type:
 
-- `workstream`: `tags`, chosen from the tag pool at `flowcharge/tags.md`:
+- `workstream`: `tags`, chosen from the tag pool at `flowcharge/tags.md`, read first:
   reuse a listed spelling (including a different grammatical form of a listed idea)
   rather than inventing a near-miss; register a new pool entry only when the work's
   subject has no covering tag. A request may put tag words directly in the text as
   `#tag`, the only form a user may use to specify tags directly in a request; when
-  present, those words become the workstream's entire `tags` set, replacing rather
+  present, those words, lowercased, become the workstream's entire `tags` set, replacing rather
   than adding to whatever would otherwise have been derived from the pool. The two
   automatic tags described below are the one exception. A trailing `+` on any such
   word (`#tag+`) switches this to a seed: the resolved words are all

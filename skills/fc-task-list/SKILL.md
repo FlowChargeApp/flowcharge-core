@@ -25,7 +25,7 @@ Spawned without a user, by a flowcharge pipeline, the spawn prompt answers every
 
 Each workstream keeps ONE task list at: `./flowcharge/workstreams/{{WS-N-SUFFIX}}-{{slug}}/{{TL-N-SUFFIX}}-tasklist.md`, where `{{TL-N-SUFFIX}}` is the file's own frontmatter `id`. If a second, separate list is needed in the same workstream, name it `{{TL-N-SUFFIX}}-tasklist-{{qualifier}}.md` in the same folder. The qualifier stays a tail after the plain name. There are no date buckets and no `_done/` folders. Completion is `status: done` in frontmatter, and the file stays put.
 
-**Choosing the `{{slug}}`.** The workstream's folder is `{{WS-N-SUFFIX}}-{{slug}}` (for example `WS-4-a3x9k2-scope-service-bug-fixes`) with `{{slug}}` remaining the bare, unprefixed slug used for reuse and collision-checking. Reuse an existing slug byte-for-byte ONLY when continuing a workstream that folder already holds. For new work the slug must describe the *specific* work, not just the subject area (`lad-opencode-client-vitest-migration`, not `lad-opencode-client-tests`) and where it extends earlier work its name should read as related to it. Before adopting a slug, collision-check it: every directory in `flowcharge/workstreams/` carries a `WS-N-SUFFIX-` prefix, so strip that prefix before comparing: `ls flowcharge/workstreams/ | sed -E 's/^WS-[0-9]+-[0-9a-z]{6}-//'`. If that name already belongs to a *different* workstream, pick a distinct descriptive slug. Never overwrite, rename, or displace another workstream's folder to take its name.
+**Choosing the `{{slug}}`.** The workstream's folder is `{{WS-N-SUFFIX}}-{{slug}}` (for example `WS-4-a3x9k2-scope-service-bug-fixes`); `{{slug}}` stays bare and unprefixed (CONVENTIONS.md, Slugs).
 
 **CRITICAL: "create a task list for X" means CREATE THE FILE, NOT A TASK.**
 
@@ -33,7 +33,7 @@ When the user says "create a task list for X":
 
 1. Do NOT add any task to any existing file.
 2. Ask which authoring mode applies (see **Two authoring modes** below).
-3. Create `./flowcharge/workstreams/{{WS-N-SUFFIX}}-{{slug}}/{{TL-N-SUFFIX}}-tasklist.md` with the frontmatter, heading, and summary block only (no tasks). Claim its `TL-N-SUFFIX` ID from the registry first (see Frontmatter). The filename is built from it. If the workstream folder is new, create it with `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --new-ws <slug> --title "<title>"`, which also writes its `workstream.md` record; fill in its body per CONVENTIONS.md.
+3. Create `./flowcharge/workstreams/{{WS-N-SUFFIX}}-{{slug}}/{{TL-N-SUFFIX}}-tasklist.md` with the frontmatter, heading, and summary block only (no tasks). Claim its `TL-N-SUFFIX` ID from the registry first (see Frontmatter). The filename is built from it. If the workstream folder is new, create it with `--new-ws` (CONVENTIONS.md, Creating a workstream).
 4. Tell the user the file was created, with its ID and mode.
 
 When the user says "add a task to X":
@@ -227,8 +227,7 @@ Every task includes an indented YAML block immediately after the task line. Thes
   - A literal SEARCH/REPLACE block is **allowed** in spec mode, but only when all of the following hold. Prose is the default; reach for a block because it is clearer, never because it is easier to author.
     - The change is small and targets **one unambiguous location** in one file.
     - It is mechanical enough that no design decision is left for the executor. If the executor would still have to choose an approach, write prose.
-    - The SEARCH text is copied from the file **as read in this session**, never recalled from memory or reconstructed.
-    - The block follows the same shape and one-block-per-task limit as `diff` mode below.
+    - The block follows the same shape, SEARCH-text rule and one-block-per-task limit as `diff` mode below.
   - **Consequence:** a spec file containing at least one SEARCH/REPLACE block must carry `base_commit` in its frontmatter, and those tasks fall under the **Diff-mode staleness guard** exactly as diff-mode tasks do. Without the SHA a block has nothing to date it against. If a task is drifting toward several blocks, that is the signal it belongs in a diff-mode file, or give that one task a `mode: diff` override.
 
   **`diff` mode**
@@ -240,36 +239,17 @@ Every task includes an indented YAML block immediately after the task line. Thes
 - `imports`: required components, packages, modules, or dependencies
 - `compatibility`: required design patterns, package versions, or compatibility constraints
 - `gotcha`: likely pitfalls, edge cases, or foreseeable issues
-- `verify`: **ordered list** of verification steps. The first item is the primary command or tool. Subsequent items are follow-up checks on the output of the previous step (e.g. inspect a value, hit an endpoint, assert a file exists). Steps are executed in sequence. Later steps may depend on earlier ones succeeding. See **Smoke Tests** below for tasks whose output is a class/method with observable state.
+- `verify`: **ordered list** of verification steps. The first item is the primary command or tool. Subsequent items are follow-up checks on the output of the previous step (e.g. inspect a value, hit an endpoint, assert a file exists). Steps are executed in sequence. Later steps may depend on earlier ones succeeding. See **Smoke Tests** below for tasks whose output is a class/method with observable state. Each step asserts something specific to the change (a grep, a count, a file-existence check). Add the project's own lint or type-check command alongside, only where the project already has one configured (`package.json` scripts, a Makefile, CI config, `pyproject.toml`, `go.mod`, or equivalent); never invent one, and never issue a command against a project whose toolchain does not match it. Never add a test-suite or build command as a verify step: it asserts nothing about the task, passes before the change as readily as after, and running a suite is the user's own step after execution. **Measure before you write.** Where a step asserts a count, a file's existence, or the presence or absence of a string, run it at `base_commit` before writing it down and record what it actually returned, not what you expect. Where it already passes with nothing changed it does not discriminate: rewrite it until it fails at `base_commit`, or state in the step why it cannot fail there. Rewriting makes the assertion specific to the change; it never deletes the step or weakens what it asserts.
 - `checklist`: 4–6 binary YES/NO criteria derived from `imports`, `compatibility`, `gotcha`, or `pattern`
 - `self_eval`: post-execution evaluation object with:
   - `passed`: boolean, true only if every checklist item passes
   - `failures`: array of failed checklist items, each with `item`, `reason`, and `fix`
 
-**Parent tasks only have the `description` key.** All other task types (adult, child) have the full set of keys above.
-
-That rule is unchanged, and `author` carves no exception into it: a parent task
-still carries `description` and nothing else, so it never carries `author` either.
+**Parent tasks only have the `description` key**, so never `author`. All other task types (adult, child) have the full set of keys above.
 
 ### Author attribution
 
-Read the `author` value from the generator when you author a task list, and write the
-printed line verbatim into the file's frontmatter and into every adult and child
-task's YAML:
-
-```bash
-node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --whoami
-```
-
-The command prints exactly one line and writes nothing. It prints the literal string
-`unknown` when `git config user.name` is unset or the call fails, so a missing local
-git identity never blocks authoring a task list.
-
-Treat the value as **local attribution, not a verified identity**, sourced from the
-machine's own `git config user.name` at authoring time, which is self-reported, can
-differ from the account that actually opens a GitHub pull request, and can be blank
-or wrong on a misconfigured machine. No `--check` warning exists for a missing or
-empty `author`; the field is optional and non-blocking by design.
+Read `author` with `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --whoami` and write the printed line verbatim into the file's frontmatter and every adult and child task's YAML (CONVENTIONS.md, Author attribution).
 
 ### Where the detail sits, by mode
 
@@ -313,13 +293,10 @@ When generating a task that adds/changes a class or method with externally obser
   - Child tasks / subtasks are ALWAYS numbered `1.1`, `1.2`, etc., incorporating the parent task number. This is **IMPERATIVE**.
   - If adding existing discussed tasks to a parent task as subtasks, **RENUMBER** them to incorporate the parent task number in the subtask numbers.
 - Tasks may include an inline description: `1. Task name (description)`
-- If a task has child tasks, it is a parent task.
+- If a task has child tasks, it is a parent task (see **Three task types**).
   - If a task's scope is large, break it down into atomic child tasks.
   - **Atomic = one file, one coherent change, provable by a single `verify` sequence.** In `diff` mode, additionally: **one SEARCH/REPLACE block**. Split multi-file changes into separate child tasks in either mode.
   - If a task's scope is already atomic, keep it as a parent-level adult task.
-  - Treat the parent task as a category heading, not directly actionable.
-  - A parent task only has the `description` key in its YAML metadata.
-  - Child tasks have the full set of YAML metadata keys.
   - When all subtasks of a parent are completed, mark the parent task as completed too.
 - Only add tasks that don't already exist in the file.
 - Mark complete by switching `[ ]` → `[x]`.
@@ -403,7 +380,7 @@ flowcharge/workstreams/{{WS-N-SUFFIX}}-{{slug}}/TL-4-a3x9k2-tasklist.md
 
 ## Housekeeping: Completion & the Index
 
-There is no per-file archive sweep and no `_done/` folder in FlowCharge Core. Files never move individually. (A fully completed workstream may later be archived wholesale, folder and all, to `flowcharge/archive/<WS-N-SUFFIX>-<slug>/`, an explicit, user-directed act covered by CONVENTIONS.md, not by this skill.) Housekeeping is:
+There is no per-file archive sweep and no `_done/` folder in FlowCharge Core. Files never move individually (a completed workstream may later be archived whole, on the user's say-so; see (CONVENTIONS.md, Archiving)). Housekeeping is:
 
 1. **Close out**: when no open task line is left (`- [ ] N.` for parent/adult, `  - [ ] N.M` for child: real task-tracker lines only, not unchecked-looking bullets embedded in prose such as a "Definition of Done" inside a task's body), set the frontmatter `status: done` and bump `updated` (in a pipeline, the orchestrator's or `--sync`'s job, per Rules). If a done file gets a new open task, set it back to `ready` or `in-progress`.
 2. **Regenerate**: run the index generator. Its Attention section flags task lists whose tasks are all checked but whose status is not yet `done`, and files left stale by an `in-progress` status or a `blocked` reason.

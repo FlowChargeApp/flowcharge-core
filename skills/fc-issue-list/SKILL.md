@@ -22,11 +22,11 @@ The FlowCharge Core data model (layout, IDs, frontmatter, status lifecycle, inde
 
 Each workstream keeps ONE issue list at: `./flowcharge/workstreams/{{WS-N-SUFFIX}}-{{slug}}/{{IL-N-SUFFIX}}-issuelist.md`, where `{{IL-N-SUFFIX}}` is the file's own frontmatter `id`. If a second, separate list is needed in the same workstream, name it `{{IL-N-SUFFIX}}-issuelist-{{qualifier}}.md` in the same folder. The qualifier stays a tail after the plain name. There are no date buckets and no `_done/` folders. Completion is `status: done` in frontmatter, and the file stays put.
 
-The workstream's folder is `{{WS-N-SUFFIX}}-{{slug}}` (for example `WS-4-a3x9k2-scope-service-bug-fixes`) with `{{slug}}` remaining the bare, unprefixed slug used for collision-checking and reuse. Reuse an existing slug only to continue that workstream; for new work, choose a kebab-case slug describing the *specific* work (`lad-opencode-client-vitest-migration`, not `lad-opencode-client-tests`) and collision-check first with `ls flowcharge/workstreams/ | sed -E 's/^WS-[0-9]+-[0-9a-z]{6}-//'`, because every directory there carries a `WS-N-SUFFIX-` prefix that must be stripped before a slug can match. Never rename or displace another workstream's folder.
+The workstream's folder is `{{WS-N-SUFFIX}}-{{slug}}` (for example `WS-4-a3x9k2-scope-service-bug-fixes`); `{{slug}}` stays bare and unprefixed (CONVENTIONS.md, Slugs).
 
 If no workstream is specified in a request, consult `index.md` (regenerate it if stale); if it stays undecidable, ask the user. Issues that span workstreams are filed under the most relevant one, with all affected areas in the `affected` key.
 
-If the target file does not exist, create it with frontmatter and the heading only (no issues) before adding the first issue. If `flowcharge/` is missing, run `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --init` to create it. If the workstream folder is missing, run `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --new-ws <slug> --title "<title>"` to create it; `--new-ws` already writes that workstream's `workstream.md` record, whose body still needs filling in per CONVENTIONS.md.
+If the target file does not exist, create it with frontmatter and the heading only (no issues) before adding the first issue. If the workstream folder is missing, create it with `--new-ws` (CONVENTIONS.md, Creating a workstream).
 
 To query across workstreams (e.g. all open issues), read `index.md` (it lists every open issue with severity and file) or grep `flowcharge/workstreams/*/IL-*-issuelist*.md` for `status:` values. Regenerate the index after any edit here:
 
@@ -150,22 +150,7 @@ Every issue includes an indented YAML block immediately after the issue line. Th
 
 ### Author attribution
 
-Read the `author` value from the generator when you create an issue, and write the
-printed line verbatim:
-
-```bash
-node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --whoami
-```
-
-The command prints exactly one line and writes nothing. It prints the literal string
-`unknown` when `git config user.name` is unset or the call fails, so a missing local
-git identity never blocks authoring an issue.
-
-Treat the value as **local attribution, not a verified identity**, sourced from the
-machine's own `git config user.name` at authoring time, which is self-reported, can
-differ from the account that actually opens a GitHub pull request, and can be blank
-or wrong on a misconfigured machine. No `--check` warning exists for a missing or
-empty `author`; the field is optional and non-blocking by design.
+Read `author` with `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --whoami` when you create an issue, and write the printed line verbatim (CONVENTIONS.md, Author attribution).
 
 ### Linking issues to tasks
 
@@ -255,7 +240,7 @@ flowcharge/workstreams/{{WS-N-SUFFIX}}-{{slug}}/IL-3-k9d2s5-issuelist.md
 
 ## Housekeeping: Completion & the Index
 
-There is no per-file archive sweep and no `_done/` folder in FlowCharge Core. Files never move individually. (A fully completed workstream may later be archived wholesale, folder and all, to `flowcharge/archive/<WS-N-SUFFIX>-<slug>/`, an explicit, user-directed act covered by CONVENTIONS.md, not by this skill.) Housekeeping is:
+There is no per-file archive sweep and no `_done/` folder in FlowCharge Core. Files never move individually (a completed workstream may later be archived whole, on the user's say-so; see (CONVENTIONS.md, Archiving)). Housekeeping is:
 
 1. **Close out**: when no issue is left outside `done`/`dropped`, set the file's frontmatter `status: done` and bump `updated`.
 2. **Regenerate**: run the index generator. Its Attention section is the reconcile report. It flags issue lists with no open issues whose status is not yet `done`, checkbox/status disagreements, registry drift, and items left stale by an `in-progress` status or a `blocked` reason. Closing flagged lists is **your** job under the rules above, confirmed with the user. An issue may legitimately stay open with its task done when the fix was partial.
