@@ -395,8 +395,9 @@ Notes:
 - **execute-tasks**: first Read the task list yourself and enumerate its parent
   tasks. Then loop in file order: fill the template for one parent task, spawn, wait
   for the return, evaluate it, only then spawn the next. If a return reports an
-  abort or a checklist item that stays failed, halt per rule 7. Apply hard rule 13
-  once, before the first spawn.
+  abort or a checklist item that stays failed, halt per rule 7. A NOT CHECKED item is
+  no failure: lift every one, with its reason, from each return into the run's final
+  report, at every tier. Apply hard rule 13 once, before the first spawn.
 - **commit**: invoke the fc-git skill in the main session with the user's standing
   instruction: "Commit all created and/or modified files in one commit to the
   current branch. This work traces to <every artefact this run touched, as ID +

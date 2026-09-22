@@ -231,7 +231,9 @@ Use these sections, in this order:
 - **Testing strategy.** What gets unit vs integration coverage, per stage. This is
   a pointer for a later test-writing pass (the write-tests skill), not the tests
   themselves. For a content deliverable, review criteria instead: what a reviewer
-  checks and the measurable threshold (copy length, contrast ratio, breakpoints).
+  checks and the measurable threshold (copy length, contrast ratio, breakpoints),
+  each a number an executor can measure, because the task list turns each one
+  into a `rendered` checklist item.
 - **Open questions.** Genuine unknowns only, each with the options and your
   recommendation. A routine detail left open is not a question: pick a
   well-accepted default, write the body as settled, and record the choice under

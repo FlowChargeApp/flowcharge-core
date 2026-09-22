@@ -38,11 +38,11 @@ Skip this part when `{stages}` is `issues-only`.
 
 Author tasks for every **open** issue in the issue list — the artefact you wrote in Part 1, or the one at `{issuelist}` when you skipped Part 1 — skipping any whose status is `done` or `dropped`, and save them to `{ws_dir}/<the TL ID you claim below>-tasklist.md` (if that file already exists for other work, use `<the TL ID you claim below>-tasklist-<qualifier>.md` in the same folder).
 
-Frontmatter per the fc-task-list skill, with `workstream: {ws_id}`, `slug: {slug}`, `status: ready`, `mode: {mode}`, `base_commit` as the current HEAD short SHA (so any SEARCH/REPLACE block is dated), and `depends_on: [<the issue list's ID from its own frontmatter>]`.
+Frontmatter per the fc-task-list skill, with `workstream: {ws_id}`, `slug: {slug}`, `status: ready`, `mode: {mode}`, `base_commit` as the current HEAD short SHA (so any SEARCH/REPLACE block is dated), `runtime` and `e2e_tooling` per the skill's Runtime detection (read from the project, never invented), and `depends_on: [<the issue list's ID from its own frontmatter>]`.
 
 Allocate the TL ID by running `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --claim TL` and using the printed id verbatim.
 
-The file is **{mode} mode**. Do not ask which mode to use and do not add smoke-test verify steps. You have no user to ask, so these are the answers.
+The file is **{mode} mode**. Do not ask which mode to use and do not add smoke-test verify steps; a runtime probe under the skill's Verify tiers is not a smoke test. You have no user to ask, so these are the answers.
 
 Each task must:
 
@@ -50,7 +50,7 @@ Each task must:
 * Author `implement` in `{mode}` mode per the fc-task-list skill. Spec: prose naming the target file and the **anchor** within it (function, method, describe block, export, config key, or region), then the change to make and why; illustrative code at roughly ten lines or fewer, labelled as illustrative; a literal SEARCH/REPLACE block only where prose cannot pin a purely mechanical edit at one unambiguous location, and if most tasks need one, stop and say in your reply that the work is diff-shaped rather than emit a spec file made of blocks; `implement` terse, `imports`, `compatibility` and `gotcha` rich, `checklist` outcome-based ("behaviour X holds", "no caller of Y is broken"), not block-applied checks. Diff: every source change is one literal SEARCH/REPLACE block.
 * Read each target file immediately before writing its steps or block, and derive every anchor, line reference, quoted identifier and SEARCH text from the file as read in this session. Never reconstruct them from the issue description, from the reference docs, or from memory.
 * Correct the defect the issue describes and nothing else. Apply DRY, KISS, YAGNI and scope discipline: no new abstractions, options, or capabilities beyond the correction.
-* Author `verify` steps per the fc-task-list skill's `verify` rules: measured at `base_commit`, the project's own lint or type-check command only where configured, never a test-suite or build command.
+* Author `verify` steps per the fc-task-list skill's `verify` rules and Verify tiers: measured at `base_commit`, the project's own lint or type-check command only where configured, at most one runtime probe per task, never a full test suite or build. Tag every checklist item per the skill's Evidence classes; where the frontmatter records no tooling for an item's class, author it as `source` or `[unverified-by-execution]`.
 
 Where Part 1's add-versus-correct test fails for an issue's fix, author no task for it; record it under Skipped. Tasks in this file are executed as written, so a feature that slips in gets built.
 

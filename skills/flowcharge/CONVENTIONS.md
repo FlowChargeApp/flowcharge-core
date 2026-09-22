@@ -277,7 +277,11 @@ Additional keys by type:
   SEARCH/REPLACE block appears. (These live in frontmatter, not a separate header
   block.) **No script can check** when `base_commit` is required, because the
   condition is in the body, not the frontmatter, so the generator requires `mode`
-  and never requires `base_commit`. The author supplies it.
+  and never requires `base_commit`. The author supplies it. Also `runtime:
+  "<command>" | none` and `e2e_tooling: [...]`, how the project runs itself and
+  what browser/e2e tooling it already has, detected from disk at authoring (see the
+  fc-task-list skill, Runtime detection). The generator checks neither, and an
+  absent key reads as `none` and `[]`, because the rule is forward-only.
 
 `depends_on` is data, not prose. Ordering constraints between workstreams or
 artefacts go here, never only in a card's or file's body text.

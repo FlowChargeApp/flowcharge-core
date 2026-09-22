@@ -63,6 +63,8 @@ depends_on: [IL-3-k9d2s5]
 links: []
 mode: spec              # spec | diff
 base_commit: a1b2c3d    # required wherever SEARCH blocks appear, the commit they were authored against
+runtime: "npm run dev"  # how the project runs itself, or none; see Runtime detection
+e2e_tooling: [playwright] # browser/e2e tooling already present, or []
 ---
 ```
 
@@ -71,12 +73,22 @@ base_commit: a1b2c3d    # required wherever SEARCH blocks appear, the commit the
 - `depends_on`: the IDs this list is built from and gated on, the issue list or plan it implements, and any list that must execute first. The orchestrator refuses to execute a list whose `depends_on` are not all `done` (a `type: plan` or `type: issuelist` dependency is satisfied once authored: any status but `backlog`/`dropped`). Ordering constraints are data here, never only prose.
 - `updated`: bump on EVERY edit to the file.
 - `mode` / `base_commit`: see below. These live in the frontmatter, not a separate header block.
+- `runtime` / `e2e_tooling`: facts about the project, recorded at authoring per **Runtime detection** below, never choices.
 
 After any status or task-state change, regenerate the index:
 
 ```bash
 node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root>
 ```
+
+### Runtime detection
+
+At authoring time, record from disk alone how the project runs itself:
+
+- `runtime`: a double-quoted command or approach found in a `start`/`dev` script, a Makefile target, a binary entrypoint, or a static-file approach for plain HTML (e.g. `"npm run dev"`, `"make serve"`, `"static: index.html"`); `none` when nothing runs.
+- `e2e_tooling`: browser or e2e tooling already present (a Playwright, Cypress or Puppeteer config or dependency, an existing `e2e/` directory) as an inline array; `[]` when none.
+
+Detection only: never invent, install or configure anything. These two keys alone decide, for the whole list, whether a probe exists: `runtime: none` allows no probe, and `e2e_tooling: []` allows no `rendered` probe (see **Evidence classes**). A list with no `runtime` key predates this rule: read it as `none`.
 
 ### Two authoring modes: `spec` and `diff`
 
@@ -136,10 +148,12 @@ Each file follows this structure (after the file frontmatter):
     - "Primary command or tool to verify successful implementation"
     - "Optional: follow-up check on the output of the above"
   checklist:
-    - "Binary YES/NO criterion derived from imports, compatibility, gotcha, or pattern"
-    - "..."
+    - "source: binary YES/NO criterion derived from imports, compatibility, gotcha, or pattern"
+    - "runtime [verify 1]: criterion the named probe proves; see Evidence classes"
   self_eval:
     passed: false
+    evidence: []
+    unverified: []
     failures: []
   ```
 - [ ] 2. Parent task
@@ -163,10 +177,12 @@ Each file follows this structure (after the file frontmatter):
       - "Primary command or tool to verify successful implementation"
       - "Optional: follow-up check on the output of the above"
     checklist:
-      - "..."
-      - "..."
+      - "source: ..."
+      - "rendered [verify 2]: ..."
     self_eval:
       passed: false
+      evidence: []
+      unverified: []
       failures: []
     ```
   - [x] 2.2 Completed child task / subtask
@@ -235,14 +251,16 @@ Every task includes an indented YAML block immediately after the task line. Thes
   - Max **one** SEARCH/REPLACE block per task, targeting **one** file. Multi-file or multi-location changes: split into one child task per block, never multiple blocks in one task.
   - The SEARCH text must be copied from the file as read in this session, never recalled from memory or reconstructed. See **Diff-mode staleness guard** above.
 
-- `pattern`: files, paths, or applicable scope
+- `pattern`: files, paths, or applicable scope; omitted only on a verification-only child (see **Rules**)
 - `imports`: required components, packages, modules, or dependencies
 - `compatibility`: required design patterns, package versions, or compatibility constraints
 - `gotcha`: likely pitfalls, edge cases, or foreseeable issues
-- `verify`: **ordered list** of verification steps. The first item is the primary command or tool. Subsequent items are follow-up checks on the output of the previous step (e.g. inspect a value, hit an endpoint, assert a file exists). Steps are executed in sequence. Later steps may depend on earlier ones succeeding. See **Smoke Tests** below for tasks whose output is a class/method with observable state. Each step asserts something specific to the change (a grep, a count, a file-existence check). Add the project's own lint or type-check command alongside, only where the project already has one configured (`package.json` scripts, a Makefile, CI config, `pyproject.toml`, `go.mod`, or equivalent); never invent one, and never issue a command against a project whose toolchain does not match it. Never add a test-suite or build command as a verify step: it asserts nothing about the task, passes before the change as readily as after, and running a suite is the user's own step after execution. **Measure before you write.** Where a step asserts a count, a file's existence, or the presence or absence of a string, run it at `base_commit` before writing it down and record what it actually returned, not what you expect. Where it already passes with nothing changed it does not discriminate: rewrite it until it fails at `base_commit`, or state in the step why it cannot fail there. Rewriting makes the assertion specific to the change; it never deletes the step or weakens what it asserts.
-- `checklist`: 4–6 binary YES/NO criteria derived from `imports`, `compatibility`, `gotcha`, or `pattern`
+- `verify`: **ordered list** of verification steps. The first item is the primary command or tool. Subsequent items are follow-up checks on the output of the previous step (e.g. inspect a value, hit an endpoint, assert a file exists). Steps are executed in sequence. Later steps may depend on earlier ones succeeding. Every step sits in one tier of **Verify tiers** below. See **Smoke Tests** below for tasks whose output is a class/method with observable state. Each step asserts something specific to the change (a grep, a count, a file-existence check). Add the project's own lint or type-check command alongside, only where the project already has one configured (`package.json` scripts, a Makefile, CI config, `pyproject.toml`, `go.mod`, or equivalent); never invent one, and never issue a command against a project whose toolchain does not match it. Never add a test-suite or build command as a verify step: it asserts nothing about the task, passes before the change as readily as after, and running a suite is the user's own step after execution. **Measure before you write.** Where a step asserts a count, a file's existence, or the presence or absence of a string, run it at `base_commit` before writing it down and record what it actually returned, not what you expect. Where it already passes with nothing changed it does not discriminate: rewrite it until it fails at `base_commit`, or state in the step why it cannot fail there. Rewriting makes the assertion specific to the change; it never deletes the step or weakens what it asserts.
+- `checklist`: 4–6 binary YES/NO criteria derived from `imports`, `compatibility`, `gotcha`, or `pattern`, each opening with its class per **Evidence classes** below
 - `self_eval`: post-execution evaluation object with:
-  - `passed`: boolean, true only if every checklist item passes
+  - `passed`: boolean, true only if no checklist item is NO
+  - `evidence`: array with one entry per checklist item, in order, each with `item`, `result` (`YES`/`NO`/`NOT CHECKED`) and `measured` (what was observed); `[]` until executed
+  - `unverified`: array of NOT CHECKED items, each with `item` and `reason`; `[]` when none
   - `failures`: array of failed checklist items, each with `item`, `reason`, and `fix`
 
 **Parent tasks only have the `description` key**, so never `author`. All other task types (adult, child) have the full set of keys above.
@@ -268,9 +286,29 @@ specification values, and its acceptance criteria. The plan carries no per-task
 detail to copy. A list authored
 from an issue list is unaffected.
 
+### Evidence classes
+
+Every `checklist` item opens with its evidence class, then a colon:
+
+- `source`: provable by reading files (a grep, a count, a file's content).
+- `runtime`: needs the program running (a response, an exit code, a written row).
+- `rendered`: needs a rendered UI (a measured layout, a computed style, a visible element).
+
+A `runtime` or `rendered` item names, in square brackets before the colon, the `verify` step that produces its evidence: `"rendered [verify 2]: no horizontal overflow at a 375px viewport width"`. Where the frontmatter records no tooling for the class, rewrite the item as `source` if a file proves the property, else mark it `[unverified-by-execution]`: the author's record, from disk, that no probe exists here. Only such an item may return NOT CHECKED at execution (see **Self-evaluation**); the executor never decides for itself that tooling is missing. A YES on an item whose class exceeds what was actually run is invalid: record NO. Where the plan's Testing strategy states review criteria for a content deliverable (contrast ratio, breakpoints, copy length), each becomes a `rendered` item carrying the plan's threshold.
+
+### Verify tiers
+
+Each `verify` step sits in one tier:
+
+- **Static.** Always allowed: the project's configured lint or type-check, grep, counts, file-existence checks, reading a named file.
+- **Probe.** Allowed, at most one per task: a task-scoped runtime probe. Start the program with the frontmatter `runtime`, load one page, send one request or run one command, read the concrete result (status, output, measurement), then stop it. State the exact command, input, viewport or request, and the value expected. A `rendered` probe uses the recorded `e2e_tooling` only. Where the frontmatter records no tooling, no probe step is authored.
+- **Forbidden.** A full test suite, a full build, a deploy, a package install, anything that writes outside a temporary directory.
+
+A probe is not a smoke test: it exercises the running program, where a smoke test is a script calling the changed code.
+
 ### Self-evaluation
 
-After each task is executed, evaluate every checklist item as YES or NO. If any item fails, add it to `self_eval.failures` with `item`, `reason`, and `fix`, apply the fix immediately, and re-check. Repeat until all pass or no further progress is possible. Set `self_eval.passed` to true only if every checklist item passes. Mark a task complete (`[x]`) only when `self_eval.passed` is true. Return the populated `self_eval` in the task result.
+After each task is executed, evaluate every checklist item as YES, NO or NOT CHECKED under **Evidence classes**, and record one `evidence` entry per item with what was actually observed, never "passes": a `source` item cites the grep or read and its output; a `runtime` or `rendered` item cites the observed value (e.g. "at a 375px viewport width, scrollWidth 375 equals clientWidth 375"). NOT CHECKED is allowed only on an `[unverified-by-execution]` item, with `measured` quoting the frontmatter fact ("not checked: e2e_tooling is []"); it is neither pass nor failure, and each such item is also listed in `self_eval.unverified`. A `[verify N]` item whose probe was not run, gave no measured value, or failed is NO. If any item is NO, add it to `self_eval.failures` with `item`, `reason`, and `fix`, apply the fix immediately, and re-check by re-running the item's `verify` step; re-reading the edit is no re-check for a `runtime` or `rendered` item. Repeat until no item is NO or no further progress is possible. Set `self_eval.passed` to true only if no checklist item is NO. Mark a task complete (`[x]`) only when `self_eval.passed` is true. Return the populated `self_eval`, naming every NOT CHECKED item, in the task result.
 
 A diff-mode task whose SEARCH block failed to match is **not** a checklist failure. Handle it per the **Diff-mode staleness guard**: if the block was re-anchored, note that in `self_eval` as a `reanchored` entry (`item`, `expected`, `found`, `resolution`). The task may still pass, but the re-anchoring must be visible in the result, never folded silently into a green task. If the anchor was gone or its meaning had changed, leave the task unchecked, record the mismatch in `self_eval.failures`, and stop.
 
@@ -297,6 +335,7 @@ When generating a task that adds/changes a class or method with externally obser
 - If a task has child tasks, it is a parent task (see **Three task types**).
   - If a task's scope is large, break it down into atomic child tasks.
   - **Atomic = one file, one coherent change, provable by a single `verify` sequence.** In `diff` mode, additionally: **one SEARCH/REPLACE block**. Split multi-file changes into separate child tasks in either mode.
+  - **Verification-only child.** The one exception to one-file: a child whose whole body is a `verify` sequence of probes, with no `pattern` and an `implement` of one step, "no edit; run `verify`". At most one per parent whose plan stage produces a UI or a running service, numbered last among that parent's children; its checklist holds the stage's `runtime` and `rendered` items.
   - If a task's scope is already atomic, keep it as a parent-level adult task.
   - When all subtasks of a parent are completed, mark the parent task as completed too.
 - Only add tasks that don't already exist in the file.
