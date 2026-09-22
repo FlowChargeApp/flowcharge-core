@@ -364,8 +364,8 @@ Notes:
 
 - **`{{context docs}}`**: the same shared Context-section block in every template.
   It resolves to this project's own structural or reference documentation as a
-  list of repo-relative paths, one line per document saying what that document
-  covers and when to read it, or to nothing when the project has none. Its own
+  list of repo-relative paths, one line per document saying what its filename and
+  location imply it covers, and so when to read it, or to nothing when the project has none. Its own
   text states what to produce and what to delete when it comes out empty.
 - **ID slots** (`{ws_id}`, `{ws_dir}`): `{ws_id}` is the only artefact ID you allocate, and it
   comes from the `--new-ws` run that created the workstream folder (see FlowCharge Core
