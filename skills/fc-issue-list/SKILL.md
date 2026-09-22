@@ -24,7 +24,7 @@ Each workstream keeps ONE issue list at: `./flowcharge/workstreams/{{WS-N-SUFFIX
 
 The workstream's folder is `{{WS-N-SUFFIX}}-{{slug}}` (for example `WS-4-a3x9k2-scope-service-bug-fixes`) with `{{slug}}` remaining the bare, unprefixed slug used for collision-checking and reuse. Reuse an existing slug only to continue that workstream; for new work, choose a kebab-case slug describing the *specific* work (`lad-opencode-client-vitest-migration`, not `lad-opencode-client-tests`) and collision-check first with `ls flowcharge/workstreams/ | sed -E 's/^WS-[0-9]+-[0-9a-z]{6}-//'`, because every directory there carries a `WS-N-SUFFIX-` prefix that must be stripped before a slug can match. Never rename or displace another workstream's folder.
 
-If no workstream is specified in a request, consult `index.md` (regenerate it if stale); if it stays undecidable, ask the user. Cross-cutting issues go in a `misc` workstream. Issues that span workstreams are filed under the most relevant one, with all affected areas in the `affected` key.
+If no workstream is specified in a request, consult `index.md` (regenerate it if stale); if it stays undecidable, ask the user. Issues that span workstreams are filed under the most relevant one, with all affected areas in the `affected` key.
 
 If the target file does not exist, create it with frontmatter and the heading only (no issues) before adding the first issue. If `flowcharge/` is missing, run `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --init` to create it. If the workstream folder is missing, run `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --new-ws <slug> --title "<title>"` to create it; `--new-ws` already writes that workstream's `workstream.md` record, whose body still needs filling in per CONVENTIONS.md.
 
@@ -187,7 +187,7 @@ Conversely, the issue's `tasks` key should be updated to reference the task list
 - Done/dropped issues remain in the file. Never delete them.
 - When closing an issue, set `status` to `done` or `dropped`, mark `[x]`, and populate `notes` with a brief resolution summary.
 - When a task is created to address an issue, update the issue's `status` to `in-progress` and add the task reference to `tasks`.
-- When a task's `self_eval.passed` becomes true for all tasks linked to an issue, update the issue's `status` to `done`.
+- When every task linked to an issue has `self_eval.passed: true`, judge whether the defect is fixed: set `status` to `done` only then. A partial fix leaves the issue open.
 - When every issue is `done` or `dropped`, set the file's frontmatter `status` to `done`.
 - Bump the frontmatter `updated` date on every edit, and regenerate the index (command above) after the edit lands.
 - Preserve all existing content, ordering, indentation, and metadata exactly when editing.
@@ -231,33 +231,31 @@ START=$(grep -n "ISS-14-t1k4n8" file.md | head -1 | cut -d: -f1)
 sed -n "${START},$((START+40))p" file.md
 ```
 
-### Writing (patch)
+### Writing (SEARCH/REPLACE)
 
-1. `grep -n` to get line number → `sed -n` to read exact current content → write diff → apply.
-2. Always include 3 lines of context above and below changes.
-3. Dry-run before applying: `patch -p1 --dry-run < fix.patch`
-4. If patch rejects, re-read file (lines may have shifted) and regenerate diff.
-5. Never patch a file not re-read since last write in this session.
+1. `grep -n` to get line number → `sed -n` to read exact current content → write a SEARCH/REPLACE block.
+2. The SEARCH section must match existing content exactly, including whitespace and indentation.
+3. Include just enough surrounding lines in SEARCH to make the match unique within the file.
+4. Apply the block using the coding tool's native file-editing capability. Do not shell out to `patch` or `git apply`.
+5. If the edit fails (SEARCH text not found or matches multiple locations), re-read the file (lines may have shifted) and regenerate the block against current content.
+6. Never generate a block against a file not re-read since the last write in this session.
 
-**Apply inline:**
+**Block format:**
 
-```bash
-patch -p1 <<'EOF'
---- a/flowcharge/workstreams/{{WS-N-SUFFIX}}-{{slug}}/IL-3-k9d2s5-issuelist.md
-+++ b/flowcharge/workstreams/{{WS-N-SUFFIX}}-{{slug}}/IL-3-k9d2s5-issuelist.md
-@@ -122,4 +122,4 @@
--- [ ] ISS-14-t1k4n8. Some issue title
-+- [x] ISS-14-t1k4n8. Some issue title
-EOF
 ```
-
-**`@@` offset** = line number from `grep -n`.
+flowcharge/workstreams/{{WS-N-SUFFIX}}-{{slug}}/IL-3-k9d2s5-issuelist.md
+<<<<<<< SEARCH
+- [ ] ISS-14-t1k4n8. Some issue title
+=======
+- [x] ISS-14-t1k4n8. Some issue title
+>>>>>>> REPLACE
+```
 
 ---
 
 ## Housekeeping: Completion & the Index
 
-There is no per-file archive sweep and no `_done/` folder in FlowCharge Core. Files never move individually. (A fully completed workstream may later be archived wholesale, folder and all, to `flowcharge/archive/<slug>/`, an explicit, user-directed act covered by CONVENTIONS.md, not by this skill.) Housekeeping is:
+There is no per-file archive sweep and no `_done/` folder in FlowCharge Core. Files never move individually. (A fully completed workstream may later be archived wholesale, folder and all, to `flowcharge/archive/<WS-N-SUFFIX>-<slug>/`, an explicit, user-directed act covered by CONVENTIONS.md, not by this skill.) Housekeeping is:
 
 1. **Close out**: when no issue is left outside `done`/`dropped`, set the file's frontmatter `status: done` and bump `updated`.
 2. **Regenerate**: run the index generator. Its Attention section is the reconcile report. It flags issue lists with no open issues whose status is not yet `done`, checkbox/status disagreements, registry drift, and items left stale by an `in-progress` status or a `blocked` reason. Closing flagged lists is **your** job under the rules above, confirmed with the user. An issue may legitimately stay open with its task done when the fix was partial.

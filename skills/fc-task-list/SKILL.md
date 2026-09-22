@@ -17,6 +17,8 @@ Use this whenever you need to read, create, update, or delete tasks in a FlowCha
 
 The FlowCharge Core data model (layout, IDs, frontmatter, status lifecycle, index generation) lives in `<skills-dir>/flowcharge/CONVENTIONS.md`; this skill restates the parts task lists need. Where they disagree, CONVENTIONS.md wins.
 
+Spawned without a user, by a flowcharge pipeline, the spawn prompt answers every question this skill would ask a user (mode, smoke tests); follow it and ask nothing.
+
 ## Content
 
 ### Storage: workstream folders
@@ -321,7 +323,7 @@ When generating a task that adds/changes a class or method with externally obser
   - When all subtasks of a parent are completed, mark the parent task as completed too.
 - Only add tasks that don't already exist in the file.
 - Mark complete by switching `[ ]` → `[x]`.
-- When every task line is `[x]`, set the frontmatter `status` to `done`.
+- When every task line is `[x]`, set the frontmatter `status` to `done`. Inside a flowcharge pipeline the orchestrator or `--sync` does this; an executor spawn changes no frontmatter key but `updated`.
 - Bump the frontmatter `updated` date on every edit, and regenerate the index (command above) after the edit lands.
 - Preserve all existing content, ordering, indentation, and metadata exactly.
 - Never record a model, vendor, product, or tier name in a task file. Mode captures the instruction format; that is the only distinction the file needs.
@@ -401,9 +403,9 @@ flowcharge/workstreams/{{WS-N-SUFFIX}}-{{slug}}/TL-4-a3x9k2-tasklist.md
 
 ## Housekeeping: Completion & the Index
 
-There is no per-file archive sweep and no `_done/` folder in FlowCharge Core. Files never move individually. (A fully completed workstream may later be archived wholesale, folder and all, to `flowcharge/archive/<slug>/`, an explicit, user-directed act covered by CONVENTIONS.md, not by this skill.) Housekeeping is:
+There is no per-file archive sweep and no `_done/` folder in FlowCharge Core. Files never move individually. (A fully completed workstream may later be archived wholesale, folder and all, to `flowcharge/archive/<WS-N-SUFFIX>-<slug>/`, an explicit, user-directed act covered by CONVENTIONS.md, not by this skill.) Housekeeping is:
 
-1. **Close out**: when no open task line is left (`- [ ] N.` for parent/adult, `  - [ ] N.M` for child: real task-tracker lines only, not unchecked-looking bullets embedded in prose such as a "Definition of Done" inside a task's body), set the frontmatter `status: done` and bump `updated`. If a done file gets a new open task, set it back to `ready` or `in-progress`.
+1. **Close out**: when no open task line is left (`- [ ] N.` for parent/adult, `  - [ ] N.M` for child: real task-tracker lines only, not unchecked-looking bullets embedded in prose such as a "Definition of Done" inside a task's body), set the frontmatter `status: done` and bump `updated` (in a pipeline, the orchestrator's or `--sync`'s job, per Rules). If a done file gets a new open task, set it back to `ready` or `in-progress`.
 2. **Regenerate**: run the index generator. Its Attention section flags task lists whose tasks are all checked but whose status is not yet `done`, and files left stale by an `in-progress` status or a `blocked` reason.
 3. **Compaction on completion (diff mode).** Once a diff-mode file is `done`, its SEARCH/REPLACE blocks are dead weight. The applied changes now live in git history, and the blocks no longer match anything. Offer to compact it: keep the frontmatter, feature summary, the task lines with their `[x]` status, each `description`, `issues`, and `self_eval`, and record the commit SHAs; drop the `implement` blocks. Never compact without the user's confirmation, and never compact a file that still has open tasks.
 4. **Never hand-edit** `index.md` or `kanban.md`. They are generated views; frontmatter here is the source of truth.

@@ -51,7 +51,9 @@ ordered list of phases, each small enough to finish and verify in one sitting.
 
 Two hard stops are built in: one at intake if there are blocking questions, one at the
 approach prompt (always). Do not skip the approach prompt even when the answer seems
-obvious. The user approving the direction is the point.
+obvious. The user approving the direction is the point. Spawned without a user, by a
+flowcharge pipeline, the spawn prompt answers every stop and question here; follow it
+and ask nothing.
 
 ### Step 1: Requirement intake
 
@@ -129,9 +131,10 @@ is the plan's own claimed `PLN-N-SUFFIX` id.
 It opens with YAML frontmatter (flat keys and inline arrays only,
 never a fenced metadata block after the H1) carrying `id`, `type: plan`,
 `workstream`, `slug`, `title`, `status`, `created`, `updated`, `depends_on`,
-`links`, and `author`.
+`links`, `author`, and `base_commit` (HEAD's short SHA, from
+`git rev-parse --short HEAD`).
 
-`id` is a `PLN-N` claimed by running
+`id` is a `PLN-N-SUFFIX` claimed by running
 `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --claim PLN`
 and using the printed id verbatim before creating the plan. `status` uses the one enum (
 `backlog | ready | in-progress | done | dropped`) and a freshly
@@ -339,8 +342,8 @@ memory). Mapping:
 
 - Feature file: `flowcharge/workstreams/<WS-N-SUFFIX>-<slug>/<TL-id>-tasklist.md`, reusing the
   plan's own workstream folder and slug, with the plan's Summary as the feature
-  summary block, and its `TL-N` id claimed with the same `--claim` command
-  (`TL` type) the same way the plan's `PLN-N` was claimed above.
+  summary block, and its `TL-N-SUFFIX` id claimed with the same `--claim` command
+  (`TL` type) the same way the plan's `PLN-N-SUFFIX` was claimed above.
 - Each **stage** becomes a parent task (`description` only).
 - The task skill decomposes each stage into child tasks, derived from the
   stage's goal, the plan's Design contracts, and the acceptance criteria. The
