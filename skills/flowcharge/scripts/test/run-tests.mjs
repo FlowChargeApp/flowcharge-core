@@ -1941,6 +1941,65 @@ testCase('an unresolved issues target on a child task line names the child numbe
   });
 });
 
+// ---- cases: mini-shape audit (checkMiniTasks) ------------------------------
+// A mini task carries verify: and no checklist:. taskLine() carries no YAML, so
+// it reads as neither shape and never trips the audit.
+
+const miniTask = (n, pattern) =>
+  `- [ ] ${n}. Fixture mini task\n  pattern: "${pattern}"\n  verify:\n    - "grep -c x file"\n`;
+const miniChild = (n, pattern) =>
+  `  - [ ] ${n} Fixture mini child\n    pattern: "${pattern}"\n    verify:\n      - "grep -c x file"\n`;
+const fullTask = (n, pattern) =>
+  `- [ ] ${n}. Fixture full task\n  pattern: "${pattern}"\n  verify:\n    - "grep -c x file"\n  checklist:\n    - "source: x"\n`;
+
+testCase('a mini task whose pattern names two files warns', () => {
+  withFixture(baseTree({
+    [TL1]: tasklist({ id: 'TL-1-abcdef', tasks: [miniTask(1, 'src/a.ts, src/b.ts')] }),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, [`TL-1-abcdef (${TL1}) task 1: mini shape but pattern names more than one file`]);
+  });
+});
+
+testCase('a mini task whose pattern is a glob warns the same way', () => {
+  withFixture(baseTree({
+    [TL1]: tasklist({ id: 'TL-1-abcdef', tasks: [miniTask(1, 'src/**/*.ts')] }),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, [`TL-1-abcdef (${TL1}) task 1: mini shape but pattern names more than one file`]);
+  });
+});
+
+testCase('a mini task with a child line beneath it warns', () => {
+  withFixture(baseTree({
+    [TL1]: tasklist({ id: 'TL-1-abcdef', tasks: [miniTask(1, 'src/a.ts'), miniChild('1.1', 'src/b.ts')] }),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, [`TL-1-abcdef (${TL1}) task 1: mini shape but has sub-tasks`]);
+  });
+});
+
+testCase('clean: a mini adult and a mini child naming one file each warn about nothing', () => {
+  withFixture(baseTree({
+    [TL1]: tasklist({ id: 'TL-1-abcdef', tasks: [miniTask(1, 'src/a.ts'), taskLine(2, false), miniChild('2.1', 'src/b.ts')] }),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, []);
+  });
+});
+
+testCase('clean: a mini task naming a source file and its test file warns about nothing', () => {
+  withFixture(baseTree({
+    [TL1]: tasklist({ id: 'TL-1-abcdef', tasks: [miniTask(1, 'src/a.ts, e2e/a.spec.ts'), miniTask(2, 'src/b.ts, src/b.test.ts')] }),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, []);
+  });
+});
+
+testCase('clean: a full task naming two files is not audited as mini', () => {
+  withFixture(baseTree({
+    [TL1]: tasklist({ id: 'TL-1-abcdef', tasks: [fullTask(1, 'src/a.ts, src/b.ts')] }),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, []);
+  });
+});
+
 testCase('clean: an issues target that resolves warns about nothing', () => {
   withFixture(baseTree({
     [IL1]: issuelist({ id: 'IL-1-abcdef', issues: [issueBlock('ISS-1-abcdef')] }),

@@ -29,9 +29,11 @@ Frontmatter per the fc-plan-feature skill, with `workstream: {ws_id}`, `slug: {s
 
 Allocate the PLN ID by running `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --claim PLN` and using the printed id verbatim.
 
+The run's scale is **{scale}**. When `small`, write the fc-plan-feature skill's small plan: Summary, Scope and one Stage, no other section. If reconnaissance shows the change is not small (a second file beyond the test file, an interface, a schema, a new dependency), write the full plan and say so in your return.
+
 You are running without a user, so answer the skill's prompts yourself rather than stopping at them:
 
-- Do not stop for blocking questions, or for deployment and release constraints. Take the most reasonable reading, state it in the plan as an explicit assumption in the plan's Scope section, and raise a would-have-asked item as an Open question only where a wrong answer is not recoverable by a later follow-up change.
+- Do not stop for blocking questions, or for deployment and release constraints. Take the most reasonable reading, state it in the plan as an explicit assumption in the plan's Scope section, and raise a would-have-asked item as an Open question only where a wrong answer is not recoverable by a later follow-up change. State a deployment or release assumption only where the plan touches data, an API or the release path.
 - Do not stop for approach approval. Weigh the candidate approaches, commit to one, and record the alternatives and why you rejected them in the plan.
 - Never invent a requirement to fill a gap. Anything Context leaves unsettled is an assumption or an open question, recorded as one.
 - A value Context does not supply (copy, palette, typography, layout, config, schema) is yours to decide, not a requirement: state it in the plan's Content specification or Design, record it under assumptions, and raise it as an Open question only where a wrong choice is not recoverable. A task list is never the first place a value appears.
@@ -53,6 +55,7 @@ The file is **{mode} mode**. Do not ask which mode to use and do not add smoke-t
 Mirror the plan's scope, design and stage order; the decomposition into tasks is yours:
 
 * One parent task per plan stage, in the plan's order. Decompose each stage into atomic child tasks yourself, derived from the stage's goal, the plan's Design contracts and Content specification values, and its acceptance criteria; the plan carries no per-task detail to copy. Atomic per the fc-task-list skill: one file, one coherent change, one verify sequence, and in diff mode one SEARCH/REPLACE block; plus, per the skill, at most one verification-only child on a stage that produces a UI or a running service.
+* Shape each task per the skill's Mini shape: write `description`, `pattern`, `implement` and `verify` first, run its test, and add the full keys only where the test makes the task full. No key is optional.
 * Cover every stage. This plan exists because partial implementation is the failure mode, and an untasked stage is how that happens.
 * Carry the plan's acceptance criteria into the tasks that satisfy them, as `verify` steps or `checklist` items, keeping the plan's own measurable form (e.g. a grep that must return zero). Tag every checklist item per the skill's Evidence classes. Turn the plan's Testing-strategy review criteria into `rendered` items carrying the plan's thresholds, on the verification-only child where one exists. Where the frontmatter records no tooling for an item's class, author it as `source` or `[unverified-by-execution]`, per the skill.
 * Honour the plan's exclusions: anything it says a change must not touch stays untouched. Build what the plan specifies and nothing beyond it: no extra abstractions, options, or capabilities you judge would help.

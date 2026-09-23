@@ -412,20 +412,23 @@ function parseIssues(text, file) {
 
 // Task-tracker lines only: "- [ ] N." (parent/adult), "  - [ ] N.M" (child).
 // Returns the open/total counts the index and --list render, plus one item per
-// task carrying its number as written and the ids of its issues: key. An
-// issues: entry belongs to the last task line seen above it, which is how the
-// key is written in task YAML; an empty array contributes no id.
+// task carrying its number as written, the ids of its issues: key, the shape
+// keys the mini audit reads (pattern:, verify:, checklist:), the pattern value,
+// and whether a child line sits beneath it. An indented key belongs to the last
+// task line seen above it, which is how task YAML is written; an empty issues
+// array contributes no id.
 function parseTasks(text) {
   let open = 0, total = 0;
   const items = [];
-  let current = null;
+  let current = null, lastTop = null;
   for (const line of text.split(/\r?\n/)) {
     const t = line.match(/^- \[( |x)\] (\d+)\./) || line.match(/^\s{2}- \[( |x)\] (\d+\.\d+)/);
     if (t) {
       total++;
       if (/\[ \]/.test(line.slice(0, 8))) open++;
-      current = { n: t[2], issues: [] };
+      current = { n: t[2], issues: [], keys: new Set(), pattern: '', hasChildren: false };
       items.push(current);
+      if (t[2].includes('.')) { if (lastTop) lastTop.hasChildren = true; } else lastTop = current;
       continue;
     }
     if (!current) continue;
@@ -436,8 +439,36 @@ function parseTasks(text) {
         if (v) current.issues.push(v);
       }
     }
+    const km = line.match(/^\s+(pattern|verify|checklist):\s*(.*)$/);
+    if (km) {
+      current.keys.add(km[1]);
+      if (km[1] === 'pattern') current.pattern = unquoteScalar(km[2].trim());
+    }
   }
   return { open, total, items };
+}
+
+// The mini-shape audit fc-task-list's Mini shape names. A mini task carries
+// verify: and no checklist:; a parent carries neither and a full task both. Two
+// misuses are visible to a scan without reading the skill's test: a pattern
+// naming more than one non-test file (two path-like tokens, or a glob), and a
+// child line beneath the task. A path-like token holds a slash or a dot plus at
+// least one word character, so a bare full stop in prose is not a file. A test
+// file for the same change does not count, per the skill's mini test: one
+// under a test-style directory or named *.test.* / *.spec.*.
+const TEST_FILE_RE = /(^|\/)(tests?|specs?|e2e|__tests__)\/|\.(test|spec)\.[\w.]+$/;
+function checkMiniTasks(a) {
+  const out = [];
+  for (const t of a.tasks.items) {
+    if (!t.keys.has('verify') || t.keys.has('checklist')) continue;
+    const files = (t.pattern.match(/[\w*?{}.\/\\-]+/g) || []).filter((tok) => /[\/.]/.test(tok) && /\w/.test(tok));
+    const sources = files.filter((f) => !TEST_FILE_RE.test(f));
+    if (sources.length > 1 || files.some((f) => /[*?{]/.test(f))) {
+      out.push(`${a.id} (${a.file}) task ${t.n}: mini shape but pattern names more than one file`);
+    }
+    if (t.hasChildren) out.push(`${a.id} (${a.file}) task ${t.n}: mini shape but has sub-tasks`);
+  }
+  return out;
 }
 
 // ---- schema and shape ------------------------------------------------------
@@ -508,6 +539,7 @@ function checkShape(a) {
   if (foundPrefix && foundPrefix !== a.id) {
     out.push(`${a.id} (${a.file}): filename id-prefix "${foundPrefix}" disagrees with frontmatter id "${a.id}"`);
   }
+  if (a.type === 'tasklist' && a.tasks) out.push(...checkMiniTasks(a));
   if (a.type !== 'workstream') return out;
   // A record with no slug key falls back to its folder name, which would make
   // the comparison compare the folder against itself plus a prefix. The missing

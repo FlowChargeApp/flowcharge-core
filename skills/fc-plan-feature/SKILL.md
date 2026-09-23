@@ -125,7 +125,8 @@ everything in real paths and code found in Step 2.
 ### Step 5: Deliver and stop
 
 Output the plan in chat and finish. The plan file described below is the
-deliverable. Close with the short final summary (see below) and one standing
+deliverable. Close with a two-line recap in chat (stage count and effort; open
+questions needing an answer) and one standing
 offer: emit the task breakdown as a task list, on request. Then stop. No
 implementation, no scaffolding, no "shall I start on phase 1".
 
@@ -162,7 +163,7 @@ which wins where this skill's prose disagrees.
 
 ## Required plan structure
 
-The sections below, plus the Final summary recap, are the plan's only top-level
+The sections below are the plan's only top-level
 sections. Never invent another. Material that fits no section either belongs to
 the plan's linked appendix file (see Alternatives) or is left out. The plan
 states decisions as facts, never as its own authoring history: no reference to
@@ -175,25 +176,34 @@ once, never restate, justify, or explain what a section already carries.
 Before finishing, check the acceptance criteria pairwise for
 contradiction: resolve it, or flag it under Open questions.
 
+**One home per fact.** Each fact or decision is stated in exactly one section:
+Design states the decision, Alternatives states what was rejected and why, Scope's
+assumptions state the premise. Summary and every other section point at it, never
+restate it.
+
+**Empty sections are forbidden.** Key flows, Data & compatibility, Non-functional
+requirements, Open questions and Adjacent opportunities are omitted entirely when
+they have nothing to say. Never write a section to say "none", "not needed" or
+"no change".
+
+**Small plan.** For a request that names one existing file or element (its test file does not count), one value or behaviour to change, and no new file, interface, schema or dependency, write Summary, Scope and Stages (one stage) only; the decided value sits in Scope, and every rule above still applies. The flowcharge pipeline decides this once per run; a user may ask for it. Where reconnaissance shows the change is not small, write the full plan and say why.
+
 Use these sections, in this order:
 
 - **Summary.** The problem, who it is for, what success looks like, the chosen
-  approach, and why, one line each.
-- **Requirements.** Every capability the feature needs, one per line, uncapped,
-  tiered Must / Should / Could / Won't (this release). State the capability, never
-  how it is built. Must rows are what the brief demands; Won't rows make each
-  deferral explicit.
+  approach, and the top risk, one line each.
 - **Scope.** In-scope behavior as acceptance criteria (concrete, testable
   statements: "a user who X sees Y", not "improve the X experience"), each tagged
-  with the Requirements row it tests; out-of-scope items; assumptions the user
-  confirmed vs assumptions still open, including every value decided under the
-  hard rule above. One criterion per Must row, plus one per edge case that changes
-  observable behavior; a criterion testing a Should or Could row is marked
-  conditional. One line each, no sub-bullets. A criterion that needs commands or
+  Must, Should or Could; one criterion per capability the brief demands, plus one
+  per edge case that changes observable behavior; a Should or Could criterion is
+  marked conditional. A Won't list only where a deferral genuinely needs
+  recording, one line each. Out-of-scope items. Assumptions the user confirmed vs
+  assumptions still open, including every value decided under the hard rule above.
+  One line each, no sub-bullets. A criterion that needs commands or
   multi-line mechanics states the outcome here and leaves the mechanics to the
   matching task's verification in the task list.
-- **Key flows.** Only where the feature has user-visible behavior; omit the
-  section otherwise. One short block per flow, inline bold labels, no
+- **Key flows.** Only where the feature has user-visible behavior beyond what
+  the criteria already state. One short block per flow, inline bold labels, no
   subheadings: **<Flow name>**: **Actor:** … **Preconditions:** … **Main
   flow:** … **Outcome:** … **Edge cases:** … Edge-case behavior is narrated here;
   one that changes observable behavior also gets its one criterion in Scope.
@@ -221,13 +231,14 @@ Use these sections, in this order:
   line also names the content block it lands. No per-task detail. Files
   touched, effort, and verify steps belong to the task list, whose skill
   decomposes each stage.
-- **Data & compatibility.** Migrations needed; backward compatibility with existing
+- **Data & compatibility.** Only where the feature touches data, an API or the
+  release path: migrations needed; backward compatibility with existing
   data, APIs, and clients; the rollback story if the feature must be pulled after
   partial or full rollout.
-- **Non-functional requirements.** Performance, security, accessibility,
-  observability and platform support, proportionally (see Non-functional
-  requirements under Planning principles). Behavioral targets, never
-  implementation.
+- **Non-functional requirements.** Only where one applies: performance, security,
+  accessibility, observability and platform support, proportionally (see
+  Non-functional requirements under Planning principles). Behavioral targets,
+  never implementation.
 - **Testing strategy.** What gets unit vs integration coverage, per stage. This is
   a pointer for a later test-writing pass (the write-tests skill), not the tests
   themselves. For a content deliverable, review criteria instead: what a reviewer
@@ -237,15 +248,13 @@ Use these sections, in this order:
 - **Open questions.** Genuine unknowns only, each with the options and your
   recommendation. A routine detail left open is not a question: pick a
   well-accepted default, write the body as settled, and record the choice under
-  assumptions where it can be challenged. An empty section is the correct outcome
-  where no genuine unknown remains; padding it is not.
+  assumptions where it can be challenged.
 - **Adjacent opportunities.** At most 3, one line each: reasonable nice-to-have
   features near this work that the request did not ask for, each closed with a
   build-now or skip recommendation. Label them as not requested (never present
   one as a requirement) and write none into a phase, criterion or contract: they
   are offers the user may promote in a later revision, and this rule adds no
-  approval stop to the workflow. Omitting the section when nothing genuine comes
-  up is correct; padding it is not.
+  approval stop to the workflow.
 - **Alternatives considered and rejected.** Design alternatives a reader of the
   finished plan could reasonably propose, each with the reason it was not taken.
   At most 5, one line each; a bullet's sub-bullets count against the cap. Fuller
@@ -253,12 +262,6 @@ Use these sections, in this order:
   appendix file: `<PLN-id>-appendix.md` beside the plan, linked from this
   section. The appendix is reference material for a human; downstream agents read
   the plan, never the appendix, and reconnaissance is never a plan section.
-
-### Final summary
-
-End with a short recap the user can act on without rereading: the chosen approach in
-one line, stage count and effort ballpark, the top 2-3 risks, and the open
-questions that need their answer. Keep it under ~10 lines.
 
 ## Planning principles
 
@@ -348,8 +351,8 @@ Never break existing consumers silently. Additive over destructive.
 ### Non-functional requirements
 
 Address performance, security, and observability proportionally to the feature:
-real analysis where it matters, one line where it doesn't. Never write text that
-would fit any feature.
+real analysis where it matters, one line where it matters little, no section where
+none applies. Never write text that would fit any feature.
 
 - A new public endpoint: who is authorized to call it, and where input validation
   happens, named in the plan, at the same boundary the codebase already uses.

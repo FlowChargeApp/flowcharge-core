@@ -340,7 +340,7 @@ Each operation names its template, its slots, what it consumes, and what it retu
 | Operation | Template | Slots | Consumes | Returns |
 |---|---|---|---|---|
 | investigate | `templates/investigate.md` | `{{context docs}}`, `{{investigation}}` | question from the request | findings summary |
-| plan-and-tasks | `templates/plan-and-tasks.md` | `{stages}`, `{mode}`, `{plan}`, `{ws_dir}`, `{ws_id}`, `{slug}`, `{{context docs}}`, `{{briefing}}` | feature description, or investigate findings; a plan path in `{plan}` when `{stages}` is `tasks-only` | plan path, summary, open questions, task list path, stage→task map |
+| plan-and-tasks | `templates/plan-and-tasks.md` | `{stages}`, `{scale}`, `{mode}`, `{plan}`, `{ws_dir}`, `{ws_id}`, `{slug}`, `{{context docs}}`, `{{briefing}}` | feature description, or investigate findings; a plan path in `{plan}` when `{stages}` is `tasks-only` | plan path, summary, open questions, task list path, stage→task map |
 | issues-and-tasks | `templates/issues-and-tasks.md` | `{stages}`, `{mode}`, `{issuelist}`, `{ws_dir}`, `{ws_id}`, `{slug}`, `{{context docs}}`, `{{briefing}}` | findings the user supplies; an issue list path in `{issuelist}` when `{stages}` is `tasks-only` | issue list path, ISS IDs, task list path, ISS→task map |
 | validate | `templates/validate.md` | `{stages}`, `{role}`, `{upstream}`, `{upstream_path}`, `{tasklist}`, `{ws_dir}`, `{{context docs}}`, `{{source material}}` | both artefacts the authoring stage returned, plus the source it authored from | one summary line per comparison, plus any open finding; correction detail withheld |
 | execute-tasks | `templates/execute-parent-task.md` (one spawn per parent task) | `{tasklist}`, `{{parent task number}}`, `{{context docs}}`, `{{briefing}}` | task list path, **PROMPTED**, deps checked per rule 5 | per-task applied/aborted status, self_eval |
@@ -352,6 +352,7 @@ Each operation names its template, its slots, what it consumes, and what it retu
 Notes:
 
 - **`{mode}`**: `spec` or `diff`, per hard rule 9.
+- **`{scale}`**: `small` or `standard`, per "Parsing the request".
 - **`{{context docs}}`**: the same shared Context-section block in every template;
   resolve it once per run and reuse it verbatim in every spawn. It resolves to this
   project's own structural or reference documentation as repo-relative paths, one line
@@ -467,6 +468,12 @@ Rules of interpretation:
 - If an input artefact is ambiguous (two candidate issue lists, no plan named),
   check `index.md` first: it names every artefact with its status and
   workstream; regenerate it if stale. Ask only if it stays undecidable.
+- **Scale, decided once.** From the request's words alone, before the first spawn:
+  `small` when it names one existing file or element (its test file does not
+  count), one value or behaviour to change, and no new file, interface, schema or
+  dependency; otherwise, or when unsure, `standard`. Fill `{scale}` with it and state it in one line before
+  starting. Never revisit it: a subagent that finds more promotes its own artefact
+  (the full plan, the full task shape) and reports it.
 - Every run belongs to a workstream: an existing `flowcharge/workstreams/WS-N-SUFFIX-<slug>/` folder, or a new
   one you create (see FlowCharge Core upkeep). The workstream is the unit the board tracks.
   `backlog-add` is the exception: its output is new backlog workstreams that the

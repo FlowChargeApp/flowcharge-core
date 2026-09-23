@@ -117,8 +117,8 @@ A pre-written SEARCH/REPLACE block is only valid against the code it was authore
 ### Three task types
 
 - **Parent.** Category heading only. Has child tasks. Only has `description` in its YAML metadata. Not directly actionable.
-- **Adult.** Standalone, childless task. Has the full set of YAML metadata keys.
-- **Child.** Belongs to a parent task. Has the full set of YAML metadata keys. Numbered as `N.M` (e.g. `2.1`, `2.2`).
+- **Adult.** Standalone, childless task. Full or mini shape (see **Mini shape**).
+- **Child.** Belongs to a parent task. Full or mini shape. Numbered as `N.M` (e.g. `2.1`, `2.2`).
 
 ### Task List Format
 
@@ -185,7 +185,21 @@ Each file follows this structure (after the file frontmatter):
       unverified: []
       failures: []
     ```
-  - [x] 2.2 Completed child task / subtask
+  - [ ] 2.2 Mini child task (see Mini shape)
+    ```yaml
+    description: "One change in one existing file"
+    pattern: "src/one/file.ts"
+    implement:
+      - "Anchor and the change"
+    verify:
+      - "Command with an unambiguous pass/fail"
+    self_eval:
+      passed: false
+      evidence: []
+      unverified: []
+      failures: []
+    ```
+  - [x] 2.3 Completed child task / subtask
 
 - [x] 3. Completed parent task
 
@@ -256,18 +270,18 @@ Every task includes an indented YAML block immediately after the task line. Thes
 - `compatibility`: required design patterns, package versions, or compatibility constraints
 - `gotcha`: likely pitfalls, edge cases, or foreseeable issues
 - `verify`: **ordered list** of verification steps. The first item is the primary command or tool. Subsequent items are follow-up checks on the output of the previous step (e.g. inspect a value, hit an endpoint, assert a file exists). Steps are executed in sequence. Later steps may depend on earlier ones succeeding. Every step sits in one tier of **Verify tiers** below. See **Smoke Tests** below for tasks whose output is a class/method with observable state. Each step asserts something specific to the change (a grep, a count, a file-existence check). Add the project's own lint or type-check command alongside, only where the project already has one configured (`package.json` scripts, a Makefile, CI config, `pyproject.toml`, `go.mod`, or equivalent); never invent one, and never issue a command against a project whose toolchain does not match it. Never add a test-suite or build command as a verify step: it asserts nothing about the task, passes before the change as readily as after, and running a suite is the user's own step after execution. **Measure before you write.** Where a step asserts a count, a file's existence, or the presence or absence of a string, run it at `base_commit` before writing it down and record what it actually returned, not what you expect. Where it already passes with nothing changed it does not discriminate: rewrite it until it fails at `base_commit`, or state in the step why it cannot fail there. Rewriting makes the assertion specific to the change; it never deletes the step or weakens what it asserts.
-- `checklist`: 4–6 binary YES/NO criteria derived from `imports`, `compatibility`, `gotcha`, or `pattern`, each opening with its class per **Evidence classes** below
+- `checklist`: full shape only. 4–6 binary YES/NO criteria derived from `imports`, `compatibility`, `gotcha`, or `pattern`, each opening with its class per **Evidence classes** below
 - `self_eval`: post-execution evaluation object with:
   - `passed`: boolean, true only if no checklist item is NO
   - `evidence`: array with one entry per checklist item, in order, each with `item`, `result` (`YES`/`NO`/`NOT CHECKED`) and `measured` (what was observed); `[]` until executed
   - `unverified`: array of NOT CHECKED items, each with `item` and `reason`; `[]` when none
   - `failures`: array of failed checklist items, each with `item`, `reason`, and `fix`
 
-**Parent tasks only have the `description` key**, so never `author`. All other task types (adult, child) have the full set of keys above.
+**Parent tasks only have the `description` key**, so never `author`. All other task types (adult, child) carry the full set of keys above or the mini set (see **Mini shape**); no key is optional in either.
 
 ### Author attribution
 
-Read `author` with `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --whoami` and write the printed line verbatim into the file's frontmatter and every adult and child task's YAML (CONVENTIONS.md, Author attribution).
+Read `author` with `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --whoami` and write the printed line verbatim into the file's frontmatter and every full-shape adult and child task's YAML; a mini task inherits the file's (CONVENTIONS.md, Author attribution).
 
 ### Where the detail sits, by mode
 
@@ -285,6 +299,17 @@ tasks are derived from that stage's goal, the plan's Design contracts and Conten
 specification values, and its acceptance criteria. The plan carries no per-task
 detail to copy. A list authored
 from an issue list is unaffected.
+
+### Mini shape
+
+Every adult or child task takes one of two shapes, decided by a test on its own content, never by preference. Write `description`, `pattern`, `implement` and `verify` first, then test. The task is **full** if any one holds, else **mini**:
+
+1. `pattern` names more than one file (a test file for the same change does not count: one under a `test`, `tests`, `spec`, `specs`, `e2e` or `__tests__` directory, or named `*.test.*` / `*.spec.*`), or a file the task creates or deletes.
+2. `implement` changes more than one anchor (function, symbol or region) in the file.
+3. The change needs a new dependency, module or component (`imports` would be non-empty).
+4. `verify` has no step with an unambiguous pass/fail.
+
+Mini carries `description`, `pattern`, `implement`, `verify` and `self_eval`, plus `issues` only when non-empty and `mode` only as an override; every other key is forbidden. Full carries every key; none is optional. A mini task is a leaf: it never has children. The verification-only child is always full. In a mini task `verify` is the checklist: `self_eval.evidence` holds one entry per `verify` step, classed by the step's tier (static is `source`; a probe is `runtime` or `rendered` as the step states). `fc-index.mjs --check` flags a mini task whose `pattern` names more than one file or that has sub-tasks.
 
 ### Evidence classes
 
@@ -312,6 +337,8 @@ After each task is executed, evaluate every checklist item as YES, NO or NOT CHE
 
 A diff-mode task whose SEARCH block failed to match is **not** a checklist failure. Handle it per the **Diff-mode staleness guard**: if the block was re-anchored, note that in `self_eval` as a `reanchored` entry (`item`, `expected`, `found`, `resolution`). The task may still pass, but the re-anchoring must be visible in the result, never folded silently into a green task. If the anchor was gone or its meaning had changed, leave the task unchecked, record the mismatch in `self_eval.failures`, and stop.
 
+A mini task that turns out to need a design decision (an approach to choose, a second file, a new dependency) is **promoted**: the executor rewrites it into the full shape in place, records a `promoted` entry in `self_eval` (`item`, `reason`), names it in the result, then executes the full shape. Never silently.
+
 ### Smoke Tests
 
 A smoke test is a minimal script that instantiates/calls the changed code with concrete inputs and asserts a concrete expected output/state, proving it runs and does the basic thing, without a full test suite.
@@ -334,9 +361,10 @@ When generating a task that adds/changes a class or method with externally obser
 - Tasks may include an inline description: `1. Task name (description)`
 - If a task has child tasks, it is a parent task (see **Three task types**).
   - If a task's scope is large, break it down into atomic child tasks.
-  - **Atomic = one file, one coherent change, provable by a single `verify` sequence.** In `diff` mode, additionally: **one SEARCH/REPLACE block**. Split multi-file changes into separate child tasks in either mode.
+  - **Atomic = one file, one coherent change, provable by a single `verify` sequence.** A source file and its test file for the same change count as one. In `diff` mode, additionally: **one SEARCH/REPLACE block**. Split multi-file changes into separate child tasks in either mode.
   - **Verification-only child.** The one exception to one-file: a child whose whole body is a `verify` sequence of probes, with no `pattern` and an `implement` of one step, "no edit; run `verify`". At most one per parent whose plan stage produces a UI or a running service, numbered last among that parent's children; its checklist holds the stage's `runtime` and `rendered` items.
   - If a task's scope is already atomic, keep it as a parent-level adult task.
+  - A mini task is a leaf and never a parent (see **Mini shape**).
   - When all subtasks of a parent are completed, mark the parent task as completed too.
 - Only add tasks that don't already exist in the file.
 - Mark complete by switching `[ ]` → `[x]`.

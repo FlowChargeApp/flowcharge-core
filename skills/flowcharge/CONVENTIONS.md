@@ -296,7 +296,7 @@ author's intent, not the file's shape, so documented guidance is its only defenc
 kinds: the four artefact kinds above in their frontmatter (`workstream`, `plan`,
 `issuelist`, `tasklist`), plus each issue inside an issue list and each adult or
 child task inside a task list, in that item's own YAML. Parent tasks keep the
-description-only rule and take no `author`. Read the value from the generator at
+description-only rule and take no `author`; a mini-shape task inherits the file's. Read the value from the generator at
 authoring time and write the printed line verbatim:
 
 ```bash
