@@ -326,8 +326,8 @@ A `runtime` or `rendered` item names, in square brackets before the colon, the `
 Each `verify` step sits in one tier:
 
 - **Static.** Always allowed: the project's configured lint or type-check, grep, counts, file-existence checks, reading a named file.
-- **Probe.** Allowed, at most one per task: a task-scoped runtime probe. Start the program with the frontmatter `runtime`, load one page, send one request or run one command, read the concrete result (status, output, measurement), then stop it. State the exact command, input, viewport or request, and the value expected. A `rendered` probe uses the recorded `e2e_tooling` only. Where the frontmatter records no tooling, no probe step is authored.
-- **Forbidden.** A full test suite, a full build, a deploy, a package install, anything that writes outside a temporary directory.
+- **Probe.** Allowed, at most one per task: a task-scoped runtime probe. Start the program with the frontmatter `runtime`, load one page, send one request or run one command, read the concrete result (status, output, measurement), then stop it. Before the program starts, the step may run the build that the recorded `runtime` itself runs or needs, such as the `prestart` hook behind `npm start`, named by the project's own script (`npm run build`). That build is setup, never evidence. State the exact command, input, viewport or request, and the value expected. A `rendered` probe uses the recorded `e2e_tooling` only. Where the frontmatter records no tooling, no probe step is authored.
+- **Forbidden.** A full test suite, a full build, a deploy, a package install, anything that writes outside a temporary directory. The one exception is a probe's `runtime` setup build (see Probe), which may write the project's own build output.
 
 A probe is not a smoke test: it exercises the running program, where a smoke test is a script calling the changed code.
 
