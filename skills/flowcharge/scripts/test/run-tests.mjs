@@ -4723,12 +4723,12 @@ function describeDanglingPaths(dangling) {
     .join('\n');
 }
 
-// Rule H, the verbatim block. Two spawns can come back with an open question,
+// Rule H, the verbatim block. Two stages can come back with an open question,
 // and the prompt policy can only settle one that arrives in a fixed shape: a
-// question field, a recommendation field, and the sentinel a subagent writes
+// question field, a recommendation field, and the sentinel a stage writes
 // when it cannot recommend anything. The block therefore lives in exactly two
 // canonical copies, one per reader that needs it in context: the plan-and-tasks
-// template, whose subagent loads no skill that carries it, and fc-validate's
+// stage file, which loads no skill that carries it, and fc-validate's
 // SKILL.md, which the validate template points at for its return shape. This
 // rule pins both copies at once.
 //
@@ -4910,8 +4910,11 @@ testCase('both canonical copies of the open-question return block are verbatim',
 // `(CONVENTIONS.md, IDs: Registry)` and `(CONVENTIONS.md, \`workstream\` body)`
 // forms stay out of its reach and are not checked.
 const SINGLE_COPY_PHRASES = [
-  { phrase: 'never open one to describe it', files: ['flowcharge/SKILL.md'] },
-  { phrase: "the authoring subagent's return, its rationale", files: ['flowcharge/SKILL.md'] },
+  // The orchestrator reads the target project itself now that every stage runs
+  // in its session, so the rule that forbade opening a context doc is pinned
+  // deleted.
+  { phrase: 'never open one to describe it', files: [] },
+  { phrase: "the authoring stage's own report, its rationale", files: ['flowcharge/SKILL.md'] },
   { phrase: 'Measure before you write', files: ['fc-task-list/SKILL.md'] },
   { phrase: 'Never add a test-suite or build command', files: ['fc-task-list/SKILL.md'] },
   { phrase: 'prints exactly one line and writes nothing', files: ['flowcharge/CONVENTIONS.md'] },
@@ -5162,6 +5165,95 @@ testCase('fc-validate still carries the correction-direction rule', () => {
     `fc-validate/SKILL.md no longer carries the correction-direction rule, which requires `
     + `the upstream artefact to never be edited to agree with the downstream one:\n  `
     + `${CORRECTION_DIRECTION_RULE}`,
+  );
+});
+
+// ---- cases: inline stage topology ------------------------------------------
+// The orchestrator performs every stage itself, in the session it was loaded
+// into, from the stage files under flowcharge/templates/. No stage is handed to
+// a separate agent. The harness runs no agent, so these static checks pin the
+// prose claims that design rests on: no skill file still describes a spawned
+// stage, hard rule 8 reads as the inline rule, `default_agent` is kept but
+// documented as unused, the four stage files stay separate and use only the
+// slots the Operations table lists for them, no stage file carries a briefing
+// block, and fc-validate carries the discipline an inline validation needs.
+
+const FLOWCHARGE_SKILL = path.join(SKILLS_ROOT, 'flowcharge', 'SKILL.md');
+const STAGE_FILES_DIR = path.join(SKILLS_ROOT, 'flowcharge', 'templates');
+const SPAWN_WORD_RE = /(?<![\w-])(spawn\w*|sub-?agents?)(?![\w-])/gi;
+
+function spawnWordOccurrences(sources) {
+  return collectOccurrences((line) => [...line.matchAll(SPAWN_WORD_RE)].map((m) => m[1]), sources);
+}
+
+// Each Operations table row that names a templates/ stage file, with the slot
+// names its Slots column lists.
+function operationsStageRows(text) {
+  const rows = [];
+  for (const line of text.split('\n')) {
+    if (!line.startsWith('| ')) continue;
+    const cols = line.split('|').map((c) => c.trim());
+    const m = /`templates\/([A-Za-z0-9._-]+\.md)`/.exec(cols[2] || '');
+    if (!m) continue;
+    rows.push({ op: cols[1], file: m[1], slots: new Set([...(cols[3] || '').matchAll(/\{([a-z_0-9]+)\}/g)].map((s) => s[1])) });
+  }
+  return rows;
+}
+
+testCase('no skill file describes a stage spawned as a subagent', () => {
+  const sample = spawnWordOccurrences([
+    { file: 'a.md', text: 'spawn a subagent for this stage\nSpawned without a user\nrun it inline' },
+  ]);
+  assert.deepStrictEqual(sample.map((o) => o.text), ['spawn', 'subagent', 'Spawned'], 'the spawn-word matcher missed a form or matched the wrong text');
+  const found = spawnWordOccurrences(skillMarkdownSources());
+  assert.deepStrictEqual(
+    found,
+    [],
+    `a skill file still describes spawning, which contradicts the inline stage design:\n${describeOccurrences(found)}`,
+  );
+});
+
+testCase('hard rule 8 performs each stage inline, and the orchestrator may read the target project', () => {
+  const text = fs.readFileSync(FLOWCHARGE_SKILL, 'utf8').replace(/\s+/g, ' ');
+  assert.ok(text.includes('8. **Perform each stage yourself, in order.**'), 'hard rule 8 no longer tells the orchestrator to perform each stage itself');
+  assert.ok(!text.includes("Never perform a stage's work inline"), "the retired rule forbidding inline stage work is back");
+  assert.ok(!text.includes('read no file outside'), 'the retired rule forbidding the orchestrator from reading the target project is back');
+  assert.ok(text.includes('You read the target project yourself'), '"Parsing the request" no longer says the orchestrator reads the target project');
+});
+
+testCase('default_agent stays a documented key, marked currently unused', () => {
+  const text = fs.readFileSync(FLOWCHARGE_SKILL, 'utf8');
+  assert.ok(text.includes('default_agent: <verbatim string>'), 'the agents.md key list no longer carries default_agent');
+  assert.ok(
+    text.replace(/\s+/g, ' ').includes('`default_agent` in `flowcharge/agents.md` is currently unused'),
+    'hard rule 3 no longer documents default_agent as currently unused',
+  );
+});
+
+testCase('the four stage files stay separate and use only the slots the Operations table lists', () => {
+  for (const name of ['plan-and-tasks.md', 'issues-and-tasks.md', 'validate.md', 'execute-parent-task.md']) {
+    assert.ok(fs.existsSync(path.join(STAGE_FILES_DIR, name)), `the stage file templates/${name} is missing`);
+  }
+  const rows = operationsStageRows(fs.readFileSync(FLOWCHARGE_SKILL, 'utf8'));
+  assert.ok(rows.length >= 6, `the Operations table yielded ${rows.length} stage-file rows, expected at least 6`);
+  const problems = [];
+  for (const row of rows) {
+    const full = path.join(STAGE_FILES_DIR, row.file);
+    if (!fs.existsSync(full)) { problems.push(`${row.op}: templates/${row.file} does not exist`); continue; }
+    const body = fs.readFileSync(full, 'utf8');
+    if (body.includes('{{')) problems.push(`templates/${row.file} still carries a {{...}} briefing block`);
+    for (const m of body.matchAll(/\{([a-z_0-9]+)\}/g)) {
+      if (!row.slots.has(m[1])) problems.push(`templates/${row.file} uses {${m[1]}}, which the ${row.op} row does not list`);
+    }
+  }
+  assert.deepStrictEqual([...new Set(problems)], [], 'a stage file and its Operations row disagree');
+});
+
+testCase('fc-validate carries the discipline for validating an artefact its own session authored', () => {
+  const text = fs.readFileSync(path.join(SKILLS_ROOT, 'fc-validate', 'SKILL.md'), 'utf8').replace(/\s+/g, ' ');
+  assert.ok(
+    text.includes('judge the artefact against its cited source only, never against what you recall intending when you wrote it'),
+    'fc-validate no longer tells an inline validation to judge against the cited source only',
   );
 });
 

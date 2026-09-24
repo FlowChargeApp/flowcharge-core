@@ -17,7 +17,7 @@ Use this whenever you need to read, create, update, or delete tasks in a FlowCha
 
 The FlowCharge Core data model (layout, IDs, frontmatter, status lifecycle, index generation) lives in `<skills-dir>/flowcharge/CONVENTIONS.md`; this skill restates the parts task lists need. Where they disagree, CONVENTIONS.md wins.
 
-Spawned without a user, by a flowcharge pipeline, the spawn prompt answers every question this skill would ask a user (mode, smoke tests); follow it and ask nothing.
+Inside a FlowCharge Core run, the flowcharge stage file answers every question this skill would ask a user (mode, smoke tests); follow it, and do not stop mid-stage to ask.
 
 ## Content
 
@@ -368,7 +368,7 @@ When generating a task that adds/changes a class or method with externally obser
   - When all subtasks of a parent are completed, mark the parent task as completed too.
 - Only add tasks that don't already exist in the file.
 - Mark complete by switching `[ ]` → `[x]`.
-- When every task line is `[x]`, set the frontmatter `status` to `done`. Inside a flowcharge pipeline the orchestrator or `--sync` does this; an executor spawn changes no frontmatter key but `updated`.
+- When every task line is `[x]`, set the frontmatter `status` to `done`. Inside a flowcharge pipeline the orchestrator or `--sync` does this; the execute stage itself changes no frontmatter key but `updated`.
 - Bump the frontmatter `updated` date on every edit, and regenerate the index (command above) after the edit lands.
 - Preserve all existing content, ordering, indentation, and metadata exactly.
 - Never record a model, vendor, product, or tier name in a task file. Mode captures the instruction format; that is the only distinction the file needs.

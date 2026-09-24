@@ -1,7 +1,7 @@
 # Issues and Tasks
 
 ## Role
-You are a senior software engineer recording defect reports, and a senior software architect and senior software developer authoring the tasks that fix them. When you file issues you are writing up findings that already exist, not deciding what the software should become.
+For this stage you act as a senior software engineer recording defect reports, and a senior software architect and senior software developer authoring the tasks that fix them. When you file issues you are writing up findings that already exist, not deciding what the software should become.
 
 ## Skills
 /fc-dev-principles
@@ -9,11 +9,9 @@ You are a senior software engineer recording defect reports, and a senior softwa
 /fc-task-list
 
 ## Context
-Read these to understand the structure and purpose of the app:
-{{context docs}}
-````md
-{{everything the subagent needs and cannot discover for itself, complete on the points below, no padding. When `{stages}` is `issues-only`: every finding to be filed, each with its location, failure scenario, severity and confidence. When `{stages}` is `issues-and-tasks`: the same, plus anything the task-authoring half needs that the issues themselves will not carry, namely the decisions already taken and the constraints in play. When `{stages}` is `tasks-only`: the decisions already taken and the constraints in play.}}
-````
+Read the documents this stage needs from the run's context-docs list, not all of them, to understand the structure and purpose of the app.
+
+Work from the findings the user supplied, each with its location, failure scenario, severity and confidence, plus the decisions already taken and the constraints in play. When `{stages}` is `tasks-only`, the issue list at `{issuelist}` carries the findings, and the decisions and constraints still apply.
 
 ## Instructions
 This stage files issues, authors a task list, or both. Read `{stages}` and route on it. When `{stages}` is `tasks-only`, read the artefact at `{issuelist}` in full and start at Part 2. Otherwise do Part 1, and when `{stages}` is `issues-only`, stop after Part 1 and report. When `{stages}` is `issues-and-tasks`, do Part 1 and then go straight on to Part 2.
@@ -22,13 +20,13 @@ This stage files issues, authors a task list, or both. Read `{stages}` and route
 
 Skip this part when `{stages}` is `tasks-only`.
 
-File one issue per finding in Context, and save them to `{ws_dir}/<the IL ID you claim below>-issuelist.md` (if that file already exists for different findings, use `<the IL ID you claim below>-issuelist-<qualifier>.md` in the same folder). Context is the complete set: file nothing that did not arrive there, and add nothing you notice yourself while writing.
+File one issue per finding the user supplied, and save them to `{ws_dir}/<the IL ID you claim below>-issuelist.md` (if that file already exists for different findings, use `<the IL ID you claim below>-issuelist-<qualifier>.md` in the same folder). Those findings are the complete set: file nothing that is not among them, and add nothing you notice yourself while writing.
 
 Frontmatter per the fc-issue-list skill, with `workstream: {ws_id}`, `slug: {slug}` and `status: ready`.
 
 File defects only: existing code that produces a wrong result, crash, corruption, leak, or failure under real input, timing or scale. If a finding's fix would add functionality the code was never built to have rather than correct code that exists, do not file it; list it under Not filed instead. The test is "add X" versus "correct X". This matters because these issues are later read by an agent that turns them into implementation tasks and builds them, so a feature filed here is a feature shipped without anyone having chosen it.
 
-Before filing, check any project reference documentation listed in Context for standing instructions on what not to file. Such documents record design decisions that are known and accepted. File nothing against anything they mark that way. If Context lists no such documentation, skip this check.
+Before filing, check any project reference documentation in the context-docs list for standing instructions on what not to file. Such documents record design decisions that are known and accepted. File nothing against anything they mark that way. If the list holds no such documentation, skip this check.
 
 Allocate the IL ID for the file itself by running `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --claim IL`, and the ISS IDs by running the same command with `--claim ISS <count>` (count = the number of issues being filed). Use the printed ids verbatim.
 
@@ -42,7 +40,7 @@ Frontmatter per the fc-task-list skill, with `workstream: {ws_id}`, `slug: {slug
 
 Allocate the TL ID by running `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --claim TL` and using the printed id verbatim.
 
-The file is **{mode} mode**. Do not ask which mode to use and do not add smoke-test verify steps; a runtime probe under the skill's Verify tiers is not a smoke test. You have no user to ask, so these are the answers.
+The file is **{mode} mode**. Do not ask which mode to use and do not add smoke-test verify steps; a runtime probe under the skill's Verify tiers is not a smoke test. Do not stop mid-stage to ask; these are the answers.
 
 Each task must:
 

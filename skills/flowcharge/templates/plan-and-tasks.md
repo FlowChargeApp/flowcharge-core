@@ -1,7 +1,7 @@
 # Plan and Tasks
 
 ## Role
-You are a senior software architect and senior software developer.
+For this stage you act as a senior software architect and senior software developer.
 
 ## Skills
 /fc-dev-principles
@@ -10,11 +10,9 @@ You are a senior software architect and senior software developer.
 /fc-task-list
 
 ## Context
-Read these to understand the structure and purpose of the app:
-{{context docs}}
-````md
-{{only what the subagent cannot discover for itself: the request, the decisions already taken, and the constraints on the outcome (scope, compatibility, what must not change). Nothing about how the code is built: no path outside `flowcharge/`, line number or quoted source beyond what the request or a subagent's return supplied; the subagent reads the target project itself. When `{stages}` is `plan-only`: the feature to be planned and why it is wanted, pointing at `{ws_dir}/workstream.md` rather than restating its body, plus those decisions and constraints. When `{stages}` is `plan-and-tasks`: the same, plus anything the task-authoring half needs that the plan itself will not carry. When `{stages}` is `tasks-only`: those decisions and constraints only. Author this fresh; never paste an earlier briefing.}}
-````
+Read the documents this stage needs from the run's context-docs list, not all of them, to understand the structure and purpose of the app.
+
+Work from the request, the decisions already taken, and the constraints on the outcome (scope, compatibility, what must not change). When `{stages}` is `plan-only` or `plan-and-tasks`, the feature to plan is the one the request and `{ws_dir}/workstream.md` describe, and why it is wanted. When `{stages}` is `tasks-only`, the plan at `{plan}` carries the feature, and the decisions and constraints still apply.
 
 ## Instructions
 This stage writes a plan, a task list, or both. Read `{stages}` and route on it. When `{stages}` is `tasks-only`, read the artefact at `{plan}` in full and start at Part 2. Otherwise do Part 1, and when `{stages}` is `plan-only`, stop after Part 1 and report. When `{stages}` is `plan-and-tasks`, do Part 1 and then go straight on to Part 2.
@@ -23,7 +21,7 @@ This stage writes a plan, a task list, or both. Read `{stages}` and route on it.
 
 Skip this part when `{stages}` is `tasks-only`.
 
-Write a plan for the feature described in Context, and save it to `{ws_dir}/<the PLN ID you claim below>-plan.md`. Plan what Context asks for and no more. Do not widen the feature, add capabilities it does not call for, or plan work it does not describe.
+Write a plan for the feature the request describes, and save it to `{ws_dir}/<the PLN ID you claim below>-plan.md`. Plan what the request asks for and no more. Do not widen the feature, add capabilities it does not call for, or plan work it does not describe.
 
 Frontmatter per the fc-plan-feature skill, with `workstream: {ws_id}`, `slug: {slug}`, `status: ready`, `base_commit` from `git rev-parse --short HEAD`, and `depends_on: []`.
 
@@ -31,12 +29,12 @@ Allocate the PLN ID by running `node <skills-dir>/flowcharge/scripts/fc-index.mj
 
 The run's scale is **{scale}**. When `small`, write the fc-plan-feature skill's small plan: Summary, Scope and one Stage, no other section. If reconnaissance shows the change is not small (a second file beyond the test file, an interface, a schema, a new dependency), write the full plan and say so in your return.
 
-You are running without a user, so answer the skill's prompts yourself rather than stopping at them:
+Inside a FlowCharge Core run, do not stop mid-stage at the skill's prompts; answer them yourself:
 
 - Do not stop for blocking questions, or for deployment and release constraints. Take the most reasonable reading, state it in the plan as an explicit assumption in the plan's Scope section, and raise a would-have-asked item as an Open question only where a wrong answer is not recoverable by a later follow-up change. State a deployment or release assumption only where the plan touches data, an API or the release path.
 - Do not stop for approach approval. Weigh the candidate approaches, commit to one, and record the alternatives and why you rejected them in the plan.
-- Never invent a requirement to fill a gap. Anything Context leaves unsettled is an assumption or an open question, recorded as one.
-- A value Context does not supply (copy, palette, typography, layout, config, schema) is yours to decide, not a requirement: state it in the plan's Content specification or Design, record it under assumptions, and raise it as an Open question only where a wrong choice is not recoverable. A task list is never the first place a value appears.
+- Never invent a requirement to fill a gap. Anything the request leaves unsettled is an assumption or an open question, recorded as one.
+- A value the request does not supply (copy, palette, typography, layout, config, schema) is yours to decide, not a requirement: state it in the plan's Content specification or Design, record it under assumptions, and raise it as an Open question only where a wrong choice is not recoverable. A task list is never the first place a value appears.
 
 What you leave unresolved is honoured downstream: Part 2 authors nothing for a stage resting on an open question. Raising a question costs one round trip. A fabricated decision gets built as if the user had chosen it.
 
@@ -50,7 +48,7 @@ Frontmatter per the fc-task-list skill, with `workstream: {ws_id}`, `slug: {slug
 
 Allocate the TL ID by running `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --claim TL` and using the printed id verbatim.
 
-The file is **{mode} mode**. Do not ask which mode to use and do not add smoke-test verify steps; a runtime probe under the skill's Verify tiers is not a smoke test. You have no user to ask, so these are the answers.
+The file is **{mode} mode**. Do not ask which mode to use and do not add smoke-test verify steps; a runtime probe under the skill's Verify tiers is not a smoke test. Do not stop mid-stage to ask; these are the answers.
 
 Mirror the plan's scope, design and stage order; the decomposition into tasks is yours:
 

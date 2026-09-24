@@ -1,17 +1,14 @@
 ## Role
-* You are a senior software architect and senior product owner.
+* For this stage you act as a senior software architect and senior product owner.
 
 ## Skills
 /fc-plain-text-kanban
 Read `<skills-dir>/flowcharge/CONVENTIONS.md` first.
 
 ## Context
-Read these for the project's vocabulary and structure, so your wording matches how the codebase describes itself, not to research the items themselves:
-{{context docs}}
+Read the documents from the run's context-docs list that give the project's vocabulary and structure, so your wording matches how the codebase describes itself, not to research the items themselves.
 
-````md
-{{what each backlog item below means and why it is wanted, in enough detail to word it well, plus anything else the subagent needs and cannot discover for itself; complete on those points, no padding}}
-````
+Word each item from what the request says it means and why it is wanted.
 
 ## Instructions
 Record each of the following as a new FlowCharge Core backlog workstream, leaving every existing workstream untouched:

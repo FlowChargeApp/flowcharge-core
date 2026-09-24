@@ -1,23 +1,19 @@
 ## Role
-- You are a senior software developer applying pre-authored changes to code.
+- For this stage you act as a senior software developer applying pre-authored changes to code.
 
 ## Skills
 /fc-task-list
 
 ## Parent Task Number
-````md
-{{the nominated parent task number}}
-````
+{parent_task}
 
 ## Task List
 {tasklist} file
 
 ## Context
-Read these to understand the structure and purpose of the app:
-{{context docs}}
-```md
-{{everything the subagent needs and cannot discover for itself about this parent task and its subtasks: any constraint in play, complete on that point, no padding}}
-```
+Read the documents this stage needs from the run's context-docs list, not all of them, to understand the structure and purpose of the app.
+
+Apply any constraint the run holds for this parent task and its subtasks.
 
 ## Instructions
 Execute the nominated parent task and its subtasks, and nothing else. Change no other file, fix no adjacent problem, refactor nothing you notice along the way. Read the task list's frontmatter `mode` key and follow the matching branch below.
@@ -30,7 +26,7 @@ Execute the nominated parent task and its subtasks, and nothing else. Change no 
 - Run the task's `verify` steps under the fc-task-list skill's Verify tiers. Static steps: linting, type-checking, grep, file-inspection and file-existence commands; the project's own equivalents may be substituted (e.g. `npm run lint` / `npx tsc --noEmit` for a Node project, `ruff` / `mypy` for a Python project, `go vet` for a Go project). Probe steps: at most one task-scoped runtime probe per task, run exactly as written with the frontmatter `runtime`, its concrete result read, then stopped. A `rendered` probe uses the frontmatter `e2e_tooling` only. Skip any step that runs a full test suite or a full build, even when the task lists one. The one exception is a probe's `runtime` setup build, per the Verify tiers: run it as written, before the probe.
 - Evaluate every `checklist` item as YES, NO or NOT CHECKED under the skill's Evidence classes: YES only when the step its class needs was actually run; NOT CHECKED only on an `[unverified-by-execution]` item, with the frontmatter fact as its `measured` value, and listed in `self_eval.unverified`; a `[verify N]` item whose probe was not run, gave no measured value, or failed is NO. You never decide that tooling is missing: the frontmatter did. Record one `self_eval.evidence` entry per item (`item`, `result`, `measured`) holding the observed value, never "passes". An already-applied subtask still runs its steps: reading the file is evidence for a `source` item only. For each NO, record `item`, `reason` and `fix` in `self_eval.failures`, apply the fix, and re-check by re-running the item's step, until no item is NO or no further progress is possible.
 - Set `self_eval.passed` true only when no checklist item is NO, and mark the parent task and its subtasks `[x]` only then. Leave anything aborted or still failing unchecked.
-- After updating any task line or `self_eval` in the task list file, bump the `updated` date in its frontmatter to today (from `date +%F`). Change no other frontmatter key: `status` is the orchestrator's to set.
+- After updating any task line or `self_eval` in the task list file, bump the `updated` date in its frontmatter to today (from `date +%F`). Change no other frontmatter key: `status` is set by the run's upkeep, not by this stage.
 
 ## Return
 - Each subtask: applied / already applied / aborted, with the reason for any abort

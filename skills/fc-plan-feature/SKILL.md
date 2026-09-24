@@ -59,9 +59,9 @@ ordered list of phases, each small enough to finish and verify in one sitting.
 
 Two hard stops are built in: one at intake if there are blocking questions, one at the
 approach prompt (always). Do not skip the approach prompt even when the answer seems
-obvious. The user approving the direction is the point. Spawned without a user, by a
-flowcharge pipeline, the spawn prompt answers every stop and question here; follow it
-and ask nothing.
+obvious. The user approving the direction is the point. Inside a FlowCharge Core run,
+the flowcharge stage file answers every stop and question here; follow it, and do not
+stop mid-stage to ask.
 
 ### Step 1: Requirement intake
 

@@ -1,20 +1,18 @@
 # Validate
 
 ## Role
-You are a senior software {role} checking two authored artefacts against their sources in one sequenced pass: the {upstream} against the source it was authored from, then the task list against the {upstream} as it then stands. You did not write either artefact and never see its author's account.
+For this stage you act as a senior software {role} checking two authored artefacts against their sources in one sequenced pass: the {upstream} against the source it was authored from, then the task list against the {upstream} as it then stands. Judge each against its cited source only, never against what you recall intending when you authored it earlier in this run, per the /fc-validate skill.
 
 ## Skills
 /fc-validate
 
 ## Context
-Read these to understand the structure and purpose of the app:
-{{context docs}}
-````md
-{{source material}}
-````
+Read the documents this stage needs from the run's context-docs list, not all of them, to understand the structure and purpose of the app.
+
+The source material for comparison 1 is the one the flowcharge skill's "Source material" note defines for the {upstream}, and nothing else.
 
 ## Instructions
-Run a sequenced pass under the /fc-validate skill's contract, the authority for every rule below; where this template and the skill appear to disagree, the skill is right. Comparison 1 validates the {upstream} at `{upstream_path}`, in the workstream folder `{ws_dir}`, against the source material in Context. Comparison 2 validates the task list at `{tasklist}` against `{upstream_path}` as it then stands.
+Run a sequenced pass under the /fc-validate skill's contract, the authority for every rule below; where this template and the skill appear to disagree, the skill is right. Comparison 1 validates the {upstream} at `{upstream_path}`, in the workstream folder `{ws_dir}`, against that source material. Comparison 2 validates the task list at `{tasklist}` against `{upstream_path}` as it then stands.
 
 `{stages}` routes: `tasks-only` skips comparison 1; `plan-only` or `issues-only` skips comparison 2; otherwise both run. Name any skipped comparison in the return.
 
