@@ -567,12 +567,12 @@ Measured at `base_commit` 486f241: every `grep -c` below that asserts a new stri
       failures: []
     ```
 
-- [ ] 2. Authoring stages record test_commands and end every list with the test-gate task
+- [x] 2. Authoring stages record test_commands and end every list with the test-gate task
   ```yaml
   description: "Make plan-and-tasks and issues-and-tasks name test_commands in their frontmatter line and end every task list with the test-gate task. Realises PLN-20-c9i9sn stage 2."
   ```
 
-  - [ ] 2.1 Name test_commands in plan-and-tasks' frontmatter line
+  - [x] 2.1 Name test_commands in plan-and-tasks' frontmatter line
     ```yaml
     description: "Add test_commands per the skill's Test commands detection to the task-list frontmatter sentence in skills/flowcharge/templates/plan-and-tasks.md."
     author: Anthony Koukoullis
@@ -598,11 +598,11 @@ Measured at `base_commit` 486f241: every `grep -c` below that asserts a new stri
       - "The template's slot set is unchanged"
       - "No bare gate word was added"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
-  - [ ] 2.2 End every plan-and-tasks list with the test-gate task
+  - [x] 2.2 End every plan-and-tasks list with the test-gate task
     ```yaml
     description: "Add a bullet after 'Cover every stage' in skills/flowcharge/templates/plan-and-tasks.md telling the author to end the list with the test-gate task, as the skill writes it."
     author: Anthony Koukoullis
@@ -629,11 +629,11 @@ Measured at `base_commit` 486f241: every `grep -c` below that asserts a new stri
       - "The bullet points at the skill's Test-gate task section"
       - "The Rule E guard count is still 0"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
-  - [ ] 2.3 Name test_commands in issues-and-tasks' frontmatter line
+  - [x] 2.3 Name test_commands in issues-and-tasks' frontmatter line
     ```yaml
     description: "Add test_commands per the skill's Test commands detection to the task-list frontmatter sentence in skills/flowcharge/templates/issues-and-tasks.md."
     author: Anthony Koukoullis
@@ -659,11 +659,11 @@ Measured at `base_commit` 486f241: every `grep -c` below that asserts a new stri
       - "The template's slot set is unchanged"
       - "No bare gate word was added"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
-  - [ ] 2.4 End every issues-and-tasks list with the test-gate task
+  - [x] 2.4 End every issues-and-tasks list with the test-gate task
     ```yaml
     description: "Add a paragraph before the Skipped paragraph in skills/flowcharge/templates/issues-and-tasks.md's Part 2 telling the author to end the list with the test-gate task."
     author: Anthony Koukoullis
@@ -692,7 +692,7 @@ Measured at `base_commit` 486f241: every `grep -c` below that asserts a new stri
       - "The Skipped paragraph's closing sentence is unchanged"
       - "The Rule E guard count is still 0"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
