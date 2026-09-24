@@ -696,12 +696,12 @@ Measured at `base_commit` 486f241: every `grep -c` below that asserts a new stri
       failures: []
     ```
 
-- [ ] 3. The record-and-fix loop
+- [x] 3. The record-and-fix loop
   ```yaml
   description: "Add the baseline run, the record-and-fix loop, the 2-round cap and the hard rule 7 exception to skills/flowcharge/SKILL.md, and the fix-list recheck rule to issues-and-tasks. Realises PLN-20-c9i9sn stage 3."
   ```
 
-  - [ ] 3.1 Add The test-gate loop section to the orchestrator
+  - [x] 3.1 Add The test-gate loop section to the orchestrator
     ```yaml
     description: "Insert a ## The test-gate loop section in skills/flowcharge/SKILL.md, directly before ## Talking to the user: baseline run, recording through issues-and-tasks, fix rounds, pre-existing failures, the cap, and a no-script-can-check note."
     author: Anthony Koukoullis
@@ -768,11 +768,11 @@ Measured at `base_commit` 486f241: every `grep -c` below that asserts a new stri
       - "The section carries a No script can check note"
       - "The Rule E guard count is still 0"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
-  - [ ] 3.2 Exclude a failed test-gate task from hard rule 7's halt
+  - [x] 3.2 Exclude a failed test-gate task from hard rule 7's halt
     ```yaml
     description: "Append to hard rule 7 in skills/flowcharge/SKILL.md that a failed test-gate task enters The test-gate loop instead of halting the run."
     author: Anthony Koukoullis
@@ -801,11 +801,11 @@ Measured at `base_commit` 486f241: every `grep -c` below that asserts a new stri
       - "The sentence names The test-gate loop"
       - "The Rule E guard count is still 0"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
-  - [ ] 3.3 Add the baseline run to the execute-tasks note
+  - [x] 3.3 Add the baseline run to the execute-tasks note
     ```yaml
     description: "Extend the execute-tasks note in skills/flowcharge/SKILL.md's Operations notes so the test-gate task's baseline run follows hard rule 13's check."
     author: Anthony Koukoullis
@@ -833,11 +833,11 @@ Measured at `base_commit` 486f241: every `grep -c` below that asserts a new stri
       - "The note names The test-gate loop"
       - "The Rule E guard count is still 0"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
-  - [ ] 3.4 State in the commit note that the commit stage runs no suite
+  - [x] 3.4 State in the commit note that the commit stage runs no suite
     ```yaml
     description: "Append to the commit note in skills/flowcharge/SKILL.md's Operations notes that the commit stage runs no suite, because the test-gate task already ran them."
     author: Anthony Koukoullis
@@ -864,11 +864,11 @@ Measured at `base_commit` 486f241: every `grep -c` below that asserts a new stri
       - "The note keeps its two-space continuation indent"
       - "The Rule E guard count is still 0"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
-  - [ ] 3.5 Add the fix-list recheck rule to issues-and-tasks
+  - [x] 3.5 Add the fix-list recheck rule to issues-and-tasks
     ```yaml
     description: "Append a paragraph after the Skipped paragraph in skills/flowcharge/templates/issues-and-tasks.md: for findings marked as test-gate failures, task the blocking ones only, list pre-existing ones under Skipped, and end the list with the recheck form instead of the full test-gate task."
     author: Anthony Koukoullis
@@ -898,7 +898,7 @@ Measured at `base_commit` 486f241: every `grep -c` below that asserts a new stri
       - "The template's slot set is unchanged"
       - "The Rule E guard count is still 0"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 

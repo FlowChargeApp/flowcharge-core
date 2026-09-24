@@ -83,7 +83,8 @@ in that case.
 7. **Failure halts the pipeline.** An aborted subtask, a checklist item that stays
    failed, or a stage that could not complete stops the run. Report what
    completed, what failed and why, and what was not run. Do not improvise a fix, do
-   not skip ahead.
+   not skip ahead. A failed test-gate task is not such a failure: it enters "The
+   test-gate loop", which halts the run itself at its cap.
 8. **Perform each stage yourself, in order.** Every stage's work is yours, done in
    this session from its stage file (rule 1). While a stage runs, its stage file's
    limits bind you (what it may edit, what it must author nothing for, what it must
@@ -395,13 +396,14 @@ Notes:
   result reports an abort or a checklist item that stays failed, halt per rule 7. A NOT
   CHECKED item is no failure: lift every one, with its reason, from each parent task's
   result into the run's final report, at every tier. Apply hard rule 13 once, before the
-  first parent task.
+  first parent task, then the test-gate task's baseline run ("The test-gate loop").
 - **commit**: invoke the fc-git skill in this session with the user's standing
   instruction: "Commit all created and/or modified files in one commit to the
   current branch. This work traces to <every artefact this run touched, as ID +
   title, e.g. `ISS-N` (title) under `WS-N-SUFFIX` (title), executed via `TL-N`>; cite these
   IDs in the commit body per your committing rules." Adjust "created/modified" to
-  what the run actually produced.
+  what the run actually produced. The commit stage runs no suite: the task list's
+  test-gate task already ran them ("The test-gate loop").
 - **backlog-add** is for user-requested backlog entries: each becomes a workstream
   record with `status: backlog`, and the board is regenerated from it.
   The stage chooses each title, slug and tags and runs `--new-ws` in its own steps;
@@ -558,6 +560,44 @@ bookkeeping under rule 8, not the finding's fix.
 The residual gap is that a validation fix is not independently re-checked. It is
 bounded to the artefact under validation, it is proved in the withheld part of the
 validation's result, and it is recoverable with a standalone `/fc-validate`.
+
+## The test-gate loop
+
+A task list's final test-gate task is where the project's suites run; the fc-task-list
+skill's Test-gate task section defines its runs and its record. This section is the
+orchestrator's part around it. A list with no test-gate task predates the rule: it
+takes no baseline, runs no suite and enters no loop.
+
+- **Baseline.** In an execute-tasks stage, after hard rule 13's check and before the
+  first parent task, run `templates/execute-parent-task.md` once for the list's
+  full-form test-gate task (`test_gate: full`). That run records the baseline only.
+  The task runs again in file order, as the list's last task.
+- **Recording, never fixing.** When a test-gate task returns any `test_gate_failures`
+  entry, fix nothing yourself. Run the issues-and-tasks stage for a new issue list in
+  the same workstream, with `{stages}` as `issues-and-tasks`, or `issues-only` where
+  no entry blocks. Supply one finding per entry: its `command` and `check` as the
+  location, its `message` as the failure scenario, severity `high` when it blocks and
+  `medium` when not, confidence `confirmed`, and the marker
+  `test-gate failure: blocking` or `test-gate failure: pre-existing`. Supply no
+  pre-existing failure this workstream has already filed. These entries are the
+  validation source for that issue list.
+- **A fix round** is that stage, its validation per "The validation setting", and
+  execute-tasks on the fix list it produced, under hard rules 4, 5 and 11 as they
+  stand, on the same branch. When the fix list's recheck task passes, run every
+  earlier fix list's recheck task still unchecked, then the outer test-gate task
+  again, each through `templates/execute-parent-task.md`. A recheck or outer run that
+  returns a blocking entry starts the next round.
+- **Pre-existing failures never block.** A test-gate task whose only entries are
+  pre-existing passes, and the run goes on. Their issues stay open: list each in the
+  final summary's numbered list.
+- **The cap.** After 2 fix rounds, a recheck or outer run that still returns a
+  blocking entry halts the run under hard rule 7. Report every failing check, every
+  issue filed and the state of each fix list.
+
+**No script can check** that a run takes the baseline, files every failure or stops at
+the cap, because no script reads this prose, so this section carries that note in the
+way this file's other unverifiable rules do (see DEVELOPMENT.md's note on unverifiable
+rules). `fc-index.mjs --check` checks only the record a `done` task list holds.
 
 ## Talking to the user
 
