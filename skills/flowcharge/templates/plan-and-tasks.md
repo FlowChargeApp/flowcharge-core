@@ -66,7 +66,7 @@ How much of the codebase to read again before authoring:
 
 Where a stage depends on an open question or on an assumption the plan marks unconfirmed, author no task for it and list it instead. Do not settle it yourself.
 
-Author `verify` steps per the fc-task-list skill's `verify` rules and Verify tiers: measured at `base_commit`, the project's own lint or type-check command only where configured, at most one runtime probe per task, never a full test suite or build. Where the plan names issue IDs, record them in the task's `issues:` key.
+Author `verify` steps per the fc-task-list skill's `verify` rules and Verify tiers: measured at `base_commit`, the project's own lint or type-check command only where configured, at most one runtime probe per task, never a full test suite or build outside the test-gate task. Where the plan names issue IDs, record them in the task's `issues:` key.
 
 ## Return
 Reply in chat only, briefly. Report both artefacts. When `{stages}` named one artefact, report only the one you wrote and drop the other's lines.

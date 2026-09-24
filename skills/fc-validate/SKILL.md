@@ -78,6 +78,8 @@ realises, are both comparison 2's to fix.
 
 Read the artefact and its source in full, then check all four classes.
 
+A task list's final test-gate task, in its full or recheck form (the fc-task-list skill's Test-gate task section), comes from that skill's schema, not from the source. It is never a coverage gap or invented content, Part 3 never runs or judges its `verify`, and Form, against its fixed shape, is the only class checked against it. The frontmatter `test_commands` is checked for Accuracy like any other command.
+
 ### Coverage
 
 Everything in the source that should be realised downstream is realised downstream.
@@ -160,8 +162,9 @@ Lint, type-check and test commands are excluded although they are fast and
 side-effect-free. They assert nothing about the task, so they pass at `base_commit`
 as readily as after the change, and a tautology finding against one is unactionable:
 the correction rule's remedy is a replacement step that fails at `base_commit`,
-and no project-wide command can fail on unmodified code. The executor runs them after
-the change lands, which is where they catch something.
+and no project-wide command can fail on unmodified code. The executor runs lint and
+type-check as static steps after the change lands, and test suites run only in the task
+list's final test-gate task, which is where each catches something.
 
 A step outside the class is reported as **unrun**. You never execute it, and an unrun
 step is neither a pass nor a failure.

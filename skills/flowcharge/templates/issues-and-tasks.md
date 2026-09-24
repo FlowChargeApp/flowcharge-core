@@ -49,7 +49,7 @@ Each task must:
 * Take its shape from the skill's Mini shape: write `description`, `pattern`, `implement` and `verify` first, run its test, and add the full keys only where the test makes the task full. No key is optional.
 * Read each target file immediately before writing its steps or block, and derive every anchor, line reference, quoted identifier and SEARCH text from the file as read in this session. Never reconstruct them from the issue description, from the reference docs, or from memory.
 * Correct the defect the issue describes and nothing else. Apply DRY, KISS, YAGNI and scope discipline: no new abstractions, options, or capabilities beyond the correction.
-* Author `verify` steps per the fc-task-list skill's `verify` rules and Verify tiers: measured at `base_commit`, the project's own lint or type-check command only where configured, at most one runtime probe per task, never a full test suite or build. Tag every checklist item per the skill's Evidence classes; where the frontmatter records no tooling for an item's class, author it as `source` or `[unverified-by-execution]`.
+* Author `verify` steps per the fc-task-list skill's `verify` rules and Verify tiers: measured at `base_commit`, the project's own lint or type-check command only where configured, at most one runtime probe per task, never a full test suite or build outside the test-gate task. Tag every checklist item per the skill's Evidence classes; where the frontmatter records no tooling for an item's class, author it as `source` or `[unverified-by-execution]`.
 
 Where Part 1's add-versus-correct test fails for an issue's fix, author no task for it; record it under Skipped. Tasks in this file are executed as written, so a feature that slips in gets built.
 

@@ -65,6 +65,7 @@ mode: spec              # spec | diff
 base_commit: a1b2c3d    # required wherever SEARCH blocks appear, the commit they were authored against
 runtime: "npm run dev"  # how the project runs itself, or none; see Runtime detection
 e2e_tooling: [playwright] # browser/e2e tooling already present, or []
+test_commands: ["npm test", "npm run test:e2e"] # the project's own suite commands, or []; see Test commands detection
 ---
 ```
 
@@ -74,6 +75,7 @@ e2e_tooling: [playwright] # browser/e2e tooling already present, or []
 - `updated`: bump on EVERY edit to the file.
 - `mode` / `base_commit`: see below. These live in the frontmatter, not a separate header block.
 - `runtime` / `e2e_tooling`: facts about the project, recorded at authoring per **Runtime detection** below, never choices.
+- `test_commands`: the project's own suite commands, recorded at authoring per **Test commands detection** below, never chosen or invented; only the list's **Test-gate task** runs them.
 
 After any status or task-state change, regenerate the index:
 
@@ -89,6 +91,16 @@ At authoring time, record from disk alone how the project runs itself:
 - `e2e_tooling`: browser or e2e tooling already present (a Playwright, Cypress or Puppeteer config or dependency, an existing `e2e/` directory) as an inline array; `[]` when none.
 
 Detection only: never invent, install or configure anything. These two keys alone decide, for the whole list, whether a probe exists: `runtime: none` allows no probe, and `e2e_tooling: []` allows no `rendered` probe (see **Evidence classes**). A list with no `runtime` key predates this rule: read it as `none`.
+
+### Test commands detection
+
+At authoring time, record from disk alone, as `test_commands`, every test suite the project defines: an inline array of double-quoted commands, each run from the project root (e.g. `["npm test", "npm run test:e2e"]`).
+
+- Record a command only where a project file names it: a `package.json` script, a Makefile target, a command a CI workflow runs, or an equivalent. A runner's default command that no project file names is never recorded.
+- Record every suite (unit, integration, e2e), not one. Leave out a command that only runs other recorded ones, and every lint, type-check or build command.
+- `[]` means the project defines no suite.
+
+Detection only: never invent, install or configure anything. Only the **Test-gate task** runs these commands. A list with no `test_commands` key predates this rule.
 
 ### Two authoring modes: `spec` and `diff`
 
@@ -269,7 +281,7 @@ Every task includes an indented YAML block immediately after the task line. Thes
 - `imports`: required components, packages, modules, or dependencies
 - `compatibility`: required design patterns, package versions, or compatibility constraints
 - `gotcha`: likely pitfalls, edge cases, or foreseeable issues
-- `verify`: **ordered list** of verification steps. The first item is the primary command or tool. Subsequent items are follow-up checks on the output of the previous step (e.g. inspect a value, hit an endpoint, assert a file exists). Steps are executed in sequence. Later steps may depend on earlier ones succeeding. Every step sits in one tier of **Verify tiers** below. See **Smoke Tests** below for tasks whose output is a class/method with observable state. Each step asserts something specific to the change (a grep, a count, a file-existence check). Add the project's own lint or type-check command alongside, only where the project already has one configured (`package.json` scripts, a Makefile, CI config, `pyproject.toml`, `go.mod`, or equivalent); never invent one, and never issue a command against a project whose toolchain does not match it. Never add a test-suite or build command as a verify step: it asserts nothing about the task, passes before the change as readily as after, and running a suite is the user's own step after execution. **Measure before you write.** Where a step asserts a count, a file's existence, or the presence or absence of a string, run it at `base_commit` before writing it down and record what it actually returned, not what you expect. Where it already passes with nothing changed it does not discriminate: rewrite it until it fails at `base_commit`, or state in the step why it cannot fail there. Rewriting makes the assertion specific to the change; it never deletes the step or weakens what it asserts.
+- `verify`: **ordered list** of verification steps. The first item is the primary command or tool. Subsequent items are follow-up checks on the output of the previous step (e.g. inspect a value, hit an endpoint, assert a file exists). Steps are executed in sequence. Later steps may depend on earlier ones succeeding. Every step sits in one tier of **Verify tiers** below. See **Smoke Tests** below for tasks whose output is a class/method with observable state. Each step asserts something specific to the change (a grep, a count, a file-existence check). Add the project's own lint or type-check command alongside, only where the project already has one configured (`package.json` scripts, a Makefile, CI config, `pyproject.toml`, `go.mod`, or equivalent); never invent one, and never issue a command against a project whose toolchain does not match it. Never add a test-suite or build command as a verify step: it asserts nothing about the task and passes before the change as readily as after. A suite runs in one place only: the list's final test-gate task (see **Test-gate task**). **Measure before you write.** Where a step asserts a count, a file's existence, or the presence or absence of a string, run it at `base_commit` before writing it down and record what it actually returned, not what you expect. Where it already passes with nothing changed it does not discriminate: rewrite it until it fails at `base_commit`, or state in the step why it cannot fail there. Rewriting makes the assertion specific to the change; it never deletes the step or weakens what it asserts.
 - `checklist`: full shape only. 4–6 binary YES/NO criteria derived from `imports`, `compatibility`, `gotcha`, or `pattern`, each opening with its class per **Evidence classes** below
 - `self_eval`: post-execution evaluation object with:
   - `passed`: boolean, true only if no checklist item is NO
@@ -302,7 +314,7 @@ from an issue list is unaffected.
 
 ### Mini shape
 
-Every adult or child task takes one of two shapes, decided by a test on its own content, never by preference. Write `description`, `pattern`, `implement` and `verify` first, then test. The task is **full** if any one holds, else **mini**:
+Every adult or child task except the test-gate task (see **Test-gate task**) takes one of two shapes, decided by a test on its own content, never by preference. Write `description`, `pattern`, `implement` and `verify` first, then test. The task is **full** if any one holds, else **mini**:
 
 1. `pattern` names more than one file (a test file for the same change does not count: one under a `test`, `tests`, `spec`, `specs`, `e2e` or `__tests__` directory, or named `*.test.*` / `*.spec.*`), or a file the task creates or deletes.
 2. `implement` changes more than one anchor (function, symbol or region) in the file.
@@ -327,7 +339,7 @@ Each `verify` step sits in one tier:
 
 - **Static.** Always allowed: the project's configured lint or type-check, grep, counts, file-existence checks, reading a named file.
 - **Probe.** Allowed, at most one per task: a task-scoped runtime probe. Start the program with the frontmatter `runtime`, load one page, send one request or run one command, read the concrete result (status, output, measurement), then stop it. Before the program starts, the step may run the build that the recorded `runtime` itself runs or needs, such as the `prestart` hook behind `npm start`, named by the project's own script (`npm run build`). That build is setup, never evidence. State the exact command, input, viewport or request, and the value expected. A `rendered` probe uses the recorded `e2e_tooling` only. Where the frontmatter records no tooling, no probe step is authored.
-- **Forbidden.** A full test suite, a full build, a deploy, a package install, anything that writes outside a temporary directory. The one exception is a probe's `runtime` setup build (see Probe), which may write the project's own build output.
+- **Forbidden.** A full test suite, a full build, a deploy, a package install, anything that writes outside a temporary directory. The one exception is a probe's `runtime` setup build (see Probe), which may write the project's own build output. The test-gate task is outside these tiers (see **Test-gate task**).
 
 A probe is not a smoke test: it exercises the running program, where a smoke test is a script calling the changed code.
 
@@ -338,6 +350,59 @@ After each task is executed, evaluate every checklist item as YES, NO or NOT CHE
 A diff-mode task whose SEARCH block failed to match is **not** a checklist failure. Handle it per the **Diff-mode staleness guard**: if the block was re-anchored, note that in `self_eval` as a `reanchored` entry (`item`, `expected`, `found`, `resolution`). The task may still pass, but the re-anchoring must be visible in the result, never folded silently into a green task. If the anchor was gone or its meaning had changed, leave the task unchecked, record the mismatch in `self_eval.failures`, and stop.
 
 A mini task that turns out to need a design decision (an approach to choose, a second file, a new dependency) is **promoted**: the executor rewrites it into the full shape in place, records a `promoted` entry in `self_eval` (`item`, `reason`), names it in the result, then executes the full shape. Never silently.
+
+### Test-gate task
+
+Every task list ends with one test-gate task: the last top-level task, numbered after every other. Add it exactly as written below, predicting no edit. It checks the whole change and detects no single one, so **Measure before you write** and the Forbidden tier do not apply to it, and it takes neither the full nor the mini shape. Every other task keeps all three.
+
+````md
+- [ ] N. Test-gate task: run the project's test suites
+  ```yaml
+  description: "Run every command in the frontmatter test_commands after every other task"
+  test_gate: full
+  implement:
+    - "No edit; run the frontmatter test_commands per the fc-task-list skill's Test-gate task section"
+  verify:
+    - "Every command in the frontmatter test_commands, in order, from the project root"
+  self_eval:
+    passed: false
+    test_gate_result: pending
+    test_gate_baseline: pending
+    test_gate_failures: []
+  ```
+````
+
+A list authored to fix test-gate failures ends with the recheck form instead, never the full form. Its `verify` names one command per failing check, or the full recorded command where a check cannot run alone:
+
+````md
+- [ ] N. Test-gate recheck: re-run the failing checks
+  ```yaml
+  description: "Re-run the checks that failed in <TL-id> task <n>"
+  test_gate: recheck
+  implement:
+    - "No edit; run every verify command per the fc-task-list skill's Test-gate task section"
+  verify:
+    - "<one command per failing check>"
+  self_eval:
+    passed: false
+    test_gate_result: pending
+    test_gate_failures: []
+  ```
+````
+
+**Two runs.** The full form runs twice. A run while no other top-level task is checked and `test_gate_baseline` is `pending` is the baseline run: run every command, record the baseline, and leave the task unchecked. The run after every other task is the check itself: run every command again, and set a baseline still `pending` to `unavailable`. The baseline stands for `base_commit`, the tree before the list's first task. The recheck form runs once and has no baseline.
+
+**The record**, in `self_eval`, replaces the evidence **Self-evaluation** asks of a checklist:
+
+- A check is one failing test as the runner's output names it, or the whole command where the output names none.
+- `test_gate_baseline`: `pending`, `unavailable`, or the list of checks that failed at the baseline run, `[]` when none did.
+- `test_gate_failures`: one entry per check failing at the last run, with `check`, `command`, `message` (the runner's failure text, trimmed) and `blocking`: `false` when the check is in the baseline, else `true`. In the recheck form every entry blocks.
+- `test_gate_result`: `passed` when no entry blocks, `failed` when one does, and `not-checked` when `test_commands` is `[]`, which is never a pass: report it as NOT CHECKED.
+- Set `passed: true` and mark the task `[x]` on `passed` or `not-checked` only. On `failed`, leave it unchecked.
+
+Never fix a failure, never edit a file to make a check pass, and never record a failing run as passed. Return every entry. A fix goes through a recorded issue and task, never inline; inside a flowcharge run, the orchestrator's test-gate loop does this.
+
+**No script can check** that the baseline ran first or that no failure was fixed inline, because no script reads a run. `fc-index.mjs --check` checks only the record a `done` list carrying `test_commands` holds: `passed`, or `not-checked` with `test_commands: []`.
 
 ### Smoke Tests
 

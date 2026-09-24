@@ -4916,7 +4916,10 @@ const SINGLE_COPY_PHRASES = [
   { phrase: 'never open one to describe it', files: [] },
   { phrase: "the authoring stage's own report, its rationale", files: ['flowcharge/SKILL.md'] },
   { phrase: 'Measure before you write', files: ['fc-task-list/SKILL.md'] },
-  { phrase: 'Never add a test-suite or build command', files: ['fc-task-list/SKILL.md'] },
+  { phrase: 'A suite runs in one place only', files: ['fc-task-list/SKILL.md'] },
+  // A suite's one owner is the test-gate task, so the wording that made running
+  // a suite the user's own step is pinned deleted from every skill file.
+  { phrase: "user's own step", files: [] },
   { phrase: 'prints exactly one line and writes nothing', files: ['flowcharge/CONVENTIONS.md'] },
   { phrase: 'local attribution, not a verified identity', files: ['flowcharge/CONVENTIONS.md'] },
   { phrase: 'trailing `+`', files: ['flowcharge/CONVENTIONS.md'] },
