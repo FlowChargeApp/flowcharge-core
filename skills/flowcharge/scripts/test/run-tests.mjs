@@ -2000,6 +2000,82 @@ testCase('clean: a full task naming two files is not audited as mini', () => {
   });
 });
 
+// ---- cases: done-list test-gate record --------------------------------------
+// A done task list that carries test_commands must hold a passed test-gate
+// record, or a not-checked one where test_commands is []. The owning
+// workstream is done too in each done case, so no close-it warning joins the
+// expected set.
+
+const WS1_DONE = workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', status: 'done' });
+const withTestCommands = (text, value) => text.replace(/^mode: spec$/m, `mode: spec\ntest_commands: ${value}`);
+const testGateTask = (n, result) =>
+  `- [x] ${n}. Test-gate task\n  test_gate: full\n  verify:\n    - "npm test"\n  self_eval:\n    passed: true\n    test_gate_result: ${result}\n`;
+const doneList = (value, tasks) => withTestCommands(tasklist({ id: 'TL-1-abcdef', status: 'done', tasks }), value);
+const testGateRecordWarn = (value) =>
+  `TL-1-abcdef (${TL1}): status is "done" but its test-gate record is "${value}": expected passed, or not-checked with test_commands []`;
+
+testCase('clean: a done list with a passed test-gate record warns about nothing', () => {
+  withFixture(baseTree({
+    [WS1]: WS1_DONE,
+    [TL1]: doneList('["npm test"]', [taskLine(1, true), testGateTask(2, 'passed')]),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, []);
+  });
+});
+
+testCase('a done list whose test-gate record is failed warns', () => {
+  withFixture(baseTree({
+    [WS1]: WS1_DONE,
+    [TL1]: doneList('["npm test"]', [taskLine(1, true), testGateTask(2, 'failed')]),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, [testGateRecordWarn('failed')]);
+  });
+});
+
+testCase('a done list carrying test_commands with no test-gate task warns', () => {
+  withFixture(baseTree({
+    [WS1]: WS1_DONE,
+    [TL1]: doneList('["npm test"]', [taskLine(1, true)]),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, [`TL-1-abcdef (${TL1}): status is "done" but it has no test-gate task`]);
+  });
+});
+
+testCase('clean: a done list with test_commands [] and a not-checked test-gate record warns about nothing', () => {
+  withFixture(baseTree({
+    [WS1]: WS1_DONE,
+    [TL1]: doneList('[]', [taskLine(1, true), testGateTask(2, 'not-checked')]),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, []);
+  });
+});
+
+testCase('a not-checked test-gate record with a non-empty test_commands warns', () => {
+  withFixture(baseTree({
+    [WS1]: WS1_DONE,
+    [TL1]: doneList('["npm test"]', [taskLine(1, true), testGateTask(2, 'not-checked')]),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, [testGateRecordWarn('not-checked')]);
+  });
+});
+
+testCase('clean: a done list with no test_commands key predates the test-gate rule and warns about nothing', () => {
+  withFixture(baseTree({
+    [WS1]: WS1_DONE,
+    [TL1]: tasklist({ id: 'TL-1-abcdef', status: 'done', tasks: [taskLine(1, true)] }),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, []);
+  });
+});
+
+testCase('clean: a list not yet done is not checked for a test-gate record', () => {
+  withFixture(baseTree({
+    [TL1]: withTestCommands(tasklist({ id: 'TL-1-abcdef', tasks: [taskLine(1, false), testGateTask(2, 'pending')] }), '["npm test"]'),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, []);
+  });
+});
+
 testCase('clean: an issues target that resolves warns about nothing', () => {
   withFixture(baseTree({
     [IL1]: issuelist({ id: 'IL-1-abcdef', issues: [issueBlock('ISS-1-abcdef')] }),

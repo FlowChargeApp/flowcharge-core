@@ -281,7 +281,15 @@ Additional keys by type:
   "<command>" | none` and `e2e_tooling: [...]`, how the project runs itself and
   what browser/e2e tooling it already has, detected from disk at authoring (see the
   fc-task-list skill, Runtime detection). The generator checks neither, and an
-  absent key reads as `none` and `[]`, because the rule is forward-only.
+  absent key reads as `none` and `[]`, because the rule is forward-only. Also
+  `test_commands: [...]`, the project's own suite commands (see the fc-task-list
+  skill, Test commands detection), which only the list's final test-gate task runs.
+  A `done` task list carrying `test_commands` must hold a test-gate record of
+  `passed`, or `not-checked` where `test_commands` is `[]`. Otherwise `--check` WARNs
+  `status is "done" but it has no test-gate task` or `status is "done" but its
+  test-gate record is "<value>": expected passed, or not-checked with test_commands []`
+  and exits 2. A list with no `test_commands` key predates the rule and is not
+  checked, because the rule is forward-only.
 
 `depends_on` is data, not prose. Ordering constraints between workstreams or
 artefacts go here, never only in a card's or file's body text.

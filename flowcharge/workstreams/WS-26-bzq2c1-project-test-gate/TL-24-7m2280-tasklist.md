@@ -4,7 +4,7 @@ type: tasklist
 workstream: WS-26-bzq2c1
 slug: project-test-gate
 title: "Test-gate task: one fixed owner for the project's suites"
-status: ready
+status: done
 created: 2026-09-24
 updated: 2026-09-24
 author: Anthony Koukoullis
@@ -902,12 +902,12 @@ Measured at `base_commit` 486f241: every `grep -c` below that asserts a new stri
       failures: []
     ```
 
-- [ ] 4. The done-list check
+- [x] 4. The done-list check
   ```yaml
   description: "Add the fc-index.mjs --check rule for a done task list's test-gate record, its run-tests.mjs fixture cases and its CONVENTIONS.md entry, in one parent task. Realises PLN-20-c9i9sn stage 4."
   ```
 
-  - [ ] 4.1 Read test_gate and test_gate_result in parseTasks
+  - [x] 4.1 Read test_gate and test_gate_result in parseTasks
     ```yaml
     description: "Extend the key match in skills/flowcharge/scripts/fc-index.mjs's parseTasks so each task item carries its test_gate and test_gate_result values."
     author: Anthony Koukoullis
@@ -945,11 +945,11 @@ Measured at `base_commit` 486f241: every `grep -c` below that asserts a new stri
       - "The pattern handling is unchanged"
       - "No dependency or newer-than-Node-16 API was added"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
-  - [ ] 4.2 Carry test_commands on the artefact record
+  - [x] 4.2 Carry test_commands on the artefact record
     ```yaml
     description: "Add a testCommands field, read from the test_commands frontmatter key, to the artefact record built in skills/flowcharge/scripts/fc-index.mjs's scan loop."
     author: Anthony Koukoullis
@@ -975,11 +975,11 @@ Measured at `base_commit` 486f241: every `grep -c` below that asserts a new stri
       - "No other record field changed"
       - "No dependency was added"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
-  - [ ] 4.3 Add the done-list test-gate check
+  - [x] 4.3 Add the done-list test-gate check
     ```yaml
     description: "Add the check to skills/flowcharge/scripts/fc-index.mjs's integrity loop, after the all-tasks-checked warning: a done task list carrying test_commands must hold a passed test-gate record, or a not-checked one with test_commands []."
     author: Anthony Koukoullis
@@ -1024,11 +1024,11 @@ Measured at `base_commit` 486f241: every `grep -c` below that asserts a new stri
       - "Both WARN strings match the plan's Generator check contract"
       - "No dependency or newer-than-Node-16 API was added"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
-  - [ ] 4.4 Pin every outcome of the check in run-tests.mjs
+  - [x] 4.4 Pin every outcome of the check in run-tests.mjs
     ```yaml
     description: "Insert a done-list test-gate record section of fixture cases in skills/flowcharge/scripts/test/run-tests.mjs, after the mini-shape audit cases: passed, failed, no test-gate task, not-checked with [], not-checked with a non-empty list, no test_commands key, and a list not yet done."
     author: Anthony Koukoullis
@@ -1131,11 +1131,11 @@ Measured at `base_commit` 486f241: every `grep -c` below that asserts a new stri
       - "The expected WARN strings match the fc-index.mjs strings exactly"
       - "Only existing fixture helpers are used"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```
 
-  - [ ] 4.5 Document test_commands and the done-list rule in CONVENTIONS.md
+  - [x] 4.5 Document test_commands and the done-list rule in CONVENTIONS.md
     ```yaml
     description: "Append to the tasklist bullet in skills/flowcharge/CONVENTIONS.md's additional keys: test_commands, the done-list test-gate record rule, its two WARN strings, and the forward-only exemption."
     author: Anthony Koukoullis
@@ -1173,6 +1173,6 @@ Measured at `base_commit` 486f241: every `grep -c` below that asserts a new stri
       - "The forward-only exemption is stated"
       - "The Rule E guard count is still 1"
     self_eval:
-      passed: false
+      passed: true
       failures: []
     ```

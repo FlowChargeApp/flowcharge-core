@@ -4,7 +4,7 @@ type: workstream
 workstream: WS-26-bzq2c1
 slug: project-test-gate
 title: "Project test gate replaces the full-suite ban in task lists"
-status: in-progress
+status: done
 tags: [gates, quality, skills, feature]
 created: 2026-09-24
 updated: 2026-09-24

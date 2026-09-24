@@ -439,10 +439,14 @@ function parseTasks(text) {
         if (v) current.issues.push(v);
       }
     }
-    const km = line.match(/^\s+(pattern|verify|checklist):\s*(.*)$/);
+    // test_gate and test_gate_result feed the done-list test-gate check, which
+    // takes the last task carrying test_gate as the list's test-gate task.
+    const km = line.match(/^\s+(pattern|verify|checklist|test_gate|test_gate_result):\s*(.*)$/);
     if (km) {
       current.keys.add(km[1]);
       if (km[1] === 'pattern') current.pattern = unquoteScalar(km[2].trim());
+      if (km[1] === 'test_gate') current.testGate = unquoteScalar(km[2].trim());
+      if (km[1] === 'test_gate_result') current.testGateResult = unquoteScalar(km[2].trim());
     }
   }
   return { open, total, items };
@@ -1106,6 +1110,7 @@ for (const rootSpec of ROOTS) {
         title: fm.title || '', status: fm.status || '', created: fm.created || '',
         updated: fm.updated || '', depends_on: fm.depends_on || [], links: fm.links || [],
         tags: fm.tags || [], mode: fm.mode || '', author: fm.author || '',
+        testCommands: fm.test_commands,
         blocked: (fm.blocked || '').trim(),
         file: rel, archived: rootSpec.archived,
         // Fields the schema, freshness and shape checks need. fmKeys is the raw
@@ -1310,6 +1315,20 @@ for (const iss of allIssues) {
 for (const a of artefacts) {
   if (a.type === 'tasklist' && a.tasks.total > 0 && a.tasks.open === 0 && a.status !== 'done' && a.status !== 'dropped') {
     warnings.push(`${a.id} (${a.file}): all ${a.tasks.total} tasks checked but status is "${a.status}". Close it?`);
+  }
+  // CONVENTIONS.md's test-gate rule. A done list carrying test_commands must
+  // hold a passed test-gate record, or a not-checked one where test_commands
+  // is []. A list with no test_commands key predates the rule and is skipped,
+  // because the rule is forward-only.
+  if (a.type === 'tasklist' && a.status === 'done' && a.fmKeys.has('test_commands')) {
+    const gate = a.tasks.items.filter((t) => t.testGate).pop();
+    const result = gate && gate.testGateResult ? gate.testGateResult : 'missing';
+    const noSuite = Array.isArray(a.testCommands) && a.testCommands.length === 0;
+    if (!gate) {
+      warnings.push(`${a.id} (${a.file}): status is "done" but it has no test-gate task`);
+    } else if (result !== 'passed' && !(result === 'not-checked' && noSuite)) {
+      warnings.push(`${a.id} (${a.file}): status is "done" but its test-gate record is "${result}": expected passed, or not-checked with test_commands []`);
+    }
   }
   if (a.type === 'issuelist' && a.issues.length > 0 && a.issues.every((i) => i.status === 'done' || i.status === 'dropped') && a.status !== 'done' && a.status !== 'dropped') {
     warnings.push(`${a.id} (${a.file}): no open issues left but status is "${a.status}". Close it?`);

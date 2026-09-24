@@ -4,7 +4,7 @@ type: plan
 workstream: WS-26-bzq2c1
 slug: project-test-gate
 title: "Test-gate task: one fixed owner for the project's suites"
-status: ready
+status: done
 created: 2026-09-24
 updated: 2026-09-24
 author: Anthony Koukoullis
