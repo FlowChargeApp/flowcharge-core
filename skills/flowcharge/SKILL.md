@@ -43,10 +43,15 @@ in that case.
 3. **One session.** Every stage runs in the session this skill was loaded into, on
    that session's own model and effort. No stage runs in a separate agent, and no
    stage hands its work to one. If the user names a model, effort or role for a
-   stage ("use sonnet", "fable medium"), ignore it and proceed. `default_agent` in
+   stage ("use a smaller model", "medium effort"), ignore it and proceed. `default_agent` in
    `flowcharge/agents.md` is currently unused: it is kept, and still written under
    "Standing vs. one-off instructions", for a possible future mode that runs
    several workstreams in parallel, where it would name the agent type again.
+   This rule covers stages, not where a run starts: the user may start the whole
+   pipeline as one separate agent instance, running in the background or
+   otherwise, which loads this skill and becomes the one session. Pass it the
+   request verbatim. It cannot ask the user, so a hard rule 4 prompt neither
+   satisfied nor waived stops the run.
 4. **Two prompts: execute-tasks and commit.** A prompt is satisfied when the user's
    instruction is both **direct** (that stage is the point of the message, not a
    later link scheduled behind work that does not exist yet) and **determinate**:
@@ -189,7 +194,7 @@ in that case.
 
 ## Standing vs. one-off instructions
 
-Hard rules 3, 4, 8, 9 and 10, and the validation setting, each read a starting default
+Hard rules 4, 8, 9 and 10, and the validation setting, each read a starting default
 from `flowcharge/agents.md` and may also write it. This section is the one shared test
 they use to decide: does
 an instruction change only this run, or should it change this project's default from
@@ -219,7 +224,7 @@ surprise than being asked again next time.
 
 When both conditions hold: write or update the matching line in
 `flowcharge/agents.md` and report it as one plain statement per "Talking to the user"
-(e.g. "Noted: default agent is now sonnet for this project.", "Noted: task-list
+(e.g. "Noted: default agent is now <agent type> for this project.", "Noted: task-list
 mode now defaults to diff for this project.", "Noted: prompts are now set to manual
 for this project.", "Noted: prompts are now set to assist for this project.",
 "Noted: prompts are now set to cruise for this project.", "Noted: validation is now
@@ -297,8 +302,8 @@ Three rules bind every cell of that table:
 The validation stage runs identically at every tier ("The validation setting"); only an
 open finding it reports enters the table above.
 
-An explicit instruction in the request still wins for one run, exactly as hard rules 3,
-4 and 9 already provide, and the standing-versus-one-off test decides whether it is
+An explicit instruction in the request still wins for one run, exactly as hard rules 4
+and 9 already provide, and the standing-versus-one-off test decides whether it is
 written to the file (see "Standing vs. one-off instructions").
 
 ### The setting contract
@@ -565,8 +570,8 @@ validation's result, and it is recoverable with a standalone `/fc-validate`.
 
 A task list's final test-gate task is where the project's suites run; the fc-task-list
 skill's Test-gate task section defines its runs and its record. This section is the
-orchestrator's part around it. A list with no test-gate task predates the rule: it
-takes no baseline, runs no suite and enters no loop.
+orchestrator's part around it. A list with no test-gate task (no suite, or authored
+before the rule) takes no baseline, runs no suite and enters no loop.
 
 - **Baseline.** In an execute-tasks stage, after hard rule 13's check and before the
   first parent task, run `templates/execute-parent-task.md` once for the list's
@@ -696,9 +701,11 @@ node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root>
   promoted here: it reaches `in-progress` when execution starts. Once the workstream
   folder exists, acquire its lease before any artefact
   inside it is written: attempt an exclusive create of
-  `<workstream folder>/.lease`, e.g. `node -e "try{require('fs').writeFileSync('<path>/.lease','session: '+process.env.CLAUDE_CODE_SESSION_ID+'\nacquired: '+new Date().toISOString()+'\n',{flag:'wx'})}catch(e){process.exit(e.code==='EEXIST'?1:2)}"`,
-  which fails with `EEXIST` (exit 1) only if a lease already exists. On success,
-  proceed. On `EEXIST`, read the existing file's `acquired` timestamp and compute
+  `<workstream folder>/.lease`, e.g. `node -e "const t=require('crypto').randomUUID();try{require('fs').writeFileSync('<path>/.lease','session: '+t+'\nacquired: '+new Date().toISOString()+'\n',{flag:'wx'});console.log(t)}catch(e){process.exit(e.code==='EEXIST'?1:2)}"`,
+  which fails with `EEXIST` (exit 1) only if a lease already exists. On success, it
+  prints the random session token it wrote. Keep that token for the rest of the run:
+  it is how this run recognizes its own lease, and it depends on no agent or host
+  environment. Then proceed. On `EEXIST`, read the existing file's `acquired` timestamp and compute
   its age: if under 60 minutes (`LEASE_STALE_MINUTES = 60`), halt per hard rule 7.
   Report the holding `session` value and the lease's age instead of proceeding, and
   do not wait or retry; the report may also note that the user can delete the
@@ -741,7 +748,7 @@ node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root>
   names the plan you must close by hand: `--sync` never sets a plan's status.
   Release the workstream's
   lease: delete `<workstream folder>/.lease`, but only if its `session` line
-  still matches this run's own `CLAUDE_CODE_SESSION_ID`. If it does not, another
+  still matches the session token this run's own lease create printed. If it does not, another
   run already reclaimed this workstream as stale (see Start of run); skip the
   deletion and note it in this run's report instead of removing the new holder's
   lease. Regenerate. Do NOT archive a workstream you just completed: archiving is the

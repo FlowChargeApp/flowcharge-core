@@ -65,7 +65,7 @@ mode: spec              # spec | diff
 base_commit: a1b2c3d    # required wherever SEARCH blocks appear, the commit they were authored against
 runtime: "npm run dev"  # how the project runs itself, or none; see Runtime detection
 e2e_tooling: [playwright] # browser/e2e tooling already present, or []
-test_commands: ["npm test", "npm run test:e2e"] # the project's own suite commands, or []; see Test commands detection
+test_commands: ["<suite command>"] # the project's own suite commands, or []; see Test commands detection
 ---
 ```
 
@@ -94,11 +94,11 @@ Detection only: never invent, install or configure anything. These two keys alon
 
 ### Test commands detection
 
-At authoring time, record from disk alone, as `test_commands`, every test suite the project defines: an inline array of double-quoted commands, each run from the project root (e.g. `["npm test", "npm run test:e2e"]`).
+At authoring time, record from disk alone, as `test_commands`, every test suite the project defines: an inline array of double-quoted commands, each run from the project root.
 
-- Record a command only where a project file names it: a `package.json` script, a Makefile target, a command a CI workflow runs, or an equivalent. A runner's default command that no project file names is never recorded.
+- Record a command only where a project file names it: a build-tool script or target, a CI step, or an equivalent. A runner's default command that no project file names is never recorded.
 - Record every suite (unit, integration, e2e), not one. Leave out a command that only runs other recorded ones, and every lint, type-check or build command.
-- `[]` means the project defines no suite.
+- `[]` means the project defines no suite: the list then has no test-update or test-gate task.
 
 Detection only: never invent, install or configure anything. Only the **Test-gate task** runs these commands. A list with no `test_commands` key predates this rule.
 
@@ -314,7 +314,7 @@ from an issue list is unaffected.
 
 ### Mini shape
 
-Every adult or child task except the test-gate task (see **Test-gate task**) takes one of two shapes, decided by a test on its own content, never by preference. Write `description`, `pattern`, `implement` and `verify` first, then test. The task is **full** if any one holds, else **mini**:
+Every adult or child task except the test-gate and test-update tasks (see their sections) takes one of two shapes, decided by a test on its own content, never by preference. Write `description`, `pattern`, `implement` and `verify` first, then test. The task is **full** if any one holds, else **mini**:
 
 1. `pattern` names more than one file (a test file for the same change does not count: one under a `test`, `tests`, `spec`, `specs`, `e2e` or `__tests__` directory, or named `*.test.*` / `*.spec.*`), or a file the task creates or deletes.
 2. `implement` changes more than one anchor (function, symbol or region) in the file.
@@ -353,7 +353,7 @@ A mini task that turns out to need a design decision (an approach to choose, a s
 
 ### Test-gate task
 
-Every task list ends with one test-gate task: the last top-level task, numbered after every other. Add it exactly as written below, predicting no edit. It checks the whole change and detects no single one, so **Measure before you write** and the Forbidden tier do not apply to it, and it takes neither the full nor the mini shape. Every other task keeps all three.
+Where `test_commands` is not `[]`, the list ends with one test-gate task: the last top-level task, numbered after every other. Add it exactly as written below, predicting no edit. It checks the whole change and detects no single one, so **Measure before you write** and the Forbidden tier do not apply to it, and it takes neither the full nor the mini shape. Every other task keeps both rules.
 
 ````md
 - [ ] N. Test-gate task: run the project's test suites
@@ -397,12 +397,36 @@ A list authored to fix test-gate failures ends with the recheck form instead, ne
 - A check is one failing test as the runner's output names it, or the whole command where the output names none.
 - `test_gate_baseline`: `pending`, `unavailable`, or the list of checks that failed at the baseline run, `[]` when none did.
 - `test_gate_failures`: one entry per check failing at the last run, with `check`, `command`, `message` (the runner's failure text, trimmed) and `blocking`: `false` when the check is in the baseline, else `true`. In the recheck form every entry blocks.
-- `test_gate_result`: `passed` when no entry blocks, `failed` when one does, and `not-checked` when `test_commands` is `[]`, which is never a pass: report it as NOT CHECKED.
-- Set `passed: true` and mark the task `[x]` on `passed` or `not-checked` only. On `failed`, leave it unchecked.
+- `test_gate_result`: `passed` when no entry blocks, else `failed`.
+- Set `passed: true` and mark the task `[x]` on `passed` only. On `failed`, leave it unchecked.
 
 Never fix a failure, never edit a file to make a check pass, and never record a failing run as passed. Return every entry. A fix goes through a recorded issue and task, never inline; inside a flowcharge run, the orchestrator's test-gate loop does this.
 
-**No script can check** that the baseline ran first or that no failure was fixed inline, because no script reads a run. `fc-index.mjs --check` checks only the record a `done` list carrying `test_commands` holds: `passed`, or `not-checked` with `test_commands: []`.
+**No script can check** that the baseline ran first or that no failure was fixed inline, because no script reads a run. `fc-index.mjs --check` checks only that a `done` list whose `test_commands` is not `[]` holds a `passed` record.
+
+### Test-update task
+
+Where `test_commands` is not `[]`, the task directly before the test-gate task is the test-update task; a list authored to fix test-gate failures has none. In the project's own test files and style, it updates every existing test the list's other tasks make wrong or out of date, and adds a test only where the request, plan or issue asks for one. With nothing to update or add, it makes no edit and its `verify` is empty.
+
+It may edit several test files and blocks, and takes neither the full nor the mini shape: its `verify` holds one static step per test updated or added, each failing at `base_commit`, and is its checklist, as in a mini task. It runs no test; the test-gate task does.
+
+````md
+- [ ] N. Test-update task: bring the tests in line with this change
+  ```yaml
+  description: "Update every test the other tasks make wrong or out of date; add only the tests the source asks for"
+  test_update: true
+  pattern: "<every test file it edits>"
+  implement:
+    - "<per the list's mode: one step or SEARCH/REPLACE block per test updated or added>"
+  verify:
+    - "<one static step per test updated or added>"
+  self_eval:
+    passed: false
+    evidence: []
+  ```
+````
+
+**No script can check** that it updated every affected test. `fc-index.mjs --check` checks only that a `done` list whose `test_commands` is not `[]`, other than a fix list, holds this task.
 
 ### Smoke Tests
 
@@ -427,7 +451,7 @@ When generating a task that adds/changes a class or method with externally obser
 - If a task has child tasks, it is a parent task (see **Three task types**).
   - If a task's scope is large, break it down into atomic child tasks.
   - **Atomic = one file, one coherent change, provable by a single `verify` sequence.** A source file and its test file for the same change count as one. In `diff` mode, additionally: **one SEARCH/REPLACE block**. Split multi-file changes into separate child tasks in either mode.
-  - **Verification-only child.** The one exception to one-file: a child whose whole body is a `verify` sequence of probes, with no `pattern` and an `implement` of one step, "no edit; run `verify`". At most one per parent whose plan stage produces a UI or a running service, numbered last among that parent's children; its checklist holds the stage's `runtime` and `rendered` items.
+  - **Verification-only child.** An exception to one-file (the **Test-update task** is the other): a child whose whole body is a `verify` sequence of probes, with no `pattern` and an `implement` of one step, "no edit; run `verify`". At most one per parent whose plan stage produces a UI or a running service, numbered last among that parent's children; its checklist holds the stage's `runtime` and `rendered` items.
   - If a task's scope is already atomic, keep it as a parent-level adult task.
   - A mini task is a leaf and never a parent (see **Mini shape**).
   - When all subtasks of a parent are completed, mark the parent task as completed too.

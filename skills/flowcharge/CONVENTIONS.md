@@ -131,7 +131,7 @@ the record's path relative to the project root. Use both verbatim. The body is l
 empty: the caller appends it (`workstream` body, below) and regenerates. If `flowcharge/`
 is missing, run `--init` first; it is a no-op when the tree exists, and its WARN that
 `ids.md` is missing needs no action, because `--new-ws` seeds the registry as `--claim`
-does.
+does. Neither does its WARN that it created `tags.md`.
 
 ## IDs
 
@@ -185,7 +185,9 @@ as `- <tag>`, lowercase, letters, digits and hyphens only. A tag is defined once
 is listed there. The index generator (`fc-index.mjs`) WARNs on any workstream tag
 not listed, naming the nearest listed spelling when one is within a small edit
 distance. A WARN with no suggestion still means the tag is undefined, not that it is
-safe to leave.
+safe to leave. Every writing run creates a missing pool, seeded with the automatic
+tags `issue` and `feature` and every tag a live or archived workstream carries.
+`--check` only reports it missing.
 
 ## Frontmatter: every artefact, no exceptions
 
@@ -215,8 +217,9 @@ Additional keys by type:
 
 - `workstream`: `tags`, chosen from the tag pool at `flowcharge/tags.md`, read first:
   reuse a listed spelling (including a different grammatical form of a listed idea)
-  rather than inventing a near-miss; register a new pool entry only when the work's
-  subject has no covering tag. A request may put tag words directly in the text as
+  rather than inventing a near-miss (if the pool is missing, run `--init` first to
+  create it); register a new pool entry only when the work's subject has no covering
+  tag, by appending `- <tag>` to the pool before the workstream carries it. A request may put tag words directly in the text as
   `#tag`, the only form a user may use to specify tags directly in a request; when
   present, those words, lowercased, become the workstream's entire `tags` set, replacing rather
   than adding to whatever would otherwise have been derived from the pool. The two
@@ -283,13 +286,15 @@ Additional keys by type:
   fc-task-list skill, Runtime detection). The generator checks neither, and an
   absent key reads as `none` and `[]`, because the rule is forward-only. Also
   `test_commands: [...]`, the project's own suite commands (see the fc-task-list
-  skill, Test commands detection), which only the list's final test-gate task runs.
-  A `done` task list carrying `test_commands` must hold a test-gate record of
-  `passed`, or `not-checked` where `test_commands` is `[]`. Otherwise `--check` WARNs
-  `status is "done" but it has no test-gate task` or `status is "done" but its
-  test-gate record is "<value>": expected passed, or not-checked with test_commands []`
-  and exits 2. A list with no `test_commands` key predates the rule and is not
-  checked, because the rule is forward-only.
+  skill, Test commands detection), which only the list's final test-gate task runs;
+  `[]` means no suite, and the list then has no test-update or test-gate task. A
+  `done` task list whose `test_commands` is not `[]` must hold a `passed` test-gate
+  record and, unless it is a fix list ending with the recheck form, a test-update
+  task. Otherwise `--check` WARNs `status is "done" but it has no test-gate task`,
+  `status is "done" but its test-gate record is "<value>": expected passed` or
+  `status is "done" but it has no test-update task`, and exits 2. A list with no
+  `test_commands` key predates the rule and is not checked, because the rule is
+  forward-only.
 
 `depends_on` is data, not prose. Ordering constraints between workstreams or
 artefacts go here, never only in a card's or file's body text.

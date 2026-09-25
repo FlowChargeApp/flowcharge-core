@@ -39,8 +39,9 @@ Usage:
 Modes, one per run. With no mode flag the run regenerates. Two mode
 flags together print one stderr line and exit 1.
 
-  (default)  Rewrite flowcharge/index.md and flowcharge/kanban.md, and
-             rewrite the flowcharge/ids.md header when it is stale. Print
+  (default)  Rewrite flowcharge/index.md and flowcharge/kanban.md,
+             rewrite the flowcharge/ids.md header when it is stale, and
+             create flowcharge/tags.md when it is missing. Print
              one WARN line per integrity finding, then one summary line.
              Exits 0 even when it warns.
   --check    Print the same WARN lines and write nothing. Exits 2 when at
@@ -315,6 +316,9 @@ const LEASE_STALE_MINUTES = 60;
 // this close to one. The check is deliberately literal: a typo backstop, not
 // a synonym finder. Choosing a tag by meaning is the authoring flows' job.
 const TAG_NEAR_MAX = 2;
+// CONVENTIONS.md's two automatic tags, and the header a seeded pool opens with.
+const AUTO_TAGS = ['issue', 'feature'];
+const TAG_POOL_HEADER = '# FlowCharge Tag Pool\n\n';
 
 // The ids.md header text, owned by this script and defined exactly once.
 // Three paths use it: the seeding write in the --claim block, the default-mode
@@ -440,13 +444,15 @@ function parseTasks(text) {
       }
     }
     // test_gate and test_gate_result feed the done-list test-gate check, which
-    // takes the last task carrying test_gate as the list's test-gate task.
-    const km = line.match(/^\s+(pattern|verify|checklist|test_gate|test_gate_result):\s*(.*)$/);
+    // takes the last task carrying test_gate as the list's test-gate task;
+    // test_update marks the test-update task that check also requires.
+    const km = line.match(/^\s+(pattern|verify|checklist|test_gate|test_gate_result|test_update):\s*(.*)$/);
     if (km) {
       current.keys.add(km[1]);
       if (km[1] === 'pattern') current.pattern = unquoteScalar(km[2].trim());
       if (km[1] === 'test_gate') current.testGate = unquoteScalar(km[2].trim());
       if (km[1] === 'test_gate_result') current.testGateResult = unquoteScalar(km[2].trim());
+      if (km[1] === 'test_update') current.testUpdate = true;
     }
   }
   return { open, total, items };
@@ -464,7 +470,8 @@ const TEST_FILE_RE = /(^|\/)(tests?|specs?|e2e|__tests__)\/|\.(test|spec)\.[\w.]
 function checkMiniTasks(a) {
   const out = [];
   for (const t of a.tasks.items) {
-    if (!t.keys.has('verify') || t.keys.has('checklist')) continue;
+    // The test-update task takes neither shape and may name several test files.
+    if (!t.keys.has('verify') || t.keys.has('checklist') || t.testUpdate) continue;
     const files = (t.pattern.match(/[\w*?{}.\/\\-]+/g) || []).filter((tok) => /[\/.]/.test(tok) && /\w/.test(tok));
     const sources = files.filter((f) => !TEST_FILE_RE.test(f));
     if (sources.length > 1 || files.some((f) => /[*?{]/.test(f))) {
@@ -1316,18 +1323,22 @@ for (const a of artefacts) {
   if (a.type === 'tasklist' && a.tasks.total > 0 && a.tasks.open === 0 && a.status !== 'done' && a.status !== 'dropped') {
     warnings.push(`${a.id} (${a.file}): all ${a.tasks.total} tasks checked but status is "${a.status}". Close it?`);
   }
-  // CONVENTIONS.md's test-gate rule. A done list carrying test_commands must
-  // hold a passed test-gate record, or a not-checked one where test_commands
-  // is []. A list with no test_commands key predates the rule and is skipped,
-  // because the rule is forward-only.
-  if (a.type === 'tasklist' && a.status === 'done' && a.fmKeys.has('test_commands')) {
+  // CONVENTIONS.md's test-gate rule. A done list whose test_commands is not []
+  // must hold a passed test-gate record and, unless its test-gate task is the
+  // recheck form of a fix list, a test-update task. A list with test_commands
+  // [] has no suite, and one with no test_commands key predates the rule
+  // (forward-only); neither is checked.
+  const noSuite = Array.isArray(a.testCommands) && a.testCommands.length === 0;
+  if (a.type === 'tasklist' && a.status === 'done' && a.fmKeys.has('test_commands') && !noSuite) {
     const gate = a.tasks.items.filter((t) => t.testGate).pop();
     const result = gate && gate.testGateResult ? gate.testGateResult : 'missing';
-    const noSuite = Array.isArray(a.testCommands) && a.testCommands.length === 0;
     if (!gate) {
       warnings.push(`${a.id} (${a.file}): status is "done" but it has no test-gate task`);
-    } else if (result !== 'passed' && !(result === 'not-checked' && noSuite)) {
-      warnings.push(`${a.id} (${a.file}): status is "done" but its test-gate record is "${result}": expected passed, or not-checked with test_commands []`);
+    } else if (result !== 'passed') {
+      warnings.push(`${a.id} (${a.file}): status is "done" but its test-gate record is "${result}": expected passed`);
+    }
+    if (!(gate && gate.testGate === 'recheck') && !a.tasks.items.some((t) => t.testUpdate)) {
+      warnings.push(`${a.id} (${a.file}): status is "done" but it has no test-update task`);
     }
   }
   if (a.type === 'issuelist' && a.issues.length > 0 && a.issues.every((i) => i.status === 'done' || i.status === 'dropped') && a.status !== 'done' && a.status !== 'dropped') {
@@ -1389,15 +1400,23 @@ for (const a of artefacts) {
 
 // Tag pool membership. The pool is registry-like infrastructure rather than an
 // artefact: it sits at flowcharge/ root, outside the workstreams/ and archive/
-// walk above, so it is read here instead of scanned. A missing pool disables
-// the membership check for the whole run: one advisory line, rather than one
-// WARN per tag in a corpus that has no pool yet.
+// walk above, so it is read here instead of scanned. A writing run creates a
+// missing pool, seeded like ids.md from what is on disk: the automatic tags
+// and every valid tag a workstream carries, so the seed warns about nothing
+// already in use. The write happens with the other outputs, after --check's
+// early exit; --check only reports the pool missing and skips the check.
 let tagPool = null;
+let tagPoolSeed = null;
 if (fs.existsSync(tagPoolPath)) {
   const poolText = fs.readFileSync(tagPoolPath, 'utf8');
   tagPool = new Set([...poolText.matchAll(/^- ([a-z0-9-]+)$/gm)].map((m) => m[1]));
-} else {
+} else if (checkOnly) {
   warnings.push('flowcharge/tags.md missing, tag validation skipped');
+} else {
+  const inUse = workstreams.flatMap((ws) => (Array.isArray(ws.tags) ? ws.tags : []).map((t) => String(t).toLowerCase()));
+  tagPool = new Set([...AUTO_TAGS, ...inUse].filter((t) => /^[a-z0-9-]+$/.test(t)));
+  tagPoolSeed = TAG_POOL_HEADER + [...tagPool].sort().map((t) => `- ${t}\n`).join('');
+  warnings.push('flowcharge/tags.md missing, created from the tags in use');
 }
 // Live and archived workstreams alike, lowercased the same way the board's
 // label keys are. The WARN drives a fix; it never suppresses the label.
@@ -1503,6 +1522,7 @@ if (checkOnly) {
 // lines come through byte-for-byte, and a registry whose header already
 // matches is not rewritten identically but left alone.
 if (registryRewrite) writeAtomic(registryPath, registryRewrite);
+if (tagPoolSeed) writeAtomic(tagPoolPath, tagPoolSeed);
 
 const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
 const wsArtefacts = (ws) =>

@@ -1547,6 +1547,40 @@ testCase('clean: tags listed in the pool warn about nothing', () => {
   });
 });
 
+// A missing pool is created by a writing run, seeded like ids.md from what is
+// on disk: the automatic tags plus every valid tag on a live or archived
+// workstream, lowercased and sorted. --check writes nothing.
+const ARCHIVED_WS2 = 'flowcharge/archive/WS-2-abcdef-beta/workstream.md';
+const noPoolTree = () => ({
+  'flowcharge/ids.md': registry({ WS: 2 }),
+  [WS1]: workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', tags: ['Web', 'cli'] }),
+  [ARCHIVED_WS2]: workstream({ id: 'WS-2-abcdef', slug: 'beta', title: 'Beta', status: 'done', tags: ['cli', 'bad_tag'] }),
+});
+
+testCase('a writing run creates a missing tag pool from the tags in use', () => {
+  withFixture(noPoolTree(), (dir) => {
+    const { status, stdout, stderr } = runGenerator(dir, []);
+    assert.strictEqual(status, 0, `regenerate exited ${status}\n${stderr}`);
+    compareWarnSets(warnLines(stdout), [
+      'flowcharge/tags.md missing, created from the tags in use',
+      `WS-2-abcdef (${ARCHIVED_WS2}): tag "#bad_tag" not in the tag pool`,
+    ]);
+    assert.strictEqual(
+      fs.readFileSync(path.join(dir, 'flowcharge', 'tags.md'), 'utf8'),
+      tagPool(['cli', 'feature', 'issue', 'web']),
+      'the seeded pool is not the automatic tags plus the valid tags in use',
+    );
+    expectWarns(dir, [`WS-2-abcdef (${ARCHIVED_WS2}): tag "#bad_tag" not in the tag pool`]);
+  });
+});
+
+testCase('--check reports a missing tag pool and does not create it', () => {
+  withFixture(noPoolTree(), (dir) => {
+    expectWarns(dir, ['flowcharge/tags.md missing, tag validation skipped']);
+    assert.ok(!fs.existsSync(path.join(dir, 'flowcharge', 'tags.md')), '--check created tags.md');
+  });
+});
+
 // ---- cases: --new-ws scaffold mode -----------------------------------------
 // Write-mode cases. They re-read the record the generator wrote rather than
 // trusting its exit code, and they count the marker directories under
@@ -1752,7 +1786,7 @@ testCase('--init on a tree with no flowcharge/ at all creates it and exits 0 wit
     assert.strictEqual(res.status, 0, `--init exited ${res.status}\n${res.stderr}`);
     assert.strictEqual(res.stderr, '', `--init wrote to stderr:\n${res.stderr}`);
     compareWarnSets(warnLines(res.stdout), [
-      'flowcharge/tags.md missing, tag validation skipped',
+      'flowcharge/tags.md missing, created from the tags in use',
       'flowcharge/ids.md missing: create it before allocating new IDs',
     ]);
     assert.ok(
@@ -2001,23 +2035,25 @@ testCase('clean: a full task naming two files is not audited as mini', () => {
 });
 
 // ---- cases: done-list test-gate record --------------------------------------
-// A done task list that carries test_commands must hold a passed test-gate
-// record, or a not-checked one where test_commands is []. The owning
+// A done task list whose test_commands is not [] must hold a passed test-gate
+// record and a test-update task. The owning
 // workstream is done too in each done case, so no close-it warning joins the
 // expected set.
 
 const WS1_DONE = workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', status: 'done' });
 const withTestCommands = (text, value) => text.replace(/^mode: spec$/m, `mode: spec\ntest_commands: ${value}`);
 const testGateTask = (n, result) =>
-  `- [x] ${n}. Test-gate task\n  test_gate: full\n  verify:\n    - "npm test"\n  self_eval:\n    passed: true\n    test_gate_result: ${result}\n`;
+  `- [x] ${n}. Test-gate task\n  test_gate: full\n  verify:\n    - "run-suite"\n  self_eval:\n    passed: true\n    test_gate_result: ${result}\n`;
+const testUpdateTask = (n, pattern = 'test/a.test.js') =>
+  `- [x] ${n}. Test-update task\n  test_update: true\n  pattern: "${pattern}"\n  verify:\n    - "grep -c updated ${pattern}"\n  self_eval:\n    passed: true\n`;
 const doneList = (value, tasks) => withTestCommands(tasklist({ id: 'TL-1-abcdef', status: 'done', tasks }), value);
 const testGateRecordWarn = (value) =>
-  `TL-1-abcdef (${TL1}): status is "done" but its test-gate record is "${value}": expected passed, or not-checked with test_commands []`;
+  `TL-1-abcdef (${TL1}): status is "done" but its test-gate record is "${value}": expected passed`;
 
 testCase('clean: a done list with a passed test-gate record warns about nothing', () => {
   withFixture(baseTree({
     [WS1]: WS1_DONE,
-    [TL1]: doneList('["npm test"]', [taskLine(1, true), testGateTask(2, 'passed')]),
+    [TL1]: doneList('["run-suite"]', [taskLine(1, true), testUpdateTask(2), testGateTask(3, 'passed')]),
   }, { TL: 1 }), (dir) => {
     expectWarns(dir, []);
   });
@@ -2026,7 +2062,7 @@ testCase('clean: a done list with a passed test-gate record warns about nothing'
 testCase('a done list whose test-gate record is failed warns', () => {
   withFixture(baseTree({
     [WS1]: WS1_DONE,
-    [TL1]: doneList('["npm test"]', [taskLine(1, true), testGateTask(2, 'failed')]),
+    [TL1]: doneList('["run-suite"]', [taskLine(1, true), testUpdateTask(2), testGateTask(3, 'failed')]),
   }, { TL: 1 }), (dir) => {
     expectWarns(dir, [testGateRecordWarn('failed')]);
   });
@@ -2035,27 +2071,18 @@ testCase('a done list whose test-gate record is failed warns', () => {
 testCase('a done list carrying test_commands with no test-gate task warns', () => {
   withFixture(baseTree({
     [WS1]: WS1_DONE,
-    [TL1]: doneList('["npm test"]', [taskLine(1, true)]),
+    [TL1]: doneList('["run-suite"]', [taskLine(1, true), testUpdateTask(2)]),
   }, { TL: 1 }), (dir) => {
     expectWarns(dir, [`TL-1-abcdef (${TL1}): status is "done" but it has no test-gate task`]);
   });
 });
 
-testCase('clean: a done list with test_commands [] and a not-checked test-gate record warns about nothing', () => {
+testCase('clean: a done list with test_commands [] needs neither test task', () => {
   withFixture(baseTree({
     [WS1]: WS1_DONE,
-    [TL1]: doneList('[]', [taskLine(1, true), testGateTask(2, 'not-checked')]),
+    [TL1]: doneList('[]', [taskLine(1, true)]),
   }, { TL: 1 }), (dir) => {
     expectWarns(dir, []);
-  });
-});
-
-testCase('a not-checked test-gate record with a non-empty test_commands warns', () => {
-  withFixture(baseTree({
-    [WS1]: WS1_DONE,
-    [TL1]: doneList('["npm test"]', [taskLine(1, true), testGateTask(2, 'not-checked')]),
-  }, { TL: 1 }), (dir) => {
-    expectWarns(dir, [testGateRecordWarn('not-checked')]);
   });
 });
 
@@ -2070,7 +2097,34 @@ testCase('clean: a done list with no test_commands key predates the test-gate ru
 
 testCase('clean: a list not yet done is not checked for a test-gate record', () => {
   withFixture(baseTree({
-    [TL1]: withTestCommands(tasklist({ id: 'TL-1-abcdef', tasks: [taskLine(1, false), testGateTask(2, 'pending')] }), '["npm test"]'),
+    [TL1]: withTestCommands(tasklist({ id: 'TL-1-abcdef', tasks: [taskLine(1, false), testGateTask(2, 'pending')] }), '["run-suite"]'),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, []);
+  });
+});
+
+testCase('a done list with a non-empty test_commands and no test-update task warns', () => {
+  withFixture(baseTree({
+    [WS1]: WS1_DONE,
+    [TL1]: doneList('["run-suite"]', [taskLine(1, true), testGateTask(2, 'passed')]),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, [`TL-1-abcdef (${TL1}): status is "done" but it has no test-update task`]);
+  });
+});
+
+testCase('clean: a done fix list ending with the recheck form needs no test-update task', () => {
+  withFixture(baseTree({
+    [WS1]: WS1_DONE,
+    [TL1]: doneList('["run-suite"]', [taskLine(1, true), testGateTask(2, 'passed').replace('test_gate: full', 'test_gate: recheck')]),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, []);
+  });
+});
+
+testCase('clean: a test-update task naming several files is not audited as mini', () => {
+  withFixture(baseTree({
+    [WS1]: WS1_DONE,
+    [TL1]: doneList('["run-suite"]', [taskLine(1, true), testUpdateTask(2, 'src/a.ts, src/b.ts'), testGateTask(3, 'passed')]),
   }, { TL: 1 }), (dir) => {
     expectWarns(dir, []);
   });

@@ -116,7 +116,7 @@ git commit -m "Subject in imperative mood" -m "Body: why, when not self-evident"
   this commit.
 - Unrelated changes in the tree → separate commits, staged path-by-path (or with
   `git add -p`-equivalent granularity via specific paths). Don't bundle.
-- Subject: imperative mood, ≤ ~50 chars ("Add retry to opencode client", not "Added
+- Subject: imperative mood, ≤ ~50 chars ("Add retry to payment client", not "Added
   retries"). Body explains WHY when the change isn't self-evident from the diff.
 - Convention: detect the repo's existing style from `git log --oneline -20` (e.g.
   Conventional Commits prefixes) and follow it. Only when there's no history or no

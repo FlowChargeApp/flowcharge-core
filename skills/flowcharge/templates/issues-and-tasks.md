@@ -51,11 +51,11 @@ Each task must:
 * Correct the defect the issue describes and nothing else. Apply DRY, KISS, YAGNI and scope discipline: no new abstractions, options, or capabilities beyond the correction.
 * Author `verify` steps per the fc-task-list skill's `verify` rules and Verify tiers: measured at `base_commit`, the project's own lint or type-check command only where configured, at most one runtime probe per task, never a full test suite or build outside the test-gate task. Tag every checklist item per the skill's Evidence classes; where the frontmatter records no tooling for an item's class, author it as `source` or `[unverified-by-execution]`.
 
-End the list with the test-gate task, added exactly as the fc-task-list skill's Test-gate task section writes it, after the last task.
+Where `test_commands` is not `[]`, end the list with the test-update task, then the test-gate task, each per its section in the fc-task-list skill.
 
 Where Part 1's add-versus-correct test fails for an issue's fix, author no task for it; record it under Skipped. Tasks in this file are executed as written, so a feature that slips in gets built.
 
-Where the findings are test-gate failures a run supplied, each marked `test-gate failure: blocking` or `test-gate failure: pre-existing`, author tasks for the blocking ones only, and list each pre-existing one under Skipped as filed but not blocking. That list ends with the recheck form of the test-gate task, per the fc-task-list skill's Test-gate task section, never the full form: its `verify` re-runs only the blocking checks, or the full recorded command where a check cannot run alone.
+Where the findings are test-gate failures a run supplied, each marked `test-gate failure: blocking` or `test-gate failure: pre-existing`, author tasks for the blocking ones only, and list each pre-existing one under Skipped as filed but not blocking. That list has no test-update task and ends with the recheck form of the test-gate task, per the fc-task-list skill's Test-gate task section, never the full form: its `verify` re-runs only the blocking checks, or the full recorded command where a check cannot run alone.
 
 ## Return
 Reply in chat only, briefly. Report both artefacts. When `{stages}` named one artefact, report only the one you wrote and drop the other's lines.

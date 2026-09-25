@@ -148,9 +148,9 @@ checks:
 grep -nE '^ +- #' flowcharge/kanban.md
 # Card lines with wrong tab count (0 or 2+). Expect no output:
 grep -nE '^- ## ' flowcharge/kanban.md; grep -nE $'^\t\t+- ## ' flowcharge/kanban.md
-# Metadata JSON parses. Prints "JSON OK" or a Python error:
+# Metadata JSON parses. Prints "JSON OK" or a JSON parse error:
 sed -nE 's/^<!-- kanban-(labels|swimlanes): (.*) -->$/\2/p' flowcharge/kanban.md \
-  | python3 -c 'import json,sys; [json.loads(l) for l in sys.stdin if l.strip()]; print("JSON OK")'
+  | node -e "require('fs').readFileSync(0,'utf8').split('\n').filter(l=>l.trim()).forEach(l=>JSON.parse(l));console.log('JSON OK')"
 # Board agrees with frontmatter. Expect no WARN lines:
 node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --check
 ```

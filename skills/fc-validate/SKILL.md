@@ -78,7 +78,9 @@ realises, are both comparison 2's to fix.
 
 Read the artefact and its source in full, then check all four classes.
 
-A task list's final test-gate task, in its full or recheck form (the fc-task-list skill's Test-gate task section), comes from that skill's schema, not from the source. It is never a coverage gap or invented content, Part 3 never runs or judges its `verify`, and Form, against its fixed shape, is the only class checked against it. The frontmatter `test_commands` is checked for Accuracy like any other command.
+A task list's final test-gate task, where `test_commands` is not `[]`, in its full or recheck form (the fc-task-list skill's Test-gate task section), comes from that skill's schema, not from the source. It is never a coverage gap or invented content, Part 3 never runs or judges its `verify`, and Form, against its fixed shape, is the only class checked against it. The frontmatter `test_commands` is checked for Accuracy like any other command.
+
+The test-update task (the fc-task-list skill's Test-update task section) is checked like any task. Its absence, where `test_commands` is not `[]` and the list does not fix test-gate failures, is a Coverage gap. A test it adds that no source asks for is Invented content.
 
 ### Coverage
 
