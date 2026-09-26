@@ -2130,6 +2130,58 @@ testCase('clean: a test-update task naming several files is not audited as mini'
   });
 });
 
+// ---- cases: done-list blocking record --------------------------------------
+// fc-task-list's blocking rule: in a done list, a test_run_failures entry is
+// blocking: false only when its check is in test_run_baseline, and never in the
+// recheck form. The baseline may be a flow list or a block list.
+
+const failureEntries = (entries) =>
+  '    test_run_failures:\n' + entries.map(([check, blocking]) =>
+    `      - check: "${check}"\n        command: "run-suite"\n        message: "failed"\n        blocking: ${blocking}\n`).join('');
+const recordedRunTask = (n, baseline, entries) =>
+  testRunTask(n, 'passed') + `    test_run_baseline: ${baseline}\n` + failureEntries(entries);
+const blockingWarn = (n, check, tail) => `TL-1-abcdef (${TL1}) task ${n}: "${check}" is non-blocking ${tail}`;
+
+testCase('a done list with a non-blocking entry outside the baseline warns', () => {
+  withFixture(baseTree({
+    [WS1]: WS1_DONE,
+    [TL1]: doneList('["run-suite"]', [taskLine(1, true), testUpdateTask(2), recordedRunTask(3, '[]', [['board filters', 'false']])]),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, [blockingWarn(3, 'board filters', 'but not in test_run_baseline')]);
+  });
+});
+
+testCase('clean: a done list whose non-blocking entries are all in the baseline warns about nothing', () => {
+  const flow = recordedRunTask(3, '["a, b", "c"]', [['a, b', 'false'], ['c', 'false'], ['d', 'true']]);
+  const block = recordedRunTask(3, '\n      - "a, b"\n      - c', [['a, b', 'false'], ['c', 'false']]);
+  for (const task of [flow, block]) {
+    withFixture(baseTree({
+      [WS1]: WS1_DONE,
+      [TL1]: doneList('["run-suite"]', [taskLine(1, true), testUpdateTask(2), task]),
+    }, { TL: 1 }), (dir) => {
+      expectWarns(dir, []);
+    });
+  }
+});
+
+testCase('a done fix list with a non-blocking entry in the recheck form warns', () => {
+  const recheck = testRunTask(2, 'passed').replace('test_run: full', 'test_run: recheck') + failureEntries([['board filters', 'false']]);
+  withFixture(baseTree({
+    [WS1]: WS1_DONE,
+    [TL1]: doneList('["run-suite"]', [taskLine(1, true), recheck]),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, [blockingWarn(2, 'board filters', 'in a recheck task')]);
+  });
+});
+
+testCase('clean: a list not yet done is not checked for its blocking record', () => {
+  withFixture(baseTree({
+    [TL1]: withTestCommands(tasklist({ id: 'TL-1-abcdef', tasks: [taskLine(1, false), recordedRunTask(2, '[]', [['board filters', 'false']])] }), '["run-suite"]'),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, []);
+  });
+});
+
 testCase('clean: an issues target that resolves warns about nothing', () => {
   withFixture(baseTree({
     [IL1]: issuelist({ id: 'IL-1-abcdef', issues: [issueBlock('ISS-1-abcdef')] }),

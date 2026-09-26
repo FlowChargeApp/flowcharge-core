@@ -396,13 +396,13 @@ A list authored to fix test-run failures ends with the recheck form instead, nev
 
 - A check is one failing test as the runner's output names it, or the whole command where the output names none.
 - `test_run_baseline`: `pending`, `unavailable`, or the list of checks that failed at the baseline run, `[]` when none did.
-- `test_run_failures`: one entry per check failing at the last run, with `check`, `command`, `message` (the runner's failure text, trimmed) and `blocking`: `false` when the check is in the baseline, else `true`. In the recheck form every entry blocks.
+- `test_run_failures`: one entry per check failing at the last run, with `check`, `command`, `message` (the runner's failure text, trimmed) and `blocking`: `false` when the check is in the baseline, else `true`. In the recheck form every entry blocks. Only the baseline sets `false`: never on evidence from another run, revert or stash. An entry you believe predates the list stays `true`, with that reason in its `message`.
 - `test_run_result`: `passed` when no entry blocks, else `failed`.
 - Set `passed: true` and mark the task `[x]` on `passed` only. On `failed`, leave it unchecked.
 
 Never fix a failure, never edit a file to make a check pass, and never record a failing run as passed. Return every entry. A fix goes through a recorded issue and task, never inline; inside a flowcharge run, the orchestrator's test-run loop does this.
 
-**No script can check** that the baseline ran first or that no failure was fixed inline, because no script reads a run. `fc-index.mjs --check` checks only that a `done` list whose `test_commands` is not `[]` holds a `passed` record.
+**No script can check** that the baseline ran first or that no failure was fixed inline, because no script reads a run. `fc-index.mjs --check` checks only a `done` list's record: `passed` where `test_commands` is not `[]`, and no `blocking: false` entry outside the baseline or in the recheck form.
 
 ### Test-update task
 

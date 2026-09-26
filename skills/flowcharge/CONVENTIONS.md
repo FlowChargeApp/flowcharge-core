@@ -294,7 +294,9 @@ Additional keys by type:
   `status is "done" but its test-run record is "<value>": expected passed` or
   `status is "done" but it has no test-update task`, and exits 2. A list with no
   `test_commands` key predates the rule and is not checked, because the rule is
-  forward-only.
+  forward-only. In a `done` task list, a `blocking: false` entry WARNs
+  `task <n>: "<check>" is non-blocking but not in test_run_baseline`, or
+  `... is non-blocking in a recheck task`, and exits 2.
 
 `depends_on` is data, not prose. Ordering constraints between workstreams or
 artefacts go here, never only in a card's or file's body text.

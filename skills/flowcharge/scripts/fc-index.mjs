@@ -370,6 +370,13 @@ function unquoteScalar(v) {
   return v.replace(/^["']|["']$/g, '');
 }
 
+// A YAML flow list's items: quoted items may hold commas, bare ones may not.
+function flowList(v) {
+  const inner = v.replace(/^\[|\]$/g, '').trim();
+  const quoted = inner.match(/"(?:[^"\\]|\\.)*"|'(?:[^']|'')*'/g);
+  return quoted ? quoted.map(unquoteScalar) : inner.split(',').map((s) => s.trim()).filter(Boolean);
+}
+
 function parseFrontmatter(text) {
   const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!m) return null;
@@ -424,10 +431,11 @@ function parseIssues(text, file) {
 function parseTasks(text) {
   let open = 0, total = 0;
   const items = [];
-  let current = null, lastTop = null;
+  let current = null, lastTop = null, list = null;
   for (const line of text.split(/\r?\n/)) {
     const t = line.match(/^- \[( |x)\] (\d+)\./) || line.match(/^\s{2}- \[( |x)\] (\d+\.\d+)/);
     if (t) {
+      list = null;
       total++;
       if (/\[ \]/.test(line.slice(0, 8))) open++;
       current = { n: t[2], issues: [], keys: new Set(), pattern: '', hasChildren: false };
@@ -453,6 +461,32 @@ function parseTasks(text) {
       if (km[1] === 'test_run') current.testRun = unquoteScalar(km[2].trim());
       if (km[1] === 'test_run_result') current.testRunResult = unquoteScalar(km[2].trim());
       if (km[1] === 'test_update') current.testUpdate = true;
+    }
+    // test_run_baseline and test_run_failures feed the blocking check. The
+    // baseline is a flow list or a block list below its key; pending and
+    // unavailable hold no check. list names the block list being read.
+    const bm = line.match(/^\s+test_run_baseline:\s*(.*)$/);
+    if (bm) {
+      const v = bm[1].trim();
+      current.baseline = v.startsWith('[') ? flowList(v) : [];
+      list = v === '' ? 'baseline' : null;
+      continue;
+    }
+    if (/^\s+test_run_failures:/.test(line)) {
+      current.failures = [];
+      list = 'failures';
+      continue;
+    }
+    if (list === 'baseline') {
+      const b = line.match(/^\s+-\s+(.+)$/);
+      if (b) current.baseline.push(unquoteScalar(b[1].trim()));
+      else list = null;
+    } else if (list === 'failures') {
+      const f = line.match(/^\s+(-\s+)?(\w+):\s*(.*)$/);
+      if (f && f[1]) current.failures.push({ check: '', blocking: true });
+      const e = current.failures[current.failures.length - 1];
+      if (f && e && f[2] === 'check') e.check = unquoteScalar(f[3].trim());
+      if (f && e && f[2] === 'blocking') e.blocking = unquoteScalar(f[3].trim()) !== 'false';
     }
   }
   return { open, total, items };
@@ -1339,6 +1373,19 @@ for (const a of artefacts) {
     }
     if (!(testRunTask && testRunTask.testRun === 'recheck') && !a.tasks.items.some((t) => t.testUpdate)) {
       warnings.push(`${a.id} (${a.file}): status is "done" but it has no test-update task`);
+    }
+  }
+  // fc-task-list's blocking rule, on done lists: an entry is non-blocking only
+  // when its check is in the baseline, and never in the recheck form.
+  if (a.type === 'tasklist' && a.status === 'done') {
+    for (const t of a.tasks.items) {
+      for (const f of (t.failures || []).filter((e) => !e.blocking)) {
+        if (t.testRun === 'recheck') {
+          warnings.push(`${a.id} (${a.file}) task ${t.n}: "${f.check}" is non-blocking in a recheck task`);
+        } else if (!(t.baseline || []).includes(f.check)) {
+          warnings.push(`${a.id} (${a.file}) task ${t.n}: "${f.check}" is non-blocking but not in test_run_baseline`);
+        }
+      }
     }
   }
   if (a.type === 'issuelist' && a.issues.length > 0 && a.issues.every((i) => i.status === 'done' || i.status === 'dropped') && a.status !== 'done' && a.status !== 'dropped') {

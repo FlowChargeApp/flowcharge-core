@@ -592,9 +592,10 @@ before the rule) takes no baseline, runs no suite and enters no loop.
   earlier fix list's recheck task still unchecked, then the outer test-run task
   again, each through `templates/execute-parent-task.md`. A recheck or outer run that
   returns a blocking entry starts the next round.
-- **Pre-existing failures never block.** A test-run task whose only entries are
-  pre-existing passes, and the run goes on. Their issues stay open: list each in the
-  final summary's numbered list.
+- **Pre-existing failures never block.** Pre-existing means in the recorded
+  baseline, nothing else (fc-task-list skill, Test-run task). A test-run task whose
+  only entries are pre-existing passes, and the run goes on. Their issues stay open:
+  list each in the final summary's numbered list.
 - **The cap.** After 2 fix rounds, a recheck or outer run that still returns a
   blocking entry halts the run under hard rule 7. Report every failing check, every
   issue filed and the state of each fix list.
