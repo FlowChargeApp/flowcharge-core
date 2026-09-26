@@ -113,12 +113,25 @@ automatic. Rules:
 **Slugs.** The folder name is `WS-N-SUFFIX-<slug>`, the workstream's full ID
 followed by the slug, while the frontmatter `slug` key itself stays the bare, unprefixed
 kebab-case slug describing the *specific* work (`scope-service-bug-fixes`, not
-`scope-service`). Reuse a slug only to continue that same workstream. Before
-adopting a new slug, collision-check: every directory in `flowcharge/workstreams/`
-carries a `WS-N-SUFFIX-` prefix, so strip that prefix before comparing
-(`ls flowcharge/workstreams/ | sed -E 's/^WS-[0-9]+-[0-9a-z]{6}-//'`). If the name
-already belongs to different work, pick a distinct one; never rename or displace
-another workstream's folder.
+`scope-service`), reading as related to earlier work it extends. Reuse a slug, byte for
+byte, only to continue that same workstream. `--new-ws` refuses a slug a live or archived
+workstream already carries: pick a distinct one, and never rename or displace another
+workstream's folder.
+
+**Creating a workstream.** One command, and no other way:
+
+```bash
+node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --new-ws <slug> --title "<title>" [--tags a,b]
+```
+
+It claims the WS id, creates `flowcharge/workstreams/<WS-id>-<slug>/`, writes
+`workstream.md` there with every required key present and valid at `status: backlog`,
+refuses a taken slug with nothing claimed, and prints two lines: the claimed id, then
+the record's path relative to the project root. Use both verbatim. The body is left
+empty: the caller appends it (`workstream` body, below) and regenerates. If `flowcharge/`
+is missing, run `--init` first; it is a no-op when the tree exists, and its WARN that
+`ids.md` is missing needs no action, because `--new-ws` seeds the registry as `--claim`
+does. Neither does its WARN that it created `tags.md`.
 
 ## IDs
 
@@ -172,7 +185,9 @@ as `- <tag>`, lowercase, letters, digits and hyphens only. A tag is defined once
 is listed there. The index generator (`fc-index.mjs`) WARNs on any workstream tag
 not listed, naming the nearest listed spelling when one is within a small edit
 distance. A WARN with no suggestion still means the tag is undefined, not that it is
-safe to leave.
+safe to leave. Every writing run creates a missing pool, seeded with the automatic
+tags `issue` and `feature` and every tag a live or archived workstream carries.
+`--check` only reports it missing.
 
 ## Frontmatter: every artefact, no exceptions
 
@@ -200,12 +215,13 @@ links: []                 # related IDs, non-blocking
 
 Additional keys by type:
 
-- `workstream`: `tags`, chosen from the tag pool at `flowcharge/tags.md`:
+- `workstream`: `tags`, chosen from the tag pool at `flowcharge/tags.md`, read first:
   reuse a listed spelling (including a different grammatical form of a listed idea)
-  rather than inventing a near-miss; register a new pool entry only when the work's
-  subject has no covering tag. A request may put tag words directly in the text as
+  rather than inventing a near-miss (if the pool is missing, run `--init` first to
+  create it); register a new pool entry only when the work's subject has no covering
+  tag, by appending `- <tag>` to the pool before the workstream carries it. A request may put tag words directly in the text as
   `#tag`, the only form a user may use to specify tags directly in a request; when
-  present, those words become the workstream's entire `tags` set, replacing rather
+  present, those words, lowercased, become the workstream's entire `tags` set, replacing rather
   than adding to whatever would otherwise have been derived from the pool. The two
   automatic tags described below are the one exception. A trailing `+` on any such
   word (`#tag+`) switches this to a seed: the resolved words are all
@@ -264,7 +280,23 @@ Additional keys by type:
   SEARCH/REPLACE block appears. (These live in frontmatter, not a separate header
   block.) **No script can check** when `base_commit` is required, because the
   condition is in the body, not the frontmatter, so the generator requires `mode`
-  and never requires `base_commit`. The author supplies it.
+  and never requires `base_commit`. The author supplies it. Also `runtime:
+  "<command>" | none` and `e2e_tooling: [...]`, how the project runs itself and
+  what browser/e2e tooling it already has, detected from disk at authoring (see the
+  fc-task-list skill, Runtime detection). The generator checks neither, and an
+  absent key reads as `none` and `[]`, because the rule is forward-only. Also
+  `test_commands: [...]`, the project's own suite commands (see the fc-task-list
+  skill, Test commands detection), which only the list's final test-run task runs;
+  `[]` means no suite, and the list then has no test-update or test-run task. A
+  `done` task list whose `test_commands` is not `[]` must hold a `passed` test-run
+  record and, unless it is a fix list ending with the recheck form, a test-update
+  task. Otherwise `--check` WARNs `status is "done" but it has no test-run task`,
+  `status is "done" but its test-run record is "<value>": expected passed` or
+  `status is "done" but it has no test-update task`, and exits 2. A list with no
+  `test_commands` key predates the rule and is not checked, because the rule is
+  forward-only. In a `done` task list, a `blocking: false` entry WARNs
+  `task <n>: "<check>" is non-blocking but not in test_run_baseline`, or
+  `... is non-blocking in a recheck task`, and exits 2.
 
 `depends_on` is data, not prose. Ordering constraints between workstreams or
 artefacts go here, never only in a card's or file's body text.
@@ -279,7 +311,7 @@ author's intent, not the file's shape, so documented guidance is its only defenc
 kinds: the four artefact kinds above in their frontmatter (`workstream`, `plan`,
 `issuelist`, `tasklist`), plus each issue inside an issue list and each adult or
 child task inside a task list, in that item's own YAML. Parent tasks keep the
-description-only rule and take no `author`. Read the value from the generator at
+description-only rule and take no `author`; a mini-shape task inherits the file's. Read the value from the generator at
 authoring time and write the printed line verbatim:
 
 ```bash
@@ -331,8 +363,8 @@ plus `blocked`, defined in `fc-issue-list/SKILL.md`. Meanings:
   starts at, and a run may author into such a record or execute against it with no
   intermediate step
 - `ready`: optional, user-driven staging. A person marks records `ready` to batch the
-  several workstreams they mean to work next. It is **never a gate** that work must
-  pass through, because `backlog` is already actionable. For artefacts, freshly
+  several workstreams they mean to work next. It is **never a required step**,
+  because `backlog` is already actionable. For artefacts, freshly
   authored counts as ready (workstream records are the one exception: see the
   creation default below)
 - `in-progress`: actively being worked

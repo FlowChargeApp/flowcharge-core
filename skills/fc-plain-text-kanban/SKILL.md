@@ -27,13 +27,9 @@ node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root>
 
 - **Move a card** → edit `status` in the workstream's `workstream.md` (enum: `backlog`,
   `ready`, `in-progress`, `done`, `dropped`), bump `updated`, regenerate.
-- **Add a card** → run
-  `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --new-ws <slug> --title "<title>" [--tags a,b]`.
-  It claims the id, creates `flowcharge/workstreams/<WS-N-SUFFIX>-<slug>/`, and writes that folder's
-  `workstream.md` with every required frontmatter key present and valid. Its body is left
-  empty: append the body yourself per CONVENTIONS.md (the first line is the card description
-  the board lifts), then regenerate. The record starts at `status: backlog`, so the new card
-  appears in the `Backlog` column.
+- **Add a card** → create the workstream with `--new-ws` (CONVENTIONS.md, Creating a
+  workstream), append the body, regenerate. The record starts at `status: backlog`, so
+  the new card appears in the `Backlog` column.
 - **Edit a card's title/text/labels** → edit the record's `title`, body, or `tags`,
   regenerate.
 - **Clear a tag WARN** → tags are validated against the tag pool in `flowcharge/tags.md` by the index generator; edit the record's `tags` to a defined pool spelling, regenerate.
@@ -42,11 +38,8 @@ node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root>
 - **Complete a board/workstream** → close out the underlying artefacts (tasks `[x]`,
   issues `done`/`dropped`, per their skills), set the workstream `status: done`,
   regenerate.
-- **Archive a workstream** → only when its status is `done` or `dropped`, and only on
-  the user's say-so: move the ENTIRE folder `flowcharge/workstreams/<WS-N-SUFFIX>-<slug>/` →
-  `flowcharge/archive/<WS-N-SUFFIX>-<slug>/`, then regenerate. The card moves to the hidden
-  `Archive __archived__` column and `workstreams/` keeps holding only live work. IDs
-  are untouched and stay resolvable. Unarchive = move the folder back, regenerate.
+- **Archive a workstream** → see (CONVENTIONS.md, Archiving); the card moves to the
+  hidden `Archive __archived__` column, and unarchiving moves it back.
 
 Never hand-edit `kanban.md` to make any of these changes. If someone (or Obsidian
 drag-and-drop) has hand-moved a card, the generator prints a WARN naming the divergence:
@@ -155,9 +148,9 @@ checks:
 grep -nE '^ +- #' flowcharge/kanban.md
 # Card lines with wrong tab count (0 or 2+). Expect no output:
 grep -nE '^- ## ' flowcharge/kanban.md; grep -nE $'^\t\t+- ## ' flowcharge/kanban.md
-# Metadata JSON parses. Prints "JSON OK" or a Python error:
+# Metadata JSON parses. Prints "JSON OK" or a JSON parse error:
 sed -nE 's/^<!-- kanban-(labels|swimlanes): (.*) -->$/\2/p' flowcharge/kanban.md \
-  | python3 -c 'import json,sys; [json.loads(l) for l in sys.stdin if l.strip()]; print("JSON OK")'
+  | node -e "require('fs').readFileSync(0,'utf8').split('\n').filter(l=>l.trim()).forEach(l=>JSON.parse(l));console.log('JSON OK')"
 # Board agrees with frontmatter. Expect no WARN lines:
 node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --check
 ```

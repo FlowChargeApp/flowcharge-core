@@ -1,13 +1,12 @@
 ## Role
 
-* You are a senior software architect and senior product owner.
+* For this stage you act as a senior software architect and senior product owner.
 
 ## Context
-Read these to understand the structure and purpose of the app:
-{{this project's own structural or reference documentation, resolved to repo-relative paths, one line per document, each line saying what that document covers and when to read it. Look at what actually exists at the project root (a README, a `docs/` folder, an architecture, layers or conventions document) and list only files you have confirmed are there. Invent nothing and never carry a path over from another project. If the project has no such documentation, delete this block and the sentence introducing it; if that leaves this section with no other content, delete its heading too. Close the list with one line telling the reader to read the documents this task needs, not all of them.}}
+Read the documents this stage needs from the run's context-docs list, not all of them, to understand the structure and purpose of the app.
 
 ## Instructions
-For the app in this repository, {{describe the investigation}}
+For the app in this repository, investigate what the request asks, as the user stated it.
 
 Investigate this and summarise your findings. Don't write a full plan just yet, and don't edit any files. Answer honestly and very concisely.
 

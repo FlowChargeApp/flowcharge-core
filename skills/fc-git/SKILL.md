@@ -116,7 +116,7 @@ git commit -m "Subject in imperative mood" -m "Body: why, when not self-evident"
   this commit.
 - Unrelated changes in the tree → separate commits, staged path-by-path (or with
   `git add -p`-equivalent granularity via specific paths). Don't bundle.
-- Subject: imperative mood, ≤ ~50 chars ("Add retry to opencode client", not "Added
+- Subject: imperative mood, ≤ ~50 chars ("Add retry to payment client", not "Added
   retries"). Body explains WHY when the change isn't self-evident from the diff.
 - Convention: detect the repo's existing style from `git log --oneline -20` (e.g.
   Conventional Commits prefixes) and follow it. Only when there's no history or no
@@ -130,11 +130,11 @@ git commit -m "Subject in imperative mood" -m "Body: why, when not self-evident"
   nothing. Never hunt for or invent IDs. Keep them out of the subject unless the
   artefact is itself what changed.
 
-**Pre-commit safety gate:** while reviewing the staged diff, if it contains secrets,
+**Pre-commit safety check:** while reviewing the staged diff, if it contains secrets,
 credentials, API keys, tokens, or obvious generated artifacts/binaries that should
 be ignored: ABORT the commit, report exactly what you found and where, and propose
 a .gitignore fix (plus untracking with `git rm --cached` if already tracked). A
-leaked secret in history is effectively permanent; this gate is not skippable.
+leaked secret in history is effectively permanent; this check is not skippable.
 
 ### Branching
 Default model: GitHub flow, short-lived branches cut from an up-to-date default
@@ -275,7 +275,7 @@ front is what makes a destructive step reversible in practice.
 - Never commit or push unless the user asked for a commit/push in this request.
   Finishing some other task is not a commit instruction.
 - Always inspect the staged diff before committing; abort on secrets/artifacts per
-  the pre-commit safety gate.
+  the pre-commit safety check.
 - Never bypass hooks (`--no-verify`, `--no-gpg-sign`). A failing hook is
   information; if it blocks, report why and let the user decide. Never use
   interactive flags (`rebase -i`, `add -i`). They hang in this environment; use

@@ -174,9 +174,9 @@ function registry(counters = {}, omit = [], head = REGISTRY_HEADER) {
 
 // tags.md in the same one-per-line shape the real pool file carries. Every
 // tag the fixtures use is listed here, so the membership check fires only for
-// a case that deliberately carries an unlisted tag. gates and orchestration
+// a case that deliberately carries an unlisted tag. checks and orchestration
 // are the two entries the near-match cases measure against.
-const TAG_POOL = ['gates', 'generator', 'orchestration', 'skills'];
+const TAG_POOL = ['checks', 'generator', 'orchestration', 'skills'];
 
 const tagPool = (tags = TAG_POOL) =>
   `# FlowCharge Tag Pool\n\n${tags.map((t) => `- ${t}`).join('\n')}\n`;
@@ -261,13 +261,13 @@ const cases = [];
 const testCase = (name, fn) => cases.push({ name, fn });
 
 // ---- cases: version check (git tag vs CHANGELOG.md) ------------------------
-// checkSuiteVersion() only fires through the same-repository gate, which
+// checkSuiteVersion() only fires through the same-repository guard, which
 // requires a real git repository whose own tag and own CHANGELOG.md the
 // check reads directly. A plain fixture() tree is not a git repository at
 // all, so every other case in this file already reads as "no tag" without
 // this machinery. These cases build a real git repository per fixture and,
 // by default, copy the shipped fc-index.mjs into it so the copy's own
-// self-root derivation resolves to the fixture root and the gate matches.
+// self-root derivation resolves to the fixture root and the guard matches.
 // runGit (defined later, in the fc-rename-artefacts.mjs section) is a
 // function declaration, so it is callable from here through hoisting.
 
@@ -400,7 +400,7 @@ testCase('version check: an Unreleased heading above a valid release heading is 
   });
 });
 
-// This case proves the same-repository gate holds by running the real
+// This case proves the same-repository guard holds by running the real
 // script at its own path in this repository, never a copy, against a
 // fixture that plants the same mismatch the copy warns about above.
 // Consumers of the plugin are never warned about their own git tags or
@@ -1525,25 +1525,59 @@ testCase('a tree carrying several schema and shape faults warns about each of th
 // ---- cases: tag pool membership --------------------------------------------
 // The generator's own check is a literal edit-distance backstop, not a synonym
 // finder: orchestrator sits two edits from orchestration and draws a
-// suggestion, while gating sits three from gates and draws none. Both forms of
+// suggestion, while checking sits three from checks and draws none. Both forms of
 // the WARN are asserted in one case, so a change to either string fails here.
 
 testCase('a workstream tag outside the pool warns, with a nearest match only when one is close', () => {
   withFixture(baseTree({
-    [WS1]: workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', tags: ['orchestrator', 'gating'] }),
+    [WS1]: workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', tags: ['orchestrator', 'checking'] }),
   }), (dir) => {
     expectWarns(dir, [
       `WS-1-abcdef (${WS1}): tag "#orchestrator" not in the tag pool, nearest defined tag: "#orchestration"`,
-      `WS-1-abcdef (${WS1}): tag "#gating" not in the tag pool`,
+      `WS-1-abcdef (${WS1}): tag "#checking" not in the tag pool`,
     ]);
   });
 });
 
 testCase('clean: tags listed in the pool warn about nothing', () => {
   withFixture(baseTree({
-    [WS1]: workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', tags: ['orchestration', 'gates'] }),
+    [WS1]: workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', tags: ['orchestration', 'checks'] }),
   }), (dir) => {
     expectWarns(dir, []);
+  });
+});
+
+// A missing pool is created by a writing run, seeded like ids.md from what is
+// on disk: the automatic tags plus every valid tag on a live or archived
+// workstream, lowercased and sorted. --check writes nothing.
+const ARCHIVED_WS2 = 'flowcharge/archive/WS-2-abcdef-beta/workstream.md';
+const noPoolTree = () => ({
+  'flowcharge/ids.md': registry({ WS: 2 }),
+  [WS1]: workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', tags: ['Web', 'cli'] }),
+  [ARCHIVED_WS2]: workstream({ id: 'WS-2-abcdef', slug: 'beta', title: 'Beta', status: 'done', tags: ['cli', 'bad_tag'] }),
+});
+
+testCase('a writing run creates a missing tag pool from the tags in use', () => {
+  withFixture(noPoolTree(), (dir) => {
+    const { status, stdout, stderr } = runGenerator(dir, []);
+    assert.strictEqual(status, 0, `regenerate exited ${status}\n${stderr}`);
+    compareWarnSets(warnLines(stdout), [
+      'flowcharge/tags.md missing, created from the tags in use',
+      `WS-2-abcdef (${ARCHIVED_WS2}): tag "#bad_tag" not in the tag pool`,
+    ]);
+    assert.strictEqual(
+      fs.readFileSync(path.join(dir, 'flowcharge', 'tags.md'), 'utf8'),
+      tagPool(['cli', 'feature', 'issue', 'web']),
+      'the seeded pool is not the automatic tags plus the valid tags in use',
+    );
+    expectWarns(dir, [`WS-2-abcdef (${ARCHIVED_WS2}): tag "#bad_tag" not in the tag pool`]);
+  });
+});
+
+testCase('--check reports a missing tag pool and does not create it', () => {
+  withFixture(noPoolTree(), (dir) => {
+    expectWarns(dir, ['flowcharge/tags.md missing, tag validation skipped']);
+    assert.ok(!fs.existsSync(path.join(dir, 'flowcharge', 'tags.md')), '--check created tags.md');
   });
 });
 
@@ -1752,7 +1786,7 @@ testCase('--init on a tree with no flowcharge/ at all creates it and exits 0 wit
     assert.strictEqual(res.status, 0, `--init exited ${res.status}\n${res.stderr}`);
     assert.strictEqual(res.stderr, '', `--init wrote to stderr:\n${res.stderr}`);
     compareWarnSets(warnLines(res.stdout), [
-      'flowcharge/tags.md missing, tag validation skipped',
+      'flowcharge/tags.md missing, created from the tags in use',
       'flowcharge/ids.md missing: create it before allocating new IDs',
     ]);
     assert.ok(
@@ -1938,6 +1972,213 @@ testCase('an unresolved issues target on a child task line names the child numbe
     [TL1]: tasklist({ id: 'TL-1-abcdef', tasks: [taskLine(1, false), childTaskIssues('1.1', ['ISS-99-abcdef'])] }),
   }, { TL: 1 }), (dir) => {
     expectWarns(dir, [`TL-1-abcdef (${TL1}) task 1.1: issues unknown id ISS-99-abcdef`]);
+  });
+});
+
+// ---- cases: mini-shape audit (checkMiniTasks) ------------------------------
+// A mini task carries verify: and no checklist:. taskLine() carries no YAML, so
+// it reads as neither shape and never trips the audit.
+
+const miniTask = (n, pattern) =>
+  `- [ ] ${n}. Fixture mini task\n  pattern: "${pattern}"\n  verify:\n    - "grep -c x file"\n`;
+const miniChild = (n, pattern) =>
+  `  - [ ] ${n} Fixture mini child\n    pattern: "${pattern}"\n    verify:\n      - "grep -c x file"\n`;
+const fullTask = (n, pattern) =>
+  `- [ ] ${n}. Fixture full task\n  pattern: "${pattern}"\n  verify:\n    - "grep -c x file"\n  checklist:\n    - "source: x"\n`;
+
+testCase('a mini task whose pattern names two files warns', () => {
+  withFixture(baseTree({
+    [TL1]: tasklist({ id: 'TL-1-abcdef', tasks: [miniTask(1, 'src/a.ts, src/b.ts')] }),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, [`TL-1-abcdef (${TL1}) task 1: mini shape but pattern names more than one file`]);
+  });
+});
+
+testCase('a mini task whose pattern is a glob warns the same way', () => {
+  withFixture(baseTree({
+    [TL1]: tasklist({ id: 'TL-1-abcdef', tasks: [miniTask(1, 'src/**/*.ts')] }),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, [`TL-1-abcdef (${TL1}) task 1: mini shape but pattern names more than one file`]);
+  });
+});
+
+testCase('a mini task with a child line beneath it warns', () => {
+  withFixture(baseTree({
+    [TL1]: tasklist({ id: 'TL-1-abcdef', tasks: [miniTask(1, 'src/a.ts'), miniChild('1.1', 'src/b.ts')] }),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, [`TL-1-abcdef (${TL1}) task 1: mini shape but has sub-tasks`]);
+  });
+});
+
+testCase('clean: a mini adult and a mini child naming one file each warn about nothing', () => {
+  withFixture(baseTree({
+    [TL1]: tasklist({ id: 'TL-1-abcdef', tasks: [miniTask(1, 'src/a.ts'), taskLine(2, false), miniChild('2.1', 'src/b.ts')] }),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, []);
+  });
+});
+
+testCase('clean: a mini task naming a source file and its test file warns about nothing', () => {
+  withFixture(baseTree({
+    [TL1]: tasklist({ id: 'TL-1-abcdef', tasks: [miniTask(1, 'src/a.ts, e2e/a.spec.ts'), miniTask(2, 'src/b.ts, src/b.test.ts')] }),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, []);
+  });
+});
+
+testCase('clean: a full task naming two files is not audited as mini', () => {
+  withFixture(baseTree({
+    [TL1]: tasklist({ id: 'TL-1-abcdef', tasks: [fullTask(1, 'src/a.ts, src/b.ts')] }),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, []);
+  });
+});
+
+// ---- cases: done-list test-run record --------------------------------------
+// A done task list whose test_commands is not [] must hold a passed test-run
+// record and a test-update task. The owning
+// workstream is done too in each done case, so no close-it warning joins the
+// expected set.
+
+const WS1_DONE = workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', status: 'done' });
+const withTestCommands = (text, value) => text.replace(/^mode: spec$/m, `mode: spec\ntest_commands: ${value}`);
+const testRunTask = (n, result) =>
+  `- [x] ${n}. Test-run task\n  test_run: full\n  verify:\n    - "run-suite"\n  self_eval:\n    passed: true\n    test_run_result: ${result}\n`;
+const testUpdateTask = (n, pattern = 'test/a.test.js') =>
+  `- [x] ${n}. Test-update task\n  test_update: true\n  pattern: "${pattern}"\n  verify:\n    - "grep -c updated ${pattern}"\n  self_eval:\n    passed: true\n`;
+const doneList = (value, tasks) => withTestCommands(tasklist({ id: 'TL-1-abcdef', status: 'done', tasks }), value);
+const testRunRecordWarn = (value) =>
+  `TL-1-abcdef (${TL1}): status is "done" but its test-run record is "${value}": expected passed`;
+
+testCase('clean: a done list with a passed test-run record warns about nothing', () => {
+  withFixture(baseTree({
+    [WS1]: WS1_DONE,
+    [TL1]: doneList('["run-suite"]', [taskLine(1, true), testUpdateTask(2), testRunTask(3, 'passed')]),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, []);
+  });
+});
+
+testCase('a done list whose test-run record is failed warns', () => {
+  withFixture(baseTree({
+    [WS1]: WS1_DONE,
+    [TL1]: doneList('["run-suite"]', [taskLine(1, true), testUpdateTask(2), testRunTask(3, 'failed')]),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, [testRunRecordWarn('failed')]);
+  });
+});
+
+testCase('a done list carrying test_commands with no test-run task warns', () => {
+  withFixture(baseTree({
+    [WS1]: WS1_DONE,
+    [TL1]: doneList('["run-suite"]', [taskLine(1, true), testUpdateTask(2)]),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, [`TL-1-abcdef (${TL1}): status is "done" but it has no test-run task`]);
+  });
+});
+
+testCase('clean: a done list with test_commands [] needs neither test task', () => {
+  withFixture(baseTree({
+    [WS1]: WS1_DONE,
+    [TL1]: doneList('[]', [taskLine(1, true)]),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, []);
+  });
+});
+
+testCase('clean: a done list with no test_commands key predates the test-run rule and warns about nothing', () => {
+  withFixture(baseTree({
+    [WS1]: WS1_DONE,
+    [TL1]: tasklist({ id: 'TL-1-abcdef', status: 'done', tasks: [taskLine(1, true)] }),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, []);
+  });
+});
+
+testCase('clean: a list not yet done is not checked for a test-run record', () => {
+  withFixture(baseTree({
+    [TL1]: withTestCommands(tasklist({ id: 'TL-1-abcdef', tasks: [taskLine(1, false), testRunTask(2, 'pending')] }), '["run-suite"]'),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, []);
+  });
+});
+
+testCase('a done list with a non-empty test_commands and no test-update task warns', () => {
+  withFixture(baseTree({
+    [WS1]: WS1_DONE,
+    [TL1]: doneList('["run-suite"]', [taskLine(1, true), testRunTask(2, 'passed')]),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, [`TL-1-abcdef (${TL1}): status is "done" but it has no test-update task`]);
+  });
+});
+
+testCase('clean: a done fix list ending with the recheck form needs no test-update task', () => {
+  withFixture(baseTree({
+    [WS1]: WS1_DONE,
+    [TL1]: doneList('["run-suite"]', [taskLine(1, true), testRunTask(2, 'passed').replace('test_run: full', 'test_run: recheck')]),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, []);
+  });
+});
+
+testCase('clean: a test-update task naming several files is not audited as mini', () => {
+  withFixture(baseTree({
+    [WS1]: WS1_DONE,
+    [TL1]: doneList('["run-suite"]', [taskLine(1, true), testUpdateTask(2, 'src/a.ts, src/b.ts'), testRunTask(3, 'passed')]),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, []);
+  });
+});
+
+// ---- cases: done-list blocking record --------------------------------------
+// fc-task-list's blocking rule: in a done list, a test_run_failures entry is
+// blocking: false only when its check is in test_run_baseline, and never in the
+// recheck form. The baseline may be a flow list or a block list.
+
+const failureEntries = (entries) =>
+  '    test_run_failures:\n' + entries.map(([check, blocking]) =>
+    `      - check: "${check}"\n        command: "run-suite"\n        message: "failed"\n        blocking: ${blocking}\n`).join('');
+const recordedRunTask = (n, baseline, entries) =>
+  testRunTask(n, 'passed') + `    test_run_baseline: ${baseline}\n` + failureEntries(entries);
+const blockingWarn = (n, check, tail) => `TL-1-abcdef (${TL1}) task ${n}: "${check}" is non-blocking ${tail}`;
+
+testCase('a done list with a non-blocking entry outside the baseline warns', () => {
+  withFixture(baseTree({
+    [WS1]: WS1_DONE,
+    [TL1]: doneList('["run-suite"]', [taskLine(1, true), testUpdateTask(2), recordedRunTask(3, '[]', [['board filters', 'false']])]),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, [blockingWarn(3, 'board filters', 'but not in test_run_baseline')]);
+  });
+});
+
+testCase('clean: a done list whose non-blocking entries are all in the baseline warns about nothing', () => {
+  const flow = recordedRunTask(3, '["a, b", "c"]', [['a, b', 'false'], ['c', 'false'], ['d', 'true']]);
+  const block = recordedRunTask(3, '\n      - "a, b"\n      - c', [['a, b', 'false'], ['c', 'false']]);
+  for (const task of [flow, block]) {
+    withFixture(baseTree({
+      [WS1]: WS1_DONE,
+      [TL1]: doneList('["run-suite"]', [taskLine(1, true), testUpdateTask(2), task]),
+    }, { TL: 1 }), (dir) => {
+      expectWarns(dir, []);
+    });
+  }
+});
+
+testCase('a done fix list with a non-blocking entry in the recheck form warns', () => {
+  const recheck = testRunTask(2, 'passed').replace('test_run: full', 'test_run: recheck') + failureEntries([['board filters', 'false']]);
+  withFixture(baseTree({
+    [WS1]: WS1_DONE,
+    [TL1]: doneList('["run-suite"]', [taskLine(1, true), recheck]),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, [blockingWarn(2, 'board filters', 'in a recheck task')]);
+  });
+});
+
+testCase('clean: a list not yet done is not checked for its blocking record', () => {
+  withFixture(baseTree({
+    [TL1]: withTestCommands(tasklist({ id: 'TL-1-abcdef', tasks: [taskLine(1, false), recordedRunTask(2, '[]', [['board filters', 'false']])] }), '["run-suite"]'),
+  }, { TL: 1 }), (dir) => {
+    expectWarns(dir, []);
   });
 });
 
@@ -4392,10 +4633,10 @@ function ruleDMatches(line) {
 
 // Rule E, the mechanism word. This suite calls the thing that stops the user a
 // prompt, and the `prompts:` key in flowcharge/agents.md governs it, so the word
-// gate must never name that mechanism again. The word survives in this tree in
-// several unrelated senses (a pre-commit safety gate, a baseline gate, a
-// candidate filter, a `#gates+` tag token), so every live occurrence is
-// allowlisted with the sense it carries, and only a new one fails. The
+// gate must never name that mechanism again. No other sense of the word
+// survives in the scanned files either, so the allowlist carries no Rule E
+// entry and any occurrence fails. An occurrence that carries some other sense
+// needs an allowlist entry recording that sense before it passes. The
 // (?<![\w-]) and (?![\w-]) guards are the pair rules B, C and D use:
 // together they keep investigate, delegated, navigate and mitigate out of the
 // results.
@@ -4454,15 +4695,14 @@ const DOCS_ALLOWLIST = [
   },
   {
     file: 'flowcharge/SKILL.md',
-    text: 'plan-and-tasks-spec.md',
+    text: 'plan-and-tasks.md',
     why:
       'Rule C. This is a prompt template under templates/, not an artefact a ' +
       'workstream folder holds, so it carries no id prefix and never will. The ' +
       'name only matches because it starts with the word plan and follows a ' +
-      'slash, which clears rule C\'s (?<![\\w-]) guard. The Operations table has ' +
-      'to write the path in full, because rule G resolves every templates/*.md ' +
-      'short form in this file against disk. The -diff.md variant is written as ' +
-      'a suffix in the same cell and never matches.',
+      'slash, which clears rule C\'s (?<![\\w-]) guard. The Operations table and ' +
+      'the prompt policy have to write the path in full, because rule G resolves ' +
+      'every templates/*.md short form in this file against disk.',
   },
   {
     file: 'flowcharge/CONVENTIONS.md',
@@ -4509,108 +4749,6 @@ const DOCS_ALLOWLIST = [
       'Rule D. Line 8 is this entry skill\'s own H1, the document heading every ' +
       'sibling skill carries for itself, naming the FlowCharge Core suite this ' +
       'skill belongs to.',
-  },
-  {
-    file: 'fc-git/SKILL.md',
-    text: 'gate',
-    why:
-      'Rule E. The pre-commit safety gate, which refuses a staged diff carrying ' +
-      'secrets. It is a refusal in the skill itself, not a prompt to the user.',
-  },
-  {
-    file: 'fc-git/SKILL.md',
-    text: 'gate is',
-    why:
-      'Rule E. The same pre-commit safety gate, in the sentence recording that ' +
-      'it is not skippable.',
-  },
-  {
-    file: 'flowcharge/CONVENTIONS.md',
-    text: 'gate',
-    why:
-      'Rule E. The "never a gate" remark about workstream status: the remark ' +
-      'exists to deny that status blocks work, so the word is used to rule the ' +
-      'sense out, not to name a mechanism.',
-  },
-  {
-    file: 'flowcharge/SKILL.md',
-    text: 'gates',
-    why:
-      'Rule E. The `#gates+` tag-token example in "FlowCharge Core upkeep", a ' +
-      'sample tag word showing the trailing-plus syntax. It names no mechanism, ' +
-      'and it is the only sense this entry covers.',
-  },
-  {
-    file: 'flowcharge/templates/kanban-add.md',
-    text: 'gates',
-    why:
-      'Rule E. The `#gates+` tag-token example, a sample word showing the ' +
-      'trailing-plus syntax. It names no mechanism.',
-  },
-  {
-    file: 'flowcharge/templates/validate-plan-and-tasks.md',
-    text: 'gate',
-    why:
-      "Rule E. The template tells the validator to apply fc-validate's baseline " +
-      'gate, which is the precondition for running verify steps, not a prompt.',
-  },
-  {
-    file: 'flowcharge/templates/validate-issues-and-tasks.md',
-    text: 'gate',
-    why:
-      "Rule E. The template tells the validator to apply fc-validate's baseline " +
-      'gate, which is the precondition for running verify steps, not a prompt.',
-  },
-  {
-    file: 'fc-task-list/SKILL.md',
-    text: 'gated on',
-    why:
-      'Rule E. "gated on" describes what depends_on does to execution order. It ' +
-      'is a dependency constraint, not a stop that asks the user anything.',
-  },
-  {
-    file: 'fc-validate/SKILL.md',
-    text: 'gate and',
-    why:
-      "Rule E. The baseline gate, the precondition fc-validate applies before it " +
-      'runs any command. Named alongside the runnable command class.',
-  },
-  {
-    file: 'fc-validate/SKILL.md',
-    text: 'gate',
-    why:
-      'Rule E. The "The baseline gate" heading, and the third correction class ' +
-      'that is gated rather than exempt. Both are preconditions inside the ' +
-      'skill, not the interrupt mechanism.',
-  },
-  {
-    file: 'fc-validate/SKILL.md',
-    text: 'gate is',
-    why: 'Rule E. The baseline gate, in the sentence saying what it is never keyed on.',
-  },
-  {
-    file: 'fc-validate/SKILL.md',
-    text: 'gate would',
-    why: 'Rule E. The baseline gate, in the sentence rejecting a clean-tree gate.',
-  },
-  {
-    file: 'fc-validate/SKILL.md',
-    text: 'gate fails',
-    why: 'Rule E. The baseline gate, in the sentence saying what happens when it fails.',
-  },
-  {
-    file: 'fc-validate/SKILL.md',
-    text: 'gate a',
-    why:
-      'Rule E. "to gate a change to project code": the executor sense of the ' +
-      'verb, describing what a project test does.',
-  },
-  {
-    file: 'fc-validate/SKILL.md',
-    text: 'gated rather',
-    why:
-      'Rule E. The third correction class is gated rather than exempt. It names ' +
-      "the class's own admission rules, not a user prompt.",
   },
 ];
 
@@ -4687,29 +4825,29 @@ function describeDanglingPaths(dangling) {
     .join('\n');
 }
 
-// Rule H, the verbatim block. Five prompt templates can come back with an open
-// question, and the prompt policy can only settle one that arrives in a fixed
-// shape: a question field, a recommendation field, and the sentinel a subagent
-// writes when it cannot recommend anything. Each of the five therefore carries
-// the same block, and this rule pins it in all five at once.
+// Rule H, the verbatim block. Two stages can come back with an open question,
+// and the prompt policy can only settle one that arrives in a fixed shape: a
+// question field, a recommendation field, and the sentinel a stage writes
+// when it cannot recommend anything. The block therefore lives in exactly two
+// canonical copies, one per reader that needs it in context: the plan-and-tasks
+// stage file, which loads no skill that carries it, and fc-validate's
+// SKILL.md, which the validate template points at for its return shape. This
+// rule pins both copies at once.
 //
-// The two issues-and-tasks templates are deliberately absent from the list.
-// Neither returns an open question (a template that cannot author a task for an
-// issue returns that issue as skipped instead), so the block would say nothing
-// there.
+// The issues-and-tasks template is deliberately absent. It never returns an
+// open question (a template that cannot author a task for an issue returns
+// that issue as skipped instead), so the block would say nothing there.
 //
-// RULE_H_BLOCK is the block as it stands in plan-and-tasks-spec.md, the master copy, with
+// RULE_H_BLOCK is the block as it stands in plan-and-tasks.md, the master copy, with
 // its whitespace already collapsed. Each file's text is collapsed the same way
 // before the containment check, exactly as the hard-rule-10 prose pin below does
-// it, so a re-wrap in one template does not fail the rule spuriously.
+// it, so a re-wrap in one copy does not fail the rule spuriously.
 //
 // Like rule G this rule is per file, so it calls neither collectOccurrences nor
 // unallowedOccurrences and it adds no DOCS_ALLOWLIST entries.
 const RULE_H_TEMPLATES = [
-  'flowcharge/templates/plan-and-tasks-spec.md',
-  'flowcharge/templates/plan-and-tasks-diff.md',
-  'flowcharge/templates/validate-plan-and-tasks.md',
-  'flowcharge/templates/validate-issues-and-tasks.md',
+  'flowcharge/templates/plan-and-tasks.md',
+  'fc-validate/SKILL.md',
 ];
 
 const RULE_H_BLOCK =
@@ -4820,8 +4958,8 @@ testCase('skills/**/*.md: every path written in the prose resolves on disk', () 
   );
   const present = ruleGDanglingPaths([
     { file: 'sample/SKILL.md', text: 'see skills/flowcharge/CONVENTIONS.md' },
-    { file: RULE_G_PROMPT_SHORT_FORM_FILE, text: 'run templates/plan-and-tasks-spec.md' },
-    { file: 'sample/SKILL.md', text: 'the slot <skills-dir>/flowcharge/templates/plan-and-tasks-spec.md' },
+    { file: RULE_G_PROMPT_SHORT_FORM_FILE, text: 'run templates/plan-and-tasks.md' },
+    { file: 'sample/SKILL.md', text: 'the slot <skills-dir>/flowcharge/templates/plan-and-tasks.md' },
   ]);
   assert.deepStrictEqual(present, [], 'Rule G flagged a path that does resolve, or read the placeholder form as a path');
 
@@ -4833,7 +4971,7 @@ testCase('skills/**/*.md: every path written in the prose resolves on disk', () 
   );
 });
 
-testCase('every open-question-capable prompt template carries the verbatim return block', () => {
+testCase('both canonical copies of the open-question return block are verbatim', () => {
   // In-memory samples first, for the same reason rule G checks them: the live
   // tree passes today, so the discriminating half has to be pinned separately.
   const sampleMissing = ruleHTemplatesMissingBlock(
@@ -4855,7 +4993,113 @@ testCase('every open-question-capable prompt template carries the verbatim retur
   assert.deepStrictEqual(
     missing,
     [],
-    `Rule H: an open-question-capable prompt template no longer carries the fixed return block:\n${missing.map((m) => `  skills/${m.file}: ${m.reason}`).join('\n')}`,
+    `Rule H: a canonical copy no longer carries the fixed open-question return block:\n${missing.map((m) => `  skills/${m.file}: ${m.reason}`).join('\n')}`,
+  );
+});
+
+// ---- cases: single-copy and pointer-resolution pins ------------------------
+// Consolidation moved each shared rule into one canonical file and left a
+// pointer behind everywhere else. Nothing runs the prose, so two static checks
+// stand in for the discipline: a phrase that identifies a canonical rule may
+// appear only in the files listed for it, so a copy pasted back somewhere else
+// fails; and every `(CONVENTIONS.md, <Section>)` pointer must name a section
+// that exists, as a `## ` heading or a `**<Section>.**` lead, so a renamed or
+// deleted section fails every pointer that still names it.
+//
+// A phrase's file list is the complete set of files allowed to carry it; an
+// empty list means the phrase must appear nowhere, which pins a deletion. The
+// pointer regex admits only a plain section name, so the older
+// `(CONVENTIONS.md, IDs: Registry)` and `(CONVENTIONS.md, \`workstream\` body)`
+// forms stay out of its reach and are not checked.
+const SINGLE_COPY_PHRASES = [
+  // The orchestrator reads the target project itself now that every stage runs
+  // in its session, so the rule that forbade opening a context doc is pinned
+  // deleted.
+  { phrase: 'never open one to describe it', files: [] },
+  { phrase: "the authoring stage's own report, its rationale", files: ['flowcharge/SKILL.md'] },
+  { phrase: 'Measure before you write', files: ['fc-task-list/SKILL.md'] },
+  { phrase: 'A suite runs in one place only', files: ['fc-task-list/SKILL.md'] },
+  // A suite's one owner is the test-run task, so the wording that made running
+  // a suite the user's own step is pinned deleted from every skill file.
+  { phrase: "user's own step", files: [] },
+  { phrase: 'prints exactly one line and writes nothing', files: ['flowcharge/CONVENTIONS.md'] },
+  { phrase: 'local attribution, not a verified identity', files: ['flowcharge/CONVENTIONS.md'] },
+  { phrase: 'trailing `+`', files: ['flowcharge/CONVENTIONS.md'] },
+  { phrase: 'Archive by moving the ENTIRE folder', files: ['flowcharge/CONVENTIONS.md'] },
+  { phrase: 'refuses a taken slug', files: ['flowcharge/CONVENTIONS.md'] },
+  { phrase: "sed -E 's/^WS-", files: [] },
+  { phrase: 'this project\'s own structural or reference documentation', files: ['flowcharge/SKILL.md'] },
+];
+
+const POINTER_TARGET_FILE = 'flowcharge/CONVENTIONS.md';
+const POINTER_RE = /\(CONVENTIONS\.md, ([A-Za-z][A-Za-z ]*[A-Za-z])\)/g;
+
+// Whitespace is collapsed on both sides before the containment test, as rule H
+// does it, because a phrase wraps across source lines in the prose.
+function singleCopyViolations(sources, phrases = SINGLE_COPY_PHRASES) {
+  const norm = (s) => s.replace(/\s+/g, ' ');
+  const out = [];
+  for (const { phrase, files } of phrases) {
+    const p = norm(phrase);
+    for (const src of sources) {
+      if (norm(src.text).includes(p) && !files.includes(src.file)) {
+        out.push({ file: src.file, phrase });
+      }
+    }
+    for (const file of files) {
+      const src = sources.find((s) => s.file === file);
+      if (!src || !norm(src.text).includes(p)) out.push({ file, phrase, missing: true });
+    }
+  }
+  return out;
+}
+
+function sectionExists(text, name) {
+  return text.includes(`\n## ${name}\n`) || text.includes(`**${name}.**`) || text.includes(`**${name}**`);
+}
+
+function unresolvedPointers(sources, targetFile = POINTER_TARGET_FILE) {
+  const target = sources.find((s) => s.file === targetFile);
+  const out = [];
+  for (const src of sources) {
+    const lines = src.text.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      for (const m of lines[i].matchAll(POINTER_RE)) {
+        if (!target || !sectionExists(target.text, m[1])) out.push({ file: src.file, line: i + 1, section: m[1] });
+      }
+    }
+  }
+  return out;
+}
+
+testCase('every consolidated rule lives only in its canonical file', () => {
+  const sample = singleCopyViolations(
+    [
+      { file: 'a.md', text: 'Measure before you write.' },
+      { file: 'b.md', text: 'Measure before you write.' },
+    ],
+    [{ phrase: 'Measure before you write', files: ['a.md'] }],
+  );
+  assert.deepStrictEqual(sample, [{ file: 'b.md', phrase: 'Measure before you write' }], 'the single-copy check did not flag a second copy');
+  const found = singleCopyViolations(skillMarkdownSources());
+  assert.deepStrictEqual(
+    found,
+    [],
+    `a consolidated rule is duplicated outside its canonical file, or missing from it:\n${found.map((f) => `  skills/${f.file}: "${f.phrase}"${f.missing ? ' (missing)' : ''}`).join('\n')}`,
+  );
+});
+
+testCase('every (CONVENTIONS.md, <Section>) pointer names a section that exists', () => {
+  const sample = unresolvedPointers([
+    { file: POINTER_TARGET_FILE, text: '\n## Archiving\n\n**Slugs.** text\n' },
+    { file: 'x.md', text: 'see (CONVENTIONS.md, Archiving) and (CONVENTIONS.md, Slugs) and (CONVENTIONS.md, Nowhere)' },
+  ]);
+  assert.deepStrictEqual(sample.map((p) => p.section), ['Nowhere'], 'the pointer check did not resolve headings and bold leads correctly');
+  const dangling = unresolvedPointers(skillMarkdownSources());
+  assert.deepStrictEqual(
+    dangling,
+    [],
+    `a pointer names a CONVENTIONS.md section that does not exist:\n${dangling.map((d) => `  skills/${d.file}:${d.line}: ${d.section}`).join('\n')}`,
   );
 });
 
@@ -5007,7 +5251,7 @@ testCase('the prompt policy still carries the no-recommendation rule', () => {
 // wraps across source lines in the file.
 
 const CORRECTION_DIRECTION_SECTION_OPEN = '## 1. Inputs';
-const CORRECTION_DIRECTION_SECTION_END = '## 2. The three check classes';
+const CORRECTION_DIRECTION_SECTION_END = '## 2. The four check classes';
 const CORRECTION_DIRECTION_RULE =
   'The upstream artefact is never edited to agree with the downstream one.';
 
@@ -5026,6 +5270,95 @@ testCase('fc-validate still carries the correction-direction rule', () => {
     `fc-validate/SKILL.md no longer carries the correction-direction rule, which requires `
     + `the upstream artefact to never be edited to agree with the downstream one:\n  `
     + `${CORRECTION_DIRECTION_RULE}`,
+  );
+});
+
+// ---- cases: inline stage topology ------------------------------------------
+// The orchestrator performs every stage itself, in the session it was loaded
+// into, from the stage files under flowcharge/templates/. No stage is handed to
+// a separate agent. The harness runs no agent, so these static checks pin the
+// prose claims that design rests on: no skill file still describes a spawned
+// stage, hard rule 8 reads as the inline rule, `default_agent` is kept but
+// documented as unused, the four stage files stay separate and use only the
+// slots the Operations table lists for them, no stage file carries a briefing
+// block, and fc-validate carries the discipline an inline validation needs.
+
+const FLOWCHARGE_SKILL = path.join(SKILLS_ROOT, 'flowcharge', 'SKILL.md');
+const STAGE_FILES_DIR = path.join(SKILLS_ROOT, 'flowcharge', 'templates');
+const SPAWN_WORD_RE = /(?<![\w-])(spawn\w*|sub-?agents?)(?![\w-])/gi;
+
+function spawnWordOccurrences(sources) {
+  return collectOccurrences((line) => [...line.matchAll(SPAWN_WORD_RE)].map((m) => m[1]), sources);
+}
+
+// Each Operations table row that names a templates/ stage file, with the slot
+// names its Slots column lists.
+function operationsStageRows(text) {
+  const rows = [];
+  for (const line of text.split('\n')) {
+    if (!line.startsWith('| ')) continue;
+    const cols = line.split('|').map((c) => c.trim());
+    const m = /`templates\/([A-Za-z0-9._-]+\.md)`/.exec(cols[2] || '');
+    if (!m) continue;
+    rows.push({ op: cols[1], file: m[1], slots: new Set([...(cols[3] || '').matchAll(/\{([a-z_0-9]+)\}/g)].map((s) => s[1])) });
+  }
+  return rows;
+}
+
+testCase('no skill file describes a stage spawned as a subagent', () => {
+  const sample = spawnWordOccurrences([
+    { file: 'a.md', text: 'spawn a subagent for this stage\nSpawned without a user\nrun it inline' },
+  ]);
+  assert.deepStrictEqual(sample.map((o) => o.text), ['spawn', 'subagent', 'Spawned'], 'the spawn-word matcher missed a form or matched the wrong text');
+  const found = spawnWordOccurrences(skillMarkdownSources());
+  assert.deepStrictEqual(
+    found,
+    [],
+    `a skill file still describes spawning, which contradicts the inline stage design:\n${describeOccurrences(found)}`,
+  );
+});
+
+testCase('hard rule 8 performs each stage inline, and the orchestrator may read the target project', () => {
+  const text = fs.readFileSync(FLOWCHARGE_SKILL, 'utf8').replace(/\s+/g, ' ');
+  assert.ok(text.includes('8. **Perform each stage yourself, in order.**'), 'hard rule 8 no longer tells the orchestrator to perform each stage itself');
+  assert.ok(!text.includes("Never perform a stage's work inline"), "the retired rule forbidding inline stage work is back");
+  assert.ok(!text.includes('read no file outside'), 'the retired rule forbidding the orchestrator from reading the target project is back');
+  assert.ok(text.includes('You read the target project yourself'), '"Parsing the request" no longer says the orchestrator reads the target project');
+});
+
+testCase('default_agent stays a documented key, marked currently unused', () => {
+  const text = fs.readFileSync(FLOWCHARGE_SKILL, 'utf8');
+  assert.ok(text.includes('default_agent: <verbatim string>'), 'the agents.md key list no longer carries default_agent');
+  assert.ok(
+    text.replace(/\s+/g, ' ').includes('`default_agent` in `flowcharge/agents.md` is currently unused'),
+    'hard rule 3 no longer documents default_agent as currently unused',
+  );
+});
+
+testCase('the four stage files stay separate and use only the slots the Operations table lists', () => {
+  for (const name of ['plan-and-tasks.md', 'issues-and-tasks.md', 'validate.md', 'execute-parent-task.md']) {
+    assert.ok(fs.existsSync(path.join(STAGE_FILES_DIR, name)), `the stage file templates/${name} is missing`);
+  }
+  const rows = operationsStageRows(fs.readFileSync(FLOWCHARGE_SKILL, 'utf8'));
+  assert.ok(rows.length >= 6, `the Operations table yielded ${rows.length} stage-file rows, expected at least 6`);
+  const problems = [];
+  for (const row of rows) {
+    const full = path.join(STAGE_FILES_DIR, row.file);
+    if (!fs.existsSync(full)) { problems.push(`${row.op}: templates/${row.file} does not exist`); continue; }
+    const body = fs.readFileSync(full, 'utf8');
+    if (body.includes('{{')) problems.push(`templates/${row.file} still carries a {{...}} briefing block`);
+    for (const m of body.matchAll(/\{([a-z_0-9]+)\}/g)) {
+      if (!row.slots.has(m[1])) problems.push(`templates/${row.file} uses {${m[1]}}, which the ${row.op} row does not list`);
+    }
+  }
+  assert.deepStrictEqual([...new Set(problems)], [], 'a stage file and its Operations row disagree');
+});
+
+testCase('fc-validate carries the discipline for validating an artefact its own session authored', () => {
+  const text = fs.readFileSync(path.join(SKILLS_ROOT, 'fc-validate', 'SKILL.md'), 'utf8').replace(/\s+/g, ' ');
+  assert.ok(
+    text.includes('judge the artefact against its cited source only, never against what you recall intending when you wrote it'),
+    'fc-validate no longer tells an inline validation to judge against the cited source only',
   );
 });
 

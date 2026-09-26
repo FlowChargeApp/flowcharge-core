@@ -9,10 +9,11 @@ track.**
 FlowCharge Core is the engine: skill and script files that your coding agent loads at
 the start of a session. There is no separate mode. Mid-conversation you can ask for a
 plan, an issue list or a task list and get one. A full request runs as an ordered
-pipeline: investigate, plan, file, task, execute, commit. Every artifact is written
-to markdown in your repository. It runs in any agent with skills and subagents, and
-needs Node 16 with nothing to install. FlowCharge is the application that installs it
-and shows the board.
+pipeline: investigate, plan, file, task, execute, commit. Every stage runs in the
+session that loaded the orchestrator, with no subagents. Every artifact is written
+to markdown in your repository. It runs in any agent that loads skills, and needs
+Node 16 with nothing to install. FlowCharge is the application that installs it and
+shows the board.
 
 ## The idea
 
@@ -25,14 +26,14 @@ Dependencies are data, not prose. A task list authored from an issue list carrie
 `depends_on: [IL-3-k9d2s5]`, and the orchestrator refuses to run it until IL-3-k9d2s5
 is `done`.
 
-The prompt templates the subagents run are reproduced **verbatim**, with only marked
-slots filled, so every run is predictable. Detail in means better code out, so every
+Every stage follows its stage file **as written**, with only marked slots filled, so
+every run is predictable. Detail in means better code out, so every
 task carries the context the agent that runs it needs: the exact anchor to edit, the
 imports to add, the trap to avoid, the verify command and the acceptance checklist.
 
 ## Install
 
-You need an agentic coding tool that loads `SKILL.md` folders and spawns subagents,
+You need an agentic coding tool that loads `SKILL.md` folders,
 **Node 16 or newer** for the generator script, with nothing to install, and **git**.
 Claude Code, OpenCode and OpenAI Codex are proven.
 
@@ -79,13 +80,17 @@ You reach for `/flowcharge` again only at a new decision point, not before every
 request. The orchestrator keeps the index and the board fresh at every stage
 boundary. There is no script for you to run.
 
+You can also start the whole pipeline as one separate agent, for example in the
+background. That agent loads the orchestrator and runs every stage itself. It cannot
+ask you anything, so it stops at an execute or commit prompt you did not waive.
+
 | Operation        | What it does                                                          | Say something like                                              |
 | ---------------- | --------------------------------------------------------------------- | --------------------------------------------------------------- |
 | backlog-add      | Creates workstreams in the backlog column of the board                | "Create a workstream to implement an export feature"            |
 | investigate      | Reads the codebase and returns findings; goes no further unless asked | "Investigate the codebase to determine the cause of this bug"   |
 | plan-and-tasks   | Writes a staged plan for a feature and authors its task list          | "Write up a plan and open tasks"                                |
 | issues-and-tasks | Files findings as an issue list and authors a task list from them     | "Write up an issue list and open tasks"                         |
-| execute-tasks    | Runs a task list, one parent task per subagent                        | "Execute all tasks"                                             |
+| execute-tasks    | Runs a task list, one parent task at a time, in order                 | "Execute all tasks"                                             |
 | commit           | Commits the completed work                                            | "Commit all changes"                                            |
 | list             | Prints a table of what is in flight                                   | "List what is in flight"                                        |
 
@@ -98,12 +103,24 @@ committing after each one, and the orchestrator does exactly that.
 FlowCharge Core only does what you asked: "Write up an issue list" stops at
 the issue list. Any failure halts the pipeline rather than improvising around it.
 
+When your project already defines its own test suites, in a build-tool script, a CI
+step or an equivalent, every task list records those commands and ends with two
+tasks. A test-update task updates any existing test the change makes wrong. A
+test-run task runs the suites once before the first task and once after the last.
+A project with no suites gets neither task, and nothing is installed or configured.
+
+A failing test-run task does not halt the run at once. The orchestrator files each new
+failure as an issue in the same workstream and fixes it through a new task list,
+never inline. It halts after two fix rounds that do not pass. A failure that was
+already there before the first task never blocks the run, and its issue stays open.
+
 ## How often it stops for you
 
-An optional `flowcharge/agents.md` in your project sets four standing defaults:
+An optional `flowcharge/agents.md` in your project sets three standing defaults and
+holds one reserved key:
 
 ```
-default_agent: <subagent type>     # which agent runs each stage
+default_agent: <agent type>        # unused; kept for a possible future parallel mode
 task_list_mode: spec | diff        # how task lists are authored
 prompts: manual | assist | cruise  # how much the orchestrator decides on its own
 validate: on | off                 # whether artefacts are checked against their source
@@ -115,7 +132,7 @@ runs none and is the cheaper, faster choice.
 `prompts:` decides how much of a run comes back to you. `manual` is the default.
 
 - `manual`: every question comes to you, and execute and commit wait for your yes.
-- `assist`: the orchestrator settles a question itself when the subagent supplied a
+- `assist`: the orchestrator settles a question itself when the stage supplied a
   recommendation and the change carries no real risk. It still asks when the change
   could lose work, when it alters something others cannot opt out of, such as an
   interface, a stored format, a default, a dependency or the build and release path,
@@ -166,10 +183,10 @@ skill disagrees with it, that document wins.
 
 | Path | What it is |
 |---|---|
-| `skills/flowcharge/` | The orchestrator: hard rules, operations, the verbatim prompt templates, the generator |
+| `skills/flowcharge/` | The orchestrator: hard rules, operations, the stage files it follows as written, the generator |
 | `skills/flowcharge/CONVENTIONS.md` | The canonical data model. Start here |
 | `skills/fc-issue-list/` | Issue-list schema: per-issue YAML blocks, severities, cross-linking |
-| `skills/fc-task-list/` | Task-list schema: spec and diff modes, `base_commit` guard, self-eval |
+| `skills/fc-task-list/` | Task-list schema: spec and diff modes, `base_commit` guard, test-update and test-run tasks, self-eval |
 | `skills/fc-plain-text-kanban/` | Board skill: the generated-view rules and file format |
 | `skills/fc-plan-feature/` | Feature planning: approach prompt, required plan structure |
 | `skills/fc-validate/` | Checks an authored artifact against its source |

@@ -5,9 +5,9 @@ workstream: WS-1-qrec54
 slug: execute-gate-approval-ambiguity
 title: "A blanket 'go with your recommendations' reply can satisfy the execute-tasks or commit gate by accident"
 status: done
-tags: [orchestration, gates]
+tags: [orchestration, checks]
 created: 2026-09-10
-updated: 2026-09-10
+updated: 2026-09-26
 author: Anthony Koukoullis
 depends_on: []
 links: []

@@ -11,6 +11,26 @@ add the brackets.
 Versions follow Semantic Versioning. There is one FlowCharge Core suite version and every
 skill mirrors it. See VERSIONING.md.
 
+## Unreleased
+
+### Added
+
+- `test_commands`, an optional task-list frontmatter key listing the test suites
+  the project itself defines, `[]` when it defines none. Where it is not `[]`,
+  every task list ends with a test-update task, which updates the tests the change
+  makes wrong and adds only tests the request asks for, then a test-run task,
+  which runs every recorded suite. A test-run failure is filed as an issue and
+  fixed through its own task list, never inline. A project with no suite gets
+  neither task.
+- `fc-index.mjs --check` warns on a `done` task list with a non-empty
+  `test_commands` that has no test-update task, no test-run task, or a test-run
+  record other than `passed`.
+
+### Changed
+
+- A full test suite no longer counts as the user's step after execution: it runs
+  only in the test-run task.
+
 ## 0.4.0 - 2026-09-18
 
 ### Added

@@ -39,8 +39,9 @@ Usage:
 Modes, one per run. With no mode flag the run regenerates. Two mode
 flags together print one stderr line and exit 1.
 
-  (default)  Rewrite flowcharge/index.md and flowcharge/kanban.md, and
-             rewrite the flowcharge/ids.md header when it is stale. Print
+  (default)  Rewrite flowcharge/index.md and flowcharge/kanban.md,
+             rewrite the flowcharge/ids.md header when it is stale, and
+             create flowcharge/tags.md when it is missing. Print
              one WARN line per integrity finding, then one summary line.
              Exits 0 even when it warns.
   --check    Print the same WARN lines and write nothing. Exits 2 when at
@@ -315,6 +316,9 @@ const LEASE_STALE_MINUTES = 60;
 // this close to one. The check is deliberately literal: a typo backstop, not
 // a synonym finder. Choosing a tag by meaning is the authoring flows' job.
 const TAG_NEAR_MAX = 2;
+// CONVENTIONS.md's two automatic tags, and the header a seeded pool opens with.
+const AUTO_TAGS = ['issue', 'feature'];
+const TAG_POOL_HEADER = '# FlowCharge Tag Pool\n\n';
 
 // The ids.md header text, owned by this script and defined exactly once.
 // Three paths use it: the seeding write in the --claim block, the default-mode
@@ -366,6 +370,13 @@ function unquoteScalar(v) {
   return v.replace(/^["']|["']$/g, '');
 }
 
+// A YAML flow list's items: quoted items may hold commas, bare ones may not.
+function flowList(v) {
+  const inner = v.replace(/^\[|\]$/g, '').trim();
+  const quoted = inner.match(/"(?:[^"\\]|\\.)*"|'(?:[^']|'')*'/g);
+  return quoted ? quoted.map(unquoteScalar) : inner.split(',').map((s) => s.trim()).filter(Boolean);
+}
+
 function parseFrontmatter(text) {
   const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!m) return null;
@@ -412,20 +423,24 @@ function parseIssues(text, file) {
 
 // Task-tracker lines only: "- [ ] N." (parent/adult), "  - [ ] N.M" (child).
 // Returns the open/total counts the index and --list render, plus one item per
-// task carrying its number as written and the ids of its issues: key. An
-// issues: entry belongs to the last task line seen above it, which is how the
-// key is written in task YAML; an empty array contributes no id.
+// task carrying its number as written, the ids of its issues: key, the shape
+// keys the mini audit reads (pattern:, verify:, checklist:), the pattern value,
+// and whether a child line sits beneath it. An indented key belongs to the last
+// task line seen above it, which is how task YAML is written; an empty issues
+// array contributes no id.
 function parseTasks(text) {
   let open = 0, total = 0;
   const items = [];
-  let current = null;
+  let current = null, lastTop = null, list = null;
   for (const line of text.split(/\r?\n/)) {
     const t = line.match(/^- \[( |x)\] (\d+)\./) || line.match(/^\s{2}- \[( |x)\] (\d+\.\d+)/);
     if (t) {
+      list = null;
       total++;
       if (/\[ \]/.test(line.slice(0, 8))) open++;
-      current = { n: t[2], issues: [] };
+      current = { n: t[2], issues: [], keys: new Set(), pattern: '', hasChildren: false };
       items.push(current);
+      if (t[2].includes('.')) { if (lastTop) lastTop.hasChildren = true; } else lastTop = current;
       continue;
     }
     if (!current) continue;
@@ -436,8 +451,69 @@ function parseTasks(text) {
         if (v) current.issues.push(v);
       }
     }
+    // test_run and test_run_result feed the done-list test-run check, which
+    // takes the last task carrying test_run as the list's test-run task;
+    // test_update marks the test-update task that check also requires.
+    const km = line.match(/^\s+(pattern|verify|checklist|test_run|test_run_result|test_update):\s*(.*)$/);
+    if (km) {
+      current.keys.add(km[1]);
+      if (km[1] === 'pattern') current.pattern = unquoteScalar(km[2].trim());
+      if (km[1] === 'test_run') current.testRun = unquoteScalar(km[2].trim());
+      if (km[1] === 'test_run_result') current.testRunResult = unquoteScalar(km[2].trim());
+      if (km[1] === 'test_update') current.testUpdate = true;
+    }
+    // test_run_baseline and test_run_failures feed the blocking check. The
+    // baseline is a flow list or a block list below its key; pending and
+    // unavailable hold no check. list names the block list being read.
+    const bm = line.match(/^\s+test_run_baseline:\s*(.*)$/);
+    if (bm) {
+      const v = bm[1].trim();
+      current.baseline = v.startsWith('[') ? flowList(v) : [];
+      list = v === '' ? 'baseline' : null;
+      continue;
+    }
+    if (/^\s+test_run_failures:/.test(line)) {
+      current.failures = [];
+      list = 'failures';
+      continue;
+    }
+    if (list === 'baseline') {
+      const b = line.match(/^\s+-\s+(.+)$/);
+      if (b) current.baseline.push(unquoteScalar(b[1].trim()));
+      else list = null;
+    } else if (list === 'failures') {
+      const f = line.match(/^\s+(-\s+)?(\w+):\s*(.*)$/);
+      if (f && f[1]) current.failures.push({ check: '', blocking: true });
+      const e = current.failures[current.failures.length - 1];
+      if (f && e && f[2] === 'check') e.check = unquoteScalar(f[3].trim());
+      if (f && e && f[2] === 'blocking') e.blocking = unquoteScalar(f[3].trim()) !== 'false';
+    }
   }
   return { open, total, items };
+}
+
+// The mini-shape audit fc-task-list's Mini shape names. A mini task carries
+// verify: and no checklist:; a parent carries neither and a full task both. Two
+// misuses are visible to a scan without reading the skill's test: a pattern
+// naming more than one non-test file (two path-like tokens, or a glob), and a
+// child line beneath the task. A path-like token holds a slash or a dot plus at
+// least one word character, so a bare full stop in prose is not a file. A test
+// file for the same change does not count, per the skill's mini test: one
+// under a test-style directory or named *.test.* / *.spec.*.
+const TEST_FILE_RE = /(^|\/)(tests?|specs?|e2e|__tests__)\/|\.(test|spec)\.[\w.]+$/;
+function checkMiniTasks(a) {
+  const out = [];
+  for (const t of a.tasks.items) {
+    // The test-update task takes neither shape and may name several test files.
+    if (!t.keys.has('verify') || t.keys.has('checklist') || t.testUpdate) continue;
+    const files = (t.pattern.match(/[\w*?{}.\/\\-]+/g) || []).filter((tok) => /[\/.]/.test(tok) && /\w/.test(tok));
+    const sources = files.filter((f) => !TEST_FILE_RE.test(f));
+    if (sources.length > 1 || files.some((f) => /[*?{]/.test(f))) {
+      out.push(`${a.id} (${a.file}) task ${t.n}: mini shape but pattern names more than one file`);
+    }
+    if (t.hasChildren) out.push(`${a.id} (${a.file}) task ${t.n}: mini shape but has sub-tasks`);
+  }
+  return out;
 }
 
 // ---- schema and shape ------------------------------------------------------
@@ -508,6 +584,7 @@ function checkShape(a) {
   if (foundPrefix && foundPrefix !== a.id) {
     out.push(`${a.id} (${a.file}): filename id-prefix "${foundPrefix}" disagrees with frontmatter id "${a.id}"`);
   }
+  if (a.type === 'tasklist' && a.tasks) out.push(...checkMiniTasks(a));
   if (a.type !== 'workstream') return out;
   // A record with no slug key falls back to its folder name, which would make
   // the comparison compare the folder against itself plus a prefix. The missing
@@ -1074,6 +1151,7 @@ for (const rootSpec of ROOTS) {
         title: fm.title || '', status: fm.status || '', created: fm.created || '',
         updated: fm.updated || '', depends_on: fm.depends_on || [], links: fm.links || [],
         tags: fm.tags || [], mode: fm.mode || '', author: fm.author || '',
+        testCommands: fm.test_commands,
         blocked: (fm.blocked || '').trim(),
         file: rel, archived: rootSpec.archived,
         // Fields the schema, freshness and shape checks need. fmKeys is the raw
@@ -1279,6 +1357,37 @@ for (const a of artefacts) {
   if (a.type === 'tasklist' && a.tasks.total > 0 && a.tasks.open === 0 && a.status !== 'done' && a.status !== 'dropped') {
     warnings.push(`${a.id} (${a.file}): all ${a.tasks.total} tasks checked but status is "${a.status}". Close it?`);
   }
+  // CONVENTIONS.md's test-run rule. A done list whose test_commands is not []
+  // must hold a passed test-run record and, unless its test-run task is the
+  // recheck form of a fix list, a test-update task. A list with test_commands
+  // [] has no suite, and one with no test_commands key predates the rule
+  // (forward-only); neither is checked.
+  const noSuite = Array.isArray(a.testCommands) && a.testCommands.length === 0;
+  if (a.type === 'tasklist' && a.status === 'done' && a.fmKeys.has('test_commands') && !noSuite) {
+    const testRunTask = a.tasks.items.filter((t) => t.testRun).pop();
+    const result = testRunTask && testRunTask.testRunResult ? testRunTask.testRunResult : 'missing';
+    if (!testRunTask) {
+      warnings.push(`${a.id} (${a.file}): status is "done" but it has no test-run task`);
+    } else if (result !== 'passed') {
+      warnings.push(`${a.id} (${a.file}): status is "done" but its test-run record is "${result}": expected passed`);
+    }
+    if (!(testRunTask && testRunTask.testRun === 'recheck') && !a.tasks.items.some((t) => t.testUpdate)) {
+      warnings.push(`${a.id} (${a.file}): status is "done" but it has no test-update task`);
+    }
+  }
+  // fc-task-list's blocking rule, on done lists: an entry is non-blocking only
+  // when its check is in the baseline, and never in the recheck form.
+  if (a.type === 'tasklist' && a.status === 'done') {
+    for (const t of a.tasks.items) {
+      for (const f of (t.failures || []).filter((e) => !e.blocking)) {
+        if (t.testRun === 'recheck') {
+          warnings.push(`${a.id} (${a.file}) task ${t.n}: "${f.check}" is non-blocking in a recheck task`);
+        } else if (!(t.baseline || []).includes(f.check)) {
+          warnings.push(`${a.id} (${a.file}) task ${t.n}: "${f.check}" is non-blocking but not in test_run_baseline`);
+        }
+      }
+    }
+  }
   if (a.type === 'issuelist' && a.issues.length > 0 && a.issues.every((i) => i.status === 'done' || i.status === 'dropped') && a.status !== 'done' && a.status !== 'dropped') {
     warnings.push(`${a.id} (${a.file}): no open issues left but status is "${a.status}". Close it?`);
   }
@@ -1338,15 +1447,23 @@ for (const a of artefacts) {
 
 // Tag pool membership. The pool is registry-like infrastructure rather than an
 // artefact: it sits at flowcharge/ root, outside the workstreams/ and archive/
-// walk above, so it is read here instead of scanned. A missing pool disables
-// the membership check for the whole run: one advisory line, rather than one
-// WARN per tag in a corpus that has no pool yet.
+// walk above, so it is read here instead of scanned. A writing run creates a
+// missing pool, seeded like ids.md from what is on disk: the automatic tags
+// and every valid tag a workstream carries, so the seed warns about nothing
+// already in use. The write happens with the other outputs, after --check's
+// early exit; --check only reports the pool missing and skips the check.
 let tagPool = null;
+let tagPoolSeed = null;
 if (fs.existsSync(tagPoolPath)) {
   const poolText = fs.readFileSync(tagPoolPath, 'utf8');
   tagPool = new Set([...poolText.matchAll(/^- ([a-z0-9-]+)$/gm)].map((m) => m[1]));
-} else {
+} else if (checkOnly) {
   warnings.push('flowcharge/tags.md missing, tag validation skipped');
+} else {
+  const inUse = workstreams.flatMap((ws) => (Array.isArray(ws.tags) ? ws.tags : []).map((t) => String(t).toLowerCase()));
+  tagPool = new Set([...AUTO_TAGS, ...inUse].filter((t) => /^[a-z0-9-]+$/.test(t)));
+  tagPoolSeed = TAG_POOL_HEADER + [...tagPool].sort().map((t) => `- ${t}\n`).join('');
+  warnings.push('flowcharge/tags.md missing, created from the tags in use');
 }
 // Live and archived workstreams alike, lowercased the same way the board's
 // label keys are. The WARN drives a fix; it never suppresses the label.
@@ -1452,6 +1569,7 @@ if (checkOnly) {
 // lines come through byte-for-byte, and a registry whose header already
 // matches is not rewritten identically but left alone.
 if (registryRewrite) writeAtomic(registryPath, registryRewrite);
+if (tagPoolSeed) writeAtomic(tagPoolPath, tagPoolSeed);
 
 const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
 const wsArtefacts = (ws) =>

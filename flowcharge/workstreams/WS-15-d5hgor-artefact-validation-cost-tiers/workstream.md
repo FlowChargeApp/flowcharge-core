@@ -5,9 +5,9 @@ workstream: WS-15-d5hgor
 slug: artefact-validation-cost-tiers
 title: "Every run pays full price for artefact checking, whatever the stakes"
 status: done
-tags: [configuration, gates, quality]
+tags: [configuration, checks, quality]
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-26
 author: Anthony Koukoullis
 depends_on: []
 links: []

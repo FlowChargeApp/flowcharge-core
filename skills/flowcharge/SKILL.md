@@ -1,6 +1,6 @@
 ---
 name: flowcharge
-description: Orchestrate the FlowCharge Core project-management suite from one plain-English request. Chain investigations, plans, issue lists, task lists (diff or spec), task execution, git commits, and board/index upkeep by spawning subagents with pre-authored prompt templates and feeding each stage's output into the next. FlowCharge Core is the frontmatter-and-ID successor to the AK suite; artefacts live in flowcharge/workstreams/WS-N-SUFFIX-<slug>/ workstream folders. Use whenever the user describes a multi-step FlowCharge Core workflow in any phrasing ("file these findings as issues in flowcharge and fix them", "plan Y in flowcharge, create the tasks, execute and commit") and on /flowcharge. Do NOT use when the user invokes exactly one fc- skill for a single artefact with no chaining. Run that skill directly.
+description: Orchestrate the FlowCharge Core project-management suite from one plain-English request. Chain investigations, plans, issue lists, task lists (diff or spec), task execution, git commits, and board/index upkeep by performing each stage in the calling session from pre-authored stage files and feeding each stage's output into the next. FlowCharge Core is the frontmatter-and-ID successor to the AK suite; artefacts live in flowcharge/workstreams/WS-N-SUFFIX-<slug>/ workstream folders. Use whenever the user describes a multi-step FlowCharge Core workflow in any phrasing ("file these findings as issues in flowcharge and fix them", "plan Y in flowcharge, create the tasks, execute and commit") and on /flowcharge. Do NOT use when the user invokes exactly one fc- skill for a single artefact with no chaining. Run that skill directly.
 metadata:
   version: "0.4.0"
 ---
@@ -10,14 +10,14 @@ metadata:
 You are the conductor of the user's FlowCharge Core project-management suite. The user states
 outcomes in plain English ("file these findings on the scope service as issues,
 author spec tasks, execute them, commit"). You translate that into an ordered pipeline of
-operations, run each operation by spawning a subagent with a pre-authored prompt
-template filled verbatim, chain each stage's return into the next stage's inputs,
+operations, perform each operation yourself, in this session, from a pre-authored
+stage file followed as written, chain each stage's result into the next stage's inputs,
 prompt before the two dangerous stages, keep the artefact frontmatter, index, and board
 current, and report.
 
-The templates in `templates/` are the user's own prompt templates. Your
-job is faithful delivery and sequencing, never rewriting, improving, or doing a
-stage's work inline yourself.
+The stage files in `templates/` are the user's own stage instructions. Your
+job is faithful execution and sequencing, never rewriting, improving, or skipping a
+stage file's steps.
 
 **At the start of every run, Read `CONVENTIONS.md` in this skill's directory.** It
 is the FlowCharge Core data model: layout, IDs, frontmatter, status lifecycle,
@@ -29,26 +29,29 @@ in that case.
 
 ## Hard rules
 
-1. **Templates are verbatim.** Before every spawn, Read the template file fresh from
-   this skill's `templates/` directory and reproduce it exactly: same wording, order,
-   fencing, and emphasis. Substitute only the marked slots. Never paraphrase, trim,
-   reorder, or add sections. The only sanctioned deviations are listed under
-   "Sanctioned deviations", nothing else.
-2. **Two slot kinds.** `{name}` slots (e.g. `{artefact}`, `{plan}`, `{issuelist}`,
+1. **Stage files are followed as written.** At the start of every stage, Read its
+   stage file fresh from this skill's `templates/` directory and follow it exactly:
+   every step, in its order, with its emphasis. Read each marked slot as the value
+   this run resolved for it. Never paraphrase, trim, reorder, skip, or add a step.
+   The only sanctioned deviations are listed under "Sanctioned deviations", nothing
+   else.
+2. **One slot kind.** `{name}` slots (e.g. `{artefact}`, `{plan}`, `{issuelist}`,
    `{tasklist}`, `{ws_id}`, `{slug}`, `{ws_dir}`, `{item1}`) take a literal value, a path or
-   identifier. `{{...}}` double-braced blocks are briefings you author fresh each
-   run; the block's own text states exactly what belongs in it. Be complete on
-   those points, no padding, and never leave the placeholder text in the sent
-   prompt.
-3. **Subagent type.** Spawn each stage with your environment's own subagent-spawning
-   capability, requesting no explicit model, effort or role by default, so the
-   subagent inherits the calling agent's. If the user names a model, effort or role
-   ("use sonnet", "fable medium"), resolve it to the nearest agent type or setting
-   your environment offers, and hold that for the whole run, or for just the named
-   stage if they scoped it. Never silently downgrade. If `flowcharge/agents.md` sets
-   `default_agent` to a non-blank value, that string is the run's default
-   subagent_type unless the request names one explicitly, which still wins per the
-   override above (see "Standing vs. one-off instructions").
+   identifier, which you resolve before the stage begins. A stage file carries no
+   briefing: every stage runs in this one session, so the request, the decisions
+   already taken and the constraints in play are already yours.
+3. **One session.** Every stage runs in the session this skill was loaded into, on
+   that session's own model and effort. No stage runs in a separate agent, and no
+   stage hands its work to one. If the user names a model, effort or role for a
+   stage ("use a smaller model", "medium effort"), ignore it and proceed. `default_agent` in
+   `flowcharge/agents.md` is currently unused: it is kept, and still written under
+   "Standing vs. one-off instructions", for a possible future mode that runs
+   several workstreams in parallel, where it would name the agent type again.
+   This rule covers stages, not where a run starts: the user may start the whole
+   pipeline as one separate agent instance, running in the background or
+   otherwise, which loads this skill and becomes the one session. Pass it the
+   request verbatim. It cannot ask the user, so a hard rule 4 prompt neither
+   satisfied nor waived stops the run.
 4. **Two prompts: execute-tasks and commit.** A prompt is satisfied when the user's
    instruction is both **direct** (that stage is the point of the message, not a
    later link scheduled behind work that does not exist yet) and **determinate**:
@@ -80,51 +83,46 @@ in that case.
    requiring `done` would deadlock every issue-list-driven run. On an unmet
    dependency, halt and report instead of presenting the prompt; the user may
    override, per-run.
-6. **Strictly serial.** One operation at a time, one subagent at a time. Never run
-   two stages or two parent tasks concurrently. Later work assumes earlier edits
-   have landed.
+6. **Strictly serial.** One operation at a time. Never run two stages or two parent
+   tasks concurrently. Later work assumes earlier edits have landed.
 7. **Failure halts the pipeline.** An aborted subtask, a checklist item that stays
-   failed, or a subagent reporting it could not complete stops the run. Report what
+   failed, or a stage that could not complete stops the run. Report what
    completed, what failed and why, and what was not run. Do not improvise a fix, do
-   not skip ahead.
-8. **You orchestrate; subagents work.** Never perform a stage's work inline. The
-   only inline actions are: filling and dispatching subagent prompts, the commit stage (via
+   not skip ahead. A failed test-run task is not such a failure: it enters "The
+   test-run loop", which halts the run itself at its cap.
+8. **Perform each stage yourself, in order.** Every stage's work is yours, done in
+   this session from its stage file (rule 1). While a stage runs, its stage file's
+   limits bind you (what it may edit, what it must author nothing for, what it must
+   not settle), whatever an earlier stage of this run showed you. Alongside the
+   stages, these actions are also yours: the commit stage (via
    the fc-git skill), cutting the run's feature branch (rule 11), workstream ID
-   allocation via `fc-index.mjs --new-ws` for the run's own workstream, as "Start of run" directs, never for a `backlog-add` item, whose workstreams the spawned subagent creates (see "ID slots" below), workstream-record and artefact frontmatter bookkeeping (`status`, `tags`, and `updated` bumps, including the `updated` bump after a validator-applied edit),
+   allocation via `fc-index.mjs --new-ws` for the run's own workstream, as "Start of run" directs, never for a `backlog-add` item, whose workstreams the backlog-add stage creates in its own steps (see "ID slots" below), workstream-record and artefact frontmatter bookkeeping (`status`, `tags`, and `updated` bumps, including the `updated` bump after a validation stage or an applied settled answer that made one or more fixes),
    running the index generator, running a read-only artefact listing (see
    "Listing artefacts"), writing `flowcharge/agents.md` when a standing preference
-   is recognized (see "Standing vs. one-off instructions"), and reading artefact
-   files when a stage's return needs verifying or a briefing needs facts.
-9. **Task-list mode defaults to spec.** Use the `-spec` template unless the user
+   is recognized (see "Standing vs. one-off instructions"), and reading
+   files under `flowcharge/` when a stage's result needs verifying.
+9. **Task-list mode defaults to spec.** Resolve `{mode}` to `spec` unless the user
    says diff. If they name neither and the work is plainly diff-shaped (the
-   authoring subagent says so in its return), relay that observation. Don't switch
+   authoring stage says so in its report), relay that observation. Don't switch
    modes yourself mid-run. If `flowcharge/agents.md` sets `task_list_mode` to
    `diff`, that is the run's default instead of spec, unless the request names a
    mode explicitly, which still wins (see "Standing vs. one-off instructions").
-10. **Honour subagent returns.** Open questions, skipped issues, untasked stages,
-    and divergences reported by a subagent are carried verbatim into your stage
+10. **Honour stage reports.** Open questions, skipped issues, untasked stages,
+    and divergences a stage reports are carried verbatim into your stage
     report and the final summary. Never settle an open question on the user's
-    behalf, and never author downstream work for a stage a subagent left open.
-    Exception, opt-in per project: "The prompt policy" decides whether a
-    reported open question settles or relays, and that section is the only
-    definition of the tiers and of the risk test they apply. Where it settles,
-    adopt the recommendation the subagent wrote, as stated, never one you
-    compose, treat the question as settled, and continue. Where it relays,
-    carry the question as above. An explicit
-    instruction in the request still wins for that run, exactly as in rules 3,
-    4 and 9 (see "Standing vs. one-off instructions"). A question settled this
-    way is no longer "left open" for this rule's last clause, so the work behind
-    it may proceed.
-    Settling is never unrecorded: record the question, the answer you adopted, and
-    the preference that let you adopt it, in the settled-decisions record "Reporting"
-    defines, printed on request, its fixes counted always.
-    A correction fc-validate applies on its own authority (under its
-    correction boundary, mechanical and provable, with no recommendation and
-    no settling involved) is never a settled question and never enters this
-    rule, however a return or a report phrases it. Only an open finding that
-    passed this rule's settle-or-relay test counts as settled. The printed
-    count line combines both as "N fixes applied"; the settled-decisions
-    record and fc-validate's withheld detail keep them apart.
+    behalf, and never author downstream work for a stage left open,
+    except where "The prompt policy", the only definition of the tiers and their
+    risk test, settles a reported open question: then adopt the recommendation the
+    stage recorded, as stated, never one you compose afterwards, record the question, the
+    answer and the preference that let you adopt it in the settled-decisions record
+    "Reporting" defines, and continue; the stage it blocked may proceed. An explicit
+    instruction in the request still wins for that run, exactly as in rules 3, 4
+    and 9 (see "Standing vs. one-off instructions"). A fix fc-validate applies on
+    its own authority is never a settled question, however a return or a report
+    phrases it; only an open finding that passed the settle-or-relay test is, and
+    it reaches its artefact by the settled-answer path "Chaining" defines. The printed
+    count line reports both as "N fixes applied"; the settled-decisions record and
+    fc-validate's withheld detail keep them apart.
 11. **Work happens off the default branch.** Before the first execute-tasks or
     commit of a run, read the checked-out branch (`git branch --show-current`). If
     it is the repo's default branch (`main`, or `master` where that is the
@@ -140,33 +138,36 @@ in that case.
     alone. Check once per run: once you are off the default branch, do not check
     or cut again for the rest of the run.
 12. **A plan is checked against its motivating scenario before anything is
-    built from it.** On the merged plan-and-tasks stage's return, read the
-    plan it produced and the workstream record it belongs to (its
-    frontmatter `workstream:` key), then state, in one line per case, how
-    the plan's design handles each concrete scenario or failure case the
-    workstream record's body names as the reason the work is needed. There
-    is no spawn between the plan and its tasks in a merged run, which is why
-    the check reads a return rather than preceding a spawn. In a `tasks-only`
-    run the plan already exists, so the check keeps its present position and
-    fires before that stage is spawned. This
+    built from it.** The check reads the plan as validation left it. Under
+    `validate: on`, it runs once the validation stage that
+    follows the merged plan-and-tasks stage has finished; under `validate: off`, it runs
+    once the plan-and-tasks stage itself has finished. Read the plan and the
+    workstream record it belongs to (its frontmatter `workstream:` key),
+    then state, in one line per case, how the plan's design handles each
+    concrete scenario or failure case the workstream record's body names as
+    the reason the work is needed. There is no stage boundary between the plan and
+    its tasks in a merged run, which is why the check follows a finished stage rather
+    than preceding one. In a `tasks-only` run the plan already exists
+    and validation does not compare it against its source, so the check
+    fires before that stage begins. This
     is a trace of the plan's actual proposed text against that scenario,
     not a restatement that the plan reads as internally consistent or that
     its acceptance criteria are individually satisfiable, and it runs
     whether the plan was authored earlier in this same run or in an earlier
-    one. State the trace in that stage's report. It is the orchestrator's
-    own reading, under rule 8's carve-out for reading artefact files when a
-    briefing needs facts, never a subagent's. When the workstream record
+    one. State the trace in the report of the stage it followed. It is a
+    reading of its own, made after the authoring and validation stages and apart
+    from them. When the workstream record
     names no concrete scenario or failure case, say so in one line and
     proceed. When it names one the plan's stated design does not visibly
-    handle, halt and report instead of spawning the next stage; the user
+    handle, halt and report instead of beginning the next stage; the user
     may override, per-run, exactly as rule 5's dependency check does. Where the record names a
     scenario as a prerequisite defect an earlier stage of this run already fixed, name that fix
     as the answer: the plan's design is not required to handle it, and must not absorb it. This
     check supplements, and never replaces, a walkthrough task a task list
     may still place against the finished file.
 13. **A task list is checked for drift against the branch before
-    execute-tasks' first spawn.** Before spawning the first parent-task
-    subagent of an execute-tasks run, for the task list that stage is
+    execute-tasks' first parent task.** Before the first parent task
+    of an execute-tasks run begins, for the task list that stage is
     about to execute — whether that list was authored earlier in this
     same run or an earlier one — read its frontmatter `base_commit` and
     `updated` keys, per `fc-task-list`'s schema, against the
@@ -188,14 +189,12 @@ in that case.
     recommendation, folded into the always-printed "Before
     execute-tasks" report content, never a halt and never a new
     prompt. Run this check once per execute-tasks stage, immediately before that
-    stage's first parent-task spawn; do not repeat it before later parent tasks in
-    the same stage. It is the orchestrator's own reading, under rule 8's
-    carve-out for reading artefact files when a briefing needs facts,
-    never a subagent's.
+    stage's first parent task; do not repeat it before later parent tasks in
+    the same stage. It is a check made before the stage, not part of it.
 
 ## Standing vs. one-off instructions
 
-Hard rules 3, 4, 8, 9 and 10, and the validation setting, each read a starting default
+Hard rules 4, 8, 9 and 10, and the validation setting, each read a starting default
 from `flowcharge/agents.md` and may also write it. This section is the one shared test
 they use to decide: does
 an instruction change only this run, or should it change this project's default from
@@ -225,13 +224,13 @@ surprise than being asked again next time.
 
 When both conditions hold: write or update the matching line in
 `flowcharge/agents.md` and report it as one plain statement per "Talking to the user"
-(e.g. "Noted: default subagent is now sonnet for this project.", "Noted: task-list
+(e.g. "Noted: default agent is now <agent type> for this project.", "Noted: task-list
 mode now defaults to diff for this project.", "Noted: prompts are now set to manual
 for this project.", "Noted: prompts are now set to assist for this project.",
 "Noted: prompts are now set to cruise for this project.", "Noted: validation is now
 off for this project."). No question, no
 prompt: writing this file is a local, reversible, non-destructive state change,
-the same tier hard rule 8's other inline actions already sit in.
+the same tier hard rule 8's other bookkeeping actions already sit in.
 
 The write supports a partial file: it changes only the one line the instruction
 concerns, leaving any other existing lines untouched, in this fixed order when
@@ -280,7 +279,7 @@ The behaviour contract, per tier and per mechanism:
 
 | Mechanism | `manual` | `assist` | `cruise` |
 |---|---|---|---|
-| Open question reported by a subagent | always relays | settles when it carries a recommendation and is risky by none of (a), (b), (c); otherwise relays | settles when it carries a recommendation and is not risky by (a); a (b)- and/or (c)-risky recommendation is adopted as written and joins the settled-decisions record, marked risky |
+| Open question reported by a stage | always relays | settles when it carries a recommendation and is risky by none of (a), (b), (c); otherwise relays | settles when it carries a recommendation and is not risky by (a); a (b)- and/or (c)-risky recommendation is adopted as written and joins the settled-decisions record, marked risky |
 | Flagged task | every flag blocks | every flag blocks, because a flag is risky by construction | a flag risky by (b) and/or (c) only is adopted and joins the settled-decisions record; a flag risky by (a) blocks |
 | execute-tasks and commit prompts | both prompt | both skipped | both skipped |
 
@@ -293,15 +292,18 @@ Three rules bind every cell of that table:
 - **No recommendation, no settling.** A question or a flag that states no
   recommendation, states two that conflict, or makes one conditional on something the
   orchestrator cannot check, relays unsettled at every tier. An open question arrives in
-  the fixed open-question block the open-question-capable prompt templates carry, so a
-  question whose recommendation field holds `No recommendation possible` is ineligible to
-  settle at any tier by its shape alone.
+  the fixed open-question block `templates/plan-and-tasks.md` and
+  `skills/fc-validate/SKILL.md` carry, so a question whose recommendation field holds
+  `No recommendation possible` is ineligible to settle at any tier by its shape alone.
 - **The exception covers open questions and flagged tasks only.** An aborted subtask, a
   skipped issue, an untasked stage and a divergence still relay unsettled at every
   tier, and hard rule 7 still halts the pipeline on a failure.
 
-An explicit instruction in the request still wins for one run, exactly as hard rules 3,
-4 and 9 already provide, and the standing-versus-one-off test decides whether it is
+The validation stage runs identically at every tier ("The validation setting"); only an
+open finding it reports enters the table above.
+
+An explicit instruction in the request still wins for one run, exactly as hard rules 4
+and 9 already provide, and the standing-versus-one-off test decides whether it is
 written to the file (see "Standing vs. one-off instructions").
 
 ### The setting contract
@@ -318,8 +320,11 @@ so this section carries that note in the way this file's other unverifiable rule
 `validate:` in `flowcharge/agents.md` governs whether a run checks its authored
 artefacts against the source they were authored from.
 
-Under `on`, one pass runs once per authoring stage, after that stage's return and before the
-execute-tasks prompt that follows it. Under `off`, no validator is spawned.
+Under `on`, one pass runs once per authoring stage, after that stage finishes and before the
+execute-tasks prompt that follows it. The pass fixes every defect it can prove wrong in
+place, on its own authority, under the correction rule `skills/fc-validate/SKILL.md`
+defines, at every `prompts:` tier, and reports only what that rule says to report.
+Under `off`, the validation stage does not run.
 
 - **Accepted values:** `on`, `off`.
 - **Built-in default when the key and the file are both absent:** `on`.
@@ -333,37 +338,52 @@ unverifiable rules do (see DEVELOPMENT.md's note on unverifiable rules).
 
 ## Operations
 
-Each operation names its template, its slots, what it consumes, and what it returns.
+Each operation names its stage file, its slots, what it consumes, and what it returns.
 
-| Operation | Template | Slots | Consumes | Returns |
+| Operation | Stage file | Slots | Consumes | Returns |
 |---|---|---|---|---|
-| investigate | `templates/investigate.md` | `{{context docs}}`, `{{investigation}}` | question from the request | findings summary |
-| plan-and-tasks | `templates/plan-and-tasks-spec.md` or `-diff.md` | `{stages}`, `{plan}`, `{ws_dir}`, `{ws_id}`, `{slug}`, `{{context docs}}`, `{{briefing}}` | feature description, or investigate findings; a plan path in `{plan}` when `{stages}` is `tasks-only` | plan path, summary, open questions, task list path, stage→task map |
-| issues-and-tasks | `templates/issues-and-tasks-spec.md` or `-diff.md` | `{stages}`, `{issuelist}`, `{ws_dir}`, `{ws_id}`, `{slug}`, `{{context docs}}`, `{{briefing}}` | findings the user supplies; an issue list path in `{issuelist}` when `{stages}` is `tasks-only` | issue list path, ISS IDs, task list path, ISS→task map |
-| validate | `templates/validate-plan-and-tasks.md` or `-issues-and-tasks.md` | `{stages}`, `{plan}` or `{issuelist}`, `{tasklist}`, `{ws_dir}`, `{{context docs}}`, `{{source material}}` | both artefacts the authoring stage returned, plus the source it authored from | one summary line per comparison, plus any open finding; correction detail withheld |
-| execute-tasks | `templates/execute-parent-task.md` (one spawn per parent task) | `{tasklist}`, `{{parent task number}}`, `{{context docs}}`, `{{briefing}}` | task list path, **PROMPTED**, deps checked per rule 5 | per-task applied/aborted status, self_eval |
+| investigate | `templates/investigate.md` | - | question from the request | findings summary |
+| plan-and-tasks | `templates/plan-and-tasks.md` | `{stages}`, `{scale}`, `{mode}`, `{plan}`, `{ws_dir}`, `{ws_id}`, `{slug}` | feature description, or investigate findings; a plan path in `{plan}` when `{stages}` is `tasks-only` | plan path, summary, open questions, task list path, stage→task map |
+| issues-and-tasks | `templates/issues-and-tasks.md` | `{stages}`, `{mode}`, `{issuelist}`, `{ws_dir}`, `{ws_id}`, `{slug}` | findings the user supplies; an issue list path in `{issuelist}` when `{stages}` is `tasks-only` | issue list path, ISS IDs, task list path, ISS→task map |
+| validate | `templates/validate.md` | `{stages}`, `{role}`, `{upstream}`, `{upstream_path}`, `{tasklist}`, `{ws_dir}` | both artefacts the authoring stage produced, plus the source material it authored from | one summary line per comparison, plus any open finding; correction detail withheld |
+| execute-tasks | `templates/execute-parent-task.md` (once per parent task) | `{tasklist}`, `{parent_task}` | task list path, **PROMPTED**, deps checked per rule 5 | per-task applied/aborted status, self_eval |
 | commit | inline via the **fc-git** skill | - | completed work, plus the end-of-run upkeep writes that have already landed (issue closures, `--sync` status flips, regenerated index/board, released lease), **PROMPTED** | commit SHA |
-| backlog-add | `templates/kanban-add.md` | `{item1}`, `{item2}`, …, `{{context docs}}`, `{{briefing}}` | backlog items from the request | WS IDs, slugs, card text |
+| backlog-add | `templates/kanban-add.md` | `{item1}`, `{item2}`, … | backlog items from the request | WS IDs, slugs, card text |
 | upkeep | inline (see FlowCharge Core upkeep) | - | every stage boundary | fresh index + board |
 | list | inline (see Listing artefacts) | - | scope / workstream / sort from the request | Markdown table (in chat) |
 
 Notes:
 
-- **`{{context docs}}`**: the same shared Context-section block in every template.
-  It resolves to this project's own structural or reference documentation as a
-  list of repo-relative paths, one line per document saying what that document
-  covers and when to read it, or to nothing when the project has none. Its own
-  text states what to produce and what to delete when it comes out empty.
-- **ID slots** (`{ws_id}`, `{ws_dir}`): `{ws_id}` is the only artefact ID you allocate, and it
-  comes from the `--new-ws` run that created the workstream folder (see FlowCharge Core
-  upkeep). The folder must exist before anything is written into it. Every other
-  artefact ID is claimed by the subagent that writes the artefact: it runs
+- **`{mode}`**: `spec` or `diff`, per hard rule 9.
+- **`{scale}`**: `small` or `standard`, per "Parsing the request".
+- **The context-docs list**: the list every stage file's Context section points at.
+  Resolve it once per run, before the first stage, and reuse it for every stage. It
+  names this project's own structural or reference documentation as repo-relative
+  paths, one line per document saying what its filename and location imply it covers,
+  and so when to read it. List the project root (a README, a `docs/` folder, an
+  architecture, layers or conventions document) and name only files the listing
+  showed. Invent nothing and never carry a path over from another project. Each stage
+  reads the documents it needs from the list, not all of them. If the project has no
+  such documentation, the list is empty and each stage's Context reading is skipped.
+- **Source material** (validate only): the source the upstream artefact was
+  authored from, and nothing else. Plan path: the request the plan was authored
+  from, with the decisions already taken and the constraints in play, plus the
+  workstream record in `{ws_dir}`. Issue path: every finding the issue list was filed
+  from, as the user supplied it, because user-supplied findings are never written to a
+  file; validation treats that text as the source. Never the authoring stage's own
+  report, its rationale, or its self-report, and never the issues-and-tasks stage's
+  restatement of the findings: findings reach validation from the user.
+- **ID slots** (`{ws_id}`, `{ws_dir}`): `{ws_id}` is the only artefact ID you allocate outside a
+  stage, and it comes from the `--new-ws` run that created the workstream folder (see
+  FlowCharge Core upkeep). The folder must exist before anything is written into it.
+  Every other artefact ID is claimed by the stage that writes the artefact, as its
+  stage file directs, by running
   `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --claim <TYPE>`
-  itself and reports the id it claimed. Never pre-claim a PLN, IL, TL or ISS id:
-  a pre-claim the subagent does not use leaves an orphaned marker under
+  and using the id it prints. Never pre-claim a PLN, IL, TL or ISS id before that stage:
+  a pre-claim the stage does not use leaves an orphaned marker under
   `flowcharge/ids/`.
-  `{ws_dir}` is the workstream's folder path, and you supply it. The subagent never
-  self-claims it, because it is not an artefact ID. It has two sources, and both are
+  `{ws_dir}` is the workstream's folder path, and you resolve it before the stage. No
+  stage claims it, because it is not an artefact ID. It has two sources, and both are
   observed rather than composed. For a new workstream, `--new-ws` prints two lines: the
   claimed WS id, then the created record's path
   `flowcharge/workstreams/<WS-id>-<slug>/workstream.md`. Take that second line and remove
@@ -373,40 +393,43 @@ Notes:
   from what the command printed or from what the listing found. Never compose it from the
   id and the slug. `{ws_id}` keeps its present source and its present meaning. It is still
   needed for each artefact's frontmatter `workstream:` key.
-- **plan-and-tasks**: apply hard rule 12 to the plan this stage produced, on the
-  stage's return — state in one line per case how the plan's design handles each
-  scenario its workstream record names, and halt instead of going on to the next
-  stage if one is not visibly handled. In a `tasks-only` run the plan already
-  exists before the spawn, so the rule keeps its present position and fires there.
-- **execute-tasks**: first Read the task list yourself and enumerate its parent
-  tasks. Then loop in file order: fill the template for one parent task, spawn, wait
-  for the return, evaluate it, only then spawn the next. If a return reports an
-  abort or a checklist item that stays failed, halt per rule 7. Before the first
-  spawn, apply hard rule 13 once — compare the task list's `base_commit` or
-  `updated` against current `HEAD` and state the finding in that stage's report
-  rather than halting.
-- **commit**: invoke the fc-git skill in the main session with the user's standing
+- **plan-and-tasks**: hard rule 12 fires on the plan this stage produced, at the
+  point its trigger names.
+- **execute-tasks**: first Read the task list and enumerate its parent
+  tasks. Then loop in file order: run the stage file for one parent task, with
+  `{parent_task}` as its number, evaluate its result, and only then begin the next. If a
+  result reports an abort or a checklist item that stays failed, halt per rule 7. A NOT
+  CHECKED item is no failure: lift every one, with its reason, from each parent task's
+  result into the run's final report, at every tier. Apply hard rule 13 once, before the
+  first parent task, then the test-run task's baseline run ("The test-run loop").
+- **commit**: invoke the fc-git skill in this session with the user's standing
   instruction: "Commit all created and/or modified files in one commit to the
   current branch. This work traces to <every artefact this run touched, as ID +
   title, e.g. `ISS-N` (title) under `WS-N-SUFFIX` (title), executed via `TL-N`>; cite these
   IDs in the commit body per your committing rules." Adjust "created/modified" to
-  what the run actually produced.
+  what the run actually produced. The commit stage runs no suite: the task list's
+  test-run task already ran them ("The test-run loop").
 - **backlog-add** is for user-requested backlog entries: each becomes a workstream
   record with `status: backlog`, and the board is regenerated from it.
-  The subagent chooses each title, slug and tags and runs `--new-ws` itself; the
-  orchestrator neither creates the folder nor claims the id.
-- **validate**: under `validate: on`, one pass runs once per authoring stage, spawned after
-  that stage's return and before the execute-tasks prompt that follows it. The path chooses the
-  template: the plan path spawns `validate-plan-and-tasks.md`, the issue path spawns
-  `validate-issues-and-tasks.md`. `{stages}` passes through unchanged from the
-  authoring stage. The fixed comparison order and the never-align-backwards rule are
-  `skills/fc-validate/SKILL.md`'s own; this note points at that skill rather than
-  restating either. Under `validate: off`, no validation subagent is spawned at all.
-  The validation stage is not prompted, because it neither changes project code nor
-  commits. Its stage report carries the validator's summary line and any open finding
-  only; the per-correction detail is printed on request and not before.
+  The stage chooses each title, slug and tags and runs `--new-ws` in its own steps;
+  "Start of run" neither creates the folder nor claims the id for it.
+- **validate**: under `validate: on`, one pass runs once per authoring stage, after
+  that stage finishes and before the execute-tasks prompt that follows it, from
+  `templates/validate.md`. `{upstream}` is `plan` on the plan path and `issue list` on
+  the issue path, `{upstream_path}` is that artefact's path, `{role}` is `architect` or
+  `engineer` respectively, and `{stages}` passes through unchanged from the authoring
+  stage. The fixed comparison order and the never-align-backwards rule are
+  `skills/fc-validate/SKILL.md`'s own. Under `validate: off`, the validation stage does
+  not run at all. The stage is not prompted, because it neither changes project code
+  nor commits; "Chaining" states what you owe it afterwards. Its stage report carries
+  the validation's summary line and any open finding only; the per-fix detail is printed
+  on request and not before. On the plan path, hard rule 12's scenario trace runs once
+  this stage finishes.
 
 ## Parsing the request
+
+You read the target project yourself, because every stage's work is yours: each
+stage file says what that stage reads.
 
 Map the user's English onto an ordered subset of operations. The standard chains:
 
@@ -443,136 +466,144 @@ Rules of interpretation:
 - If an input artefact is ambiguous (two candidate issue lists, no plan named),
   check `index.md` first: it names every artefact with its status and
   workstream; regenerate it if stale. Ask only if it stays undecidable.
+- **Scale, decided once.** From the request's words alone, before the first stage:
+  `small` when it names one existing file or element (its test file does not
+  count), one value or behaviour to change, and no new file, interface, schema or
+  dependency; otherwise, or when unsure, `standard`. Resolve `{scale}` to it and state it in one line before
+  starting. Never revisit it: a stage that finds more promotes its own artefact
+  (the full plan, the full task shape) and reports it.
 - Every run belongs to a workstream: an existing `flowcharge/workstreams/WS-N-SUFFIX-<slug>/` folder, or a new
   one you create (see FlowCharge Core upkeep). The workstream is the unit the board tracks.
-  `backlog-add` is the exception: its output is new backlog workstreams that the
-  subagent creates, so the run has no workstream of its own.
+  `backlog-add` is the exception: its output is new backlog workstreams that its
+  stage creates, so the run has no workstream of its own.
 
-## Filling a template: the verbatim procedure
+## Running a stage: the procedure
 
-1. Read the template file from `templates/`.
-2. Copy its full text into the subagent prompt.
-3. Replace each `{name}` slot with its literal value. For `{ws_dir}`, take that value
+1. Read the stage file from `templates/`.
+2. Resolve each `{name}` slot to its literal value. For `{ws_dir}`, take that value
    from the "ID slots" note above.
-4. Replace each `{{...}}` block with a briefing you author now, satisfying exactly
-   the points the placeholder text names. Draw facts from the conversation, the
-   chained artefacts (read them if needed), and files under `flowcharge/`, never invent.
-   The `{{context docs}}` block is the one exception: its own text names the
-   project-root files to check for.
-5. Re-scan the result against the template: outside the slots, nothing changed.
-6. Spawn the subagent per hard rule 3, applying an override only if that rule
-   resolved one, and run it in the foreground: wait for its result before doing
-   anything else.
+3. Follow the file's Instructions in order, reading each slot as its resolved value,
+   inside the file's own limits (rule 8). Where the file names the request, the
+   findings, the decisions already taken or the constraints in play, it means what
+   the conversation and the chained artefacts hold; never invent any of them.
+4. Finish with what the file's Return section lists. That is the stage's result: it
+   feeds your stage report and the stages that follow, and only then does the next
+   stage begin.
 
 ### Sanctioned deviations
 
 These, and nothing else:
 
-- Deleting the Context lead-in sentence (and, where that empties the section, its
-  heading) when the `{{context docs}}` placeholder resolves to nothing. The
-  placeholder's own text states when and how far; resolve the project's
-  documentation once per run, not per stage. Write its one-line notes at that
-  same point, then reuse that one resolved block verbatim in every spawn of the
-  run.
-- Adjusting `{item1}` / `{item2}` bullet count in kanban-add.md to the actual number
-  of items.
-- In execute-parent-task, the loop mechanics live in this skill, not the template;
-  the template is the per-task prompt template only.
+- Skipping a stage file's Context reading when the context-docs list is empty, per
+  its Operations note.
+- Reading `{item1}` / `{item2}` in kanban-add.md as the actual list of items, however
+  many there are.
+- In execute-parent-task, the loop mechanics live in this skill, not the stage file;
+  the stage file covers one parent task only.
 
 ## Chaining
 
-- findings the user supplies → issues-and-tasks `{{findings}}`: carry every finding
+- findings the user supplies → issues-and-tasks: carry every finding
   with its location, failure scenario, severity and confidence, all of them,
-  unfiltered; the issues subagent decides what is Not filed, not you.
+  unfiltered; what is Not filed is decided by the issues stage's own add-versus-correct
+  test, never before that stage.
 - issues-and-tasks path → `{issuelist}`; plan-and-tasks path → `{plan}`; task-list
-  path → `{tasklist}`. Use the paths the subagents return; before the next stage,
-  verify the file exists, that its frontmatter `id` matches the ID the subagent
-  reported claiming, and that its `depends_on` names the upstream artefact ID you
+  path → `{tasklist}`. Use the paths the stages report; before the next stage,
+  verify the file exists, that its frontmatter `id` matches the ID the stage
+  claimed, and that its `depends_on` names the upstream artefact ID you
   already know.
-- Subagent returns feed the next `{{briefing}}`: the stage→task map, skipped items,
-  and divergences are exactly the context the next subagent "cannot discover for
-  itself".
+- A stage's result carries into the stages that follow: the stage→task map, skipped
+  items, and divergences bind the next stage.
 - Downstream artefacts record their inputs as data: a task list authored from
   IL-3-k9d2s5 carries `depends_on: [IL-3-k9d2s5]`; one authored from PLN-2-m7v1q4
-  carries `depends_on: [PLN-2-m7v1q4]`. The authoring templates instruct this;
+  carries `depends_on: [PLN-2-m7v1q4]`. The authoring stage files instruct this;
   verify it landed. A prerequisite-defect constraint records the fixing task list's ID, never
   the issue list's. Only a `tasklist` dependency waits for the fix to land.
 - Open ends terminate chains: an issue skipped as a feature, a plan stage left
   untasked, an aborted subtask. None of these flow downstream. They flow up, to the
   user, in your reports. A question settled under "The prompt policy" (rule 10)
-  is not an open end. State the question and the answer you
-  adopted in the next stage's `{{briefing}}` as a decision already taken, so
+  is not an open end. Carry the question and the answer you
+  adopted into the next stage as a decision already taken, so
   the stage it was blocking is authored. Where the input artefact already
-  carries the question and its recommendation, put it in the briefing before
-  the spawn rather than re-running the stage afterwards. Where the question
-  first appears in a return, after the stage that needed it already ran,
-  re-spawn that one stage once, with the question and the adopted answer in its
-  `{{briefing}}`, rather than leaving the stage untasked.
-  After a plan-level correction, that re-spawn uses the merged plan template with
-  `{stages}: tasks-only` and `{plan}` pointing at the corrected plan, so one
-  re-spawn re-derives the task list without re-authoring the plan.
-  One re-spawn per stage per run: if the re-spawned stage returns the same
-  question again, relay it unsettled.
+  carries the question and its recommendation, settle it before
+  the stage begins rather than re-running the stage afterwards. Where the question
+  first appears in a stage's report, after the stage that needed it already ran,
+  run that one stage again once, with the adopted answer as a decision already
+  taken, rather than leaving the stage untasked.
+  One re-run per stage per run: if the re-run stage reports the same
+  question again, relay it unsettled. A validation finding never takes this
+  re-run route; the paragraphs below give it its own.
 
-The validation stage is the one exception to "subagent returns feed the next
-`{{briefing}}`", and it runs at most once per authoring stage. Its briefing
-carries the artefact and its source only, never the authoring subagent's return, its
-rationale, or its self-report, because fresh context is the active ingredient, and
-the authoring subagent's account of what it did is exactly the contamination this
-stage exists to avoid. The user's findings that feed `validate-issues-and-tasks.md`
-are not an exception to this: they are the source, and they reach the validation from
-the user, not from issues-and-tasks. On the no-loop carve-out: the policy section's
-settling rule may re-spawn one authoring stage once when a validation finding is adopted as a
-settled question, and the re-authored artefact is not validated again, because the
-re-spawn's `{{briefing}}` already carries the finding and the answer adopted for it.
-Where a first-comparison finding is applied to the upstream artefact, by the
-validator-applied path or by the re-spawn path, the task list is re-derived with the
-merged authoring template at `{stages}: tasks-only` pointed at the corrected upstream
-artefact, because the existing task list derives from the uncorrected one. This
-re-spawn is the one the existing budget already allows, and the re-derived task list
-is not validated again.
-The residual gap is that a re-authored artefact may reach execution unvalidated. It is
-bounded to one artefact per run, it is named in the stage report, and it is
-recoverable with a standalone `/fc-validate`.
+The validation stage is the one exception to that carry, and it runs at most once per
+authoring stage: it works from the source material only, per its Operations note.
 
-Rule 10 settles a validation finding exactly as it does today, its risk test included.
-What follows changes only how the settled answer reaches the artefact. Where the
-settled finding is non-risky and the validator's label says its recommended fix is
-localised, hand the finding and the answer you adopted back to the validation subagent
-that reported it, and that subagent applies the edit. Where the finding is risky (at
-every tier), where the label says structural, where the finding
-carries no label, where the environment
-cannot continue a subagent that already ran, or where the validator declines and
-reports the fix as structural, take the re-spawn path the settling rule above already
-describes.
+A fix the validation stage applies ("The validation setting") needs nothing further
+but the `updated` bump below: no settling, no re-run of the authoring stage, and no
+re-derivation of the task list, because validation's second comparison already
+checks the task list against the upstream artefact as its first comparison left it.
+The pipeline continues once the validation stage finishes.
 
-A settled validation finding therefore reaches its artefact by exactly one of two named
-paths (the validator-applied path, or the re-spawn path) and never by briefing-carry
-alone. The briefing-carry-only route above, which puts a question the input artefact
-already carries into the next briefing before the spawn rather than re-running the
-stage afterwards, is the route that sentence excludes. Route on the label the validator
-wrote: you never classify the fix yourself, and a finding that carries no label is
-structural. You never apply the edit yourself either: rule 8 forbids it, and nothing
-here loosens it.
+An open finding the validation stage reports is an ordinary open question under rule
+10, with one difference in how a settled answer reaches its artefact. Where rule 10
+settles it, apply the answer you adopted yourself, exactly as stated, under
+fc-validate's correction rule and its "A settled finding handed back" subsection, and
+say so in the stage report. This is the only path by which a settled validation
+finding reaches its artefact: never a re-run of the authoring stage, and never a carry
+into a later stage. Applying a settled answer is not a second run of the validation
+stage, so the once-per-authoring-stage bound above holds. Where rule 10 relays the
+finding instead, it flows up to the user in your reports as any open question does. A
+finding validation reports as irreversible relays at every tier, because criterion (a)
+is never silenced.
 
-The follow-up message never instructs a frontmatter change, `updated` included: the
-validator's contract forbids frontmatter edits, and no coordinator instruction lifts
-that. The schema's bump-`updated`-on-every-edit rule is yours to satisfy instead:
-once the validator confirms the edit landed, bump the artefact's `updated` inline.
-That bump is frontmatter bookkeeping under rule 8's carve-out, not the finding's fix,
-so it does not breach the sentence above.
+Applying a settled answer never changes `id`, `status`, `base_commit`, `created` or
+`updated`: fc-validate's edit limits keep those keys off limits, and a settled answer
+does not lift that. The schema's bump-`updated`-on-every-edit rule is satisfied
+separately: after a validation stage or an applied settled answer whose summary line
+reports one or more fixes, bump the artefact's `updated`. That bump is frontmatter
+bookkeeping under rule 8, not the finding's fix.
 
-The validator-applied path does not consume the one re-spawn the re-spawn path allows,
-so a decline still leaves that re-spawn available. A follow-up turn to the validation
-subagent is not a second run of the validation stage, so the validation stage's own
-once-per-authoring-stage bound above still holds and is not being widened. Where the
-environment cannot continue a subagent that already ran, take the re-spawn path and say
-so in the stage report. The pipeline never halts for this.
+The residual gap is that a validation fix is not independently re-checked. It is
+bounded to the artefact under validation, it is proved in the withheld part of the
+validation's result, and it is recoverable with a standalone `/fc-validate`.
 
-The validator-applied path names its own residual gap, as the carve-out above names
-its: the applied edit is not independently re-checked. That gap is narrower, because
-the edit is bounded to sections the artefact already has, and the agent that applied it
-had already read the artefact against its source.
+## The test-run loop
+
+A task list's final test-run task is where the project's suites run; the fc-task-list
+skill's Test-run task section defines its runs and its record. This section is the
+orchestrator's part around it. A list with no test-run task (no suite, or authored
+before the rule) takes no baseline, runs no suite and enters no loop.
+
+- **Baseline.** In an execute-tasks stage, after hard rule 13's check and before the
+  first parent task, run `templates/execute-parent-task.md` once for the list's
+  full-form test-run task (`test_run: full`). That run records the baseline only.
+  The task runs again in file order, as the list's last task.
+- **Recording, never fixing.** When a test-run task returns any `test_run_failures`
+  entry, fix nothing yourself. Run the issues-and-tasks stage for a new issue list in
+  the same workstream, with `{stages}` as `issues-and-tasks`, or `issues-only` where
+  no entry blocks. Supply one finding per entry: its `command` and `check` as the
+  location, its `message` as the failure scenario, severity `high` when it blocks and
+  `medium` when not, confidence `confirmed`, and the marker
+  `test-run failure: blocking` or `test-run failure: pre-existing`. Supply no
+  pre-existing failure this workstream has already filed. These entries are the
+  validation source for that issue list.
+- **A fix round** is that stage, its validation per "The validation setting", and
+  execute-tasks on the fix list it produced, under hard rules 4, 5 and 11 as they
+  stand, on the same branch. When the fix list's recheck task passes, run every
+  earlier fix list's recheck task still unchecked, then the outer test-run task
+  again, each through `templates/execute-parent-task.md`. A recheck or outer run that
+  returns a blocking entry starts the next round.
+- **Pre-existing failures never block.** Pre-existing means in the recorded
+  baseline, nothing else (fc-task-list skill, Test-run task). A test-run task whose
+  only entries are pre-existing passes, and the run goes on. Their issues stay open:
+  list each in the final summary's numbered list.
+- **The cap.** After 2 fix rounds, a recheck or outer run that still returns a
+  blocking entry halts the run under hard rule 7. Report every failing check, every
+  issue filed and the state of each fix list.
+
+**No script can check** that a run takes the baseline, files every failure or stops at
+the cap, because no script reads this prose, so this section carries that note in the
+way this file's other unverifiable rules do (see DEVELOPMENT.md's note on unverifiable
+rules). `fc-index.mjs --check` checks only the record a `done` task list holds.
 
 ## Talking to the user
 
@@ -587,8 +618,7 @@ suite. Every report and question must read cold, with zero homework:
 - **Every question carries a recommendation** with a one-line reason. "Go with
   your recommendations" must always be a complete, safe reply to the questions
   in a numbered list. The one thing it never answers is an unsatisfied
-  execute-tasks or commit prompt: that reply is neither direct nor determinate
-  about the stage, so the prompt stays open (rule 4).
+  execute-tasks or commit prompt (rule 4).
 - **Ask outcomes, not constructs.** "Two services would get no protocol test
   file. Skip them?" is answerable; "should stage 7 have four files?" is not.
 - **A few paragraphs, not a wall.** Prose first; numbered items only for the
@@ -603,7 +633,7 @@ then ask "proceed?" as a numbered question with a recommendation, and wait.
 
 - **Before execute-tasks**: the task list path and ID, its parent-task count and
   one-line scope, the dependency check's result (rule 5), anything the authoring
-  stage skipped or left open, the resolved agent type, and the
+  stage skipped or left open, and the
   staleness check's result (rule 13).
 - **Flagged tasks (only when there is something to flag)**: a separately
   labelled block that belongs to the task list, not to the prompt. When the run
@@ -613,7 +643,7 @@ then ask "proceed?" as a numbered question with a recommendation, and wait.
   it would have read at the prompt. One numbered entry per task whose change is
   risky by the risk test "The prompt policy" defines. That section holds it, and
   this block does not restate it. A
-  flag reaches you either in the authoring stage's return or from your own
+  flag reaches you either in the authoring stage's report or from your own
   pre-prompt read of the task list. Each entry names the task by number and
   title, says in one plain sentence what it changes and why that is flagged,
   and carries its own recommendation. These are ordinary questions: a blanket
@@ -621,11 +651,7 @@ then ask "proceed?" as a numbered question with a recommendation, and wait.
   entries nor numbered among them, and no reply to them satisfies it (rule 4).
   In a run that never reaches the prompt there is no "proceed?" to offer at all:
   the flags are listed, the prompt is not (see "Parsing the request").
-  What a flag then does is the policy section's to say, per tier, and is a
-  pointer here rather than a second copy of its table: under `manual` and
-  `assist` every flag blocks before execution begins, and under `cruise` a flag
-  risky by (b) and/or (c) only is adopted and joins the settled-decisions record
-  while a flag risky by (a) blocks.
+  What a flag does per tier is "The prompt policy"'s table.
   Where a flag blocks, do not begin execution until it has an
   answer. Approving the prompt approves running the list, never a flagged task.
 - **Before commit**: `git status --short` of what would be committed, and the
@@ -656,7 +682,7 @@ node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root>
 
 - **Start of run**: this bullet does not run for a `backlog-add` operation. That
   operation's workstreams are its output, and `templates/kanban-add.md` steps 1 to 4
-  create each one inside the subagent. A run whose only operation is `backlog-add`
+  create each one inside that stage. A run whose only operation is `backlog-add`
   creates no workstream of its own and takes no lease. For every other operation,
   resolve the workstream. Check `flowcharge/workstreams/` for an
   existing folder matching `WS-*-<slug>` by its slug suffix. If one exists, this run
@@ -665,49 +691,22 @@ node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root>
   a folder this run creates. One rule applies to a resumed record here: if its status
   is `done` or `dropped`, and this run will author or execute anything in the
   workstream, set it to `backlog`, bump `updated`, regenerate, and state the reopen
-  plainly in the stage report. If not, choose the `title` first: it must name the
-  problem or feature in the target project, never a FlowCharge Core stage or an
-  artefact-authoring act. Apply CONVENTIONS.md's smell test before you create the
-  folder. Then run
-  `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --new-ws <slug> --title "<title>" [--tags a,b]`.
-  It claims the id, creates the folder as `flowcharge/workstreams/WS-N-SUFFIX-<slug>/`, writes
-  its `workstream.md` with every required key present and valid, and prints the
-  claimed id and the created path. A folder this run creates is not promoted here: its
-  record keeps the status `--new-ws` gave it, and it reaches `in-progress` later, when
-  execution starts. Its body is empty. Append the body yourself: first
-  line the card description, then as much of the request's own detail as it carried,
-  with no length cap (CONVENTIONS.md, `workstream` body).
-  For `tags`: read `flowcharge/tags.md` first. If the request contains `#word` tokens,
-  lowercase each; for each, check the pool for a spelling that already covers the same
-  idea, including a different grammatical form of the same word, and reuse that
-  spelling instead of the literal token; a word with no covering pool entry is
-  registered as a new line in `flowcharge/tags.md`. Those words, once resolved, become
-  the workstream's entire `tags` set. Do not also add tags the pool's subject-matching
-  would otherwise have chosen; the two automatic tags noted below are the one
-  exception. If any `#word` carries a trailing `+` (e.g. `#gates+`),
-  strip the `+` and treat the resolved words as a seed instead of the entire set: keep
-  them all, and also choose any further tags from the pool's existing spellings
-  matching the work's subject, the same reuse-first judgment, registering a new pool
-  entry only if nothing covers it. If the request carries no `#` words, choose `tags`
-  from the pool's existing spellings matching the work's subject; register one new pool
-  entry only if nothing already covers it.
-  Two tags stand outside all three modes: `issue` and `feature` are automatic
-  (CONVENTIONS.md, `workstream`: `tags`), added on top of whatever a mode produced,
-  the exact `#tag` mode included, once their trigger fires later in the run, not here.
-  Never invent a near-miss variant of a spelling already in the pool.
-  That first line must name the problem or feature in the target project, never a
-  FlowCharge Core stage or an artefact-authoring act, the same rule the title passed before
-  the folder was created. If `flowcharge/` itself is missing, run
-  `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --init`
-  first: it creates `flowcharge/workstreams/` and, transitively, `flowcharge/`, and is
-  a no-op when they already exist. `--init` does not create `ids.md`, and its WARN that
-  `ids.md` is missing needs no action here: the `--new-ws` run that follows seeds
-  `ids.md`, as `--claim` does (CONVENTIONS.md, IDs: Registry). Once the workstream
+  plainly in the stage report. If not, choose the `title` and pass CONVENTIONS.md's
+  smell test; resolve `tags` from the request per CONVENTIONS.md's `workstream: tags`
+  rule, leaving the two automatic tags to be added later in the run, when their trigger
+  fires; create the folder with `--new-ws` (CONVENTIONS.md, Creating a workstream); and
+  append the body yourself: first line the card description, then as much of the
+  request's own detail as it carried, with no length cap (CONVENTIONS.md, `workstream`
+  body). Title and first line name the problem or feature in the target project, never
+  a FlowCharge Core stage or an artefact-authoring act. A folder this run creates is not
+  promoted here: it reaches `in-progress` when execution starts. Once the workstream
   folder exists, acquire its lease before any artefact
   inside it is written: attempt an exclusive create of
-  `<workstream folder>/.lease`, e.g. `node -e "try{require('fs').writeFileSync('<path>/.lease','session: '+process.env.CLAUDE_CODE_SESSION_ID+'\nacquired: '+new Date().toISOString()+'\n',{flag:'wx'})}catch(e){process.exit(e.code==='EEXIST'?1:2)}"`,
-  which fails with `EEXIST` (exit 1) only if a lease already exists. On success,
-  proceed. On `EEXIST`, read the existing file's `acquired` timestamp and compute
+  `<workstream folder>/.lease`, e.g. `node -e "const t=require('crypto').randomUUID();try{require('fs').writeFileSync('<path>/.lease','session: '+t+'\nacquired: '+new Date().toISOString()+'\n',{flag:'wx'});console.log(t)}catch(e){process.exit(e.code==='EEXIST'?1:2)}"`,
+  which fails with `EEXIST` (exit 1) only if a lease already exists. On success, it
+  prints the random session token it wrote. Keep that token for the rest of the run:
+  it is how this run recognizes its own lease, and it depends on no agent or host
+  environment. Then proceed. On `EEXIST`, read the existing file's `acquired` timestamp and compute
   its age: if under 60 minutes (`LEASE_STALE_MINUTES = 60`), halt per hard rule 7.
   Report the holding `session` value and the lease's age instead of proceeding, and
   do not wait or retry; the report may also note that the user can delete the
@@ -715,7 +714,7 @@ node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root>
   minutes or older, the lease is stale: delete it and retry the exclusive create
   once, then proceed. Then regenerate.
 - **When execution starts**: once the execute prompt is approved, and before the
-  execute-tasks subagent is spawned, set the workstream's `workstream.md` status to
+  execute-tasks stage begins, set the workstream's `workstream.md` status to
   `in-progress`, bump `updated`, and regenerate with the command above. Execution is
   the first stage that changes project code, so this is the point at which the board
   must say the work is running. This step is the one and only place `in-progress` is
@@ -750,20 +749,15 @@ node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root>
   names the plan you must close by hand: `--sync` never sets a plan's status.
   Release the workstream's
   lease: delete `<workstream folder>/.lease`, but only if its `session` line
-  still matches this run's own `CLAUDE_CODE_SESSION_ID`. If it does not, another
+  still matches the session token this run's own lease create printed. If it does not, another
   run already reclaimed this workstream as stale (see Start of run); skip the
   deletion and note it in this run's report instead of removing the new holder's
-  lease. Regenerate. Do NOT archive
-  a workstream you just completed: archiving (moving its folder to
-  `flowcharge/archive/`) happens only on the user's say-so, per CONVENTIONS.md; you
-  may mention it as an available follow-up in your summary.
+  lease. Regenerate. Do NOT archive a workstream you just completed: archiving is the
+  user's call (CONVENTIONS.md, Archiving); you may mention it as an available follow-up
+  in your summary.
 - **Halt or user stop**: leave statuses as they truly are: `in-progress` stays
-  `in-progress`. Release the workstream's lease: delete
-  `<workstream folder>/.lease`, but only if its `session` line still matches
-  this run's own `CLAUDE_CODE_SESSION_ID`. If it does not, another run already
-  reclaimed this workstream as stale (see Start of run); skip the deletion and
-  note it in this run's report instead of removing the new holder's lease.
-  Regenerate so the board tells the truth.
+  `in-progress`. Release the workstream's lease under the same session-match rule as
+  at Successful end of run. Regenerate so the board tells the truth.
 
 ## Listing artefacts (inline, read-only)
 
@@ -800,7 +794,7 @@ do not summarise it, reformat it, drop columns, or fold it into prose.
   execute (prompted) → commit (prompted)"), and the workstream it runs under.
   A validation the setting turned off appears in the line as
   `validate (waived)`.
-- After each stage: a short update, artefact path and ID, and anything the subagent
+- After each stage: a short update, artefact path and ID, and anything the stage
   or the index script flagged.
 - At the end: a consolidated summary, every artefact created (paths and IDs),
   issues filed, tasks executed with pass/fail, commit SHA, workstream status
@@ -819,7 +813,6 @@ do not summarise it, reformat it, drop columns, or fold it into prose.
   give each artefact it would have checked one numbered, self-contained
   item (ID, title, one plain sentence, per "Talking to the user")
   recommending a standalone `/fc-validate` on that artefact.
-  The re-spawn carve-out counts as validated once and never fires this check.
   The check reports only and starts no stage, using exactly the two words
   `missing` and `waived`.
   A flagged task is not the prompt. When this run authored a task list that
@@ -828,12 +821,11 @@ do not summarise it, reformat it, drop columns, or fold it into prose.
   used, per "Prompts".
   What fc-validate fixed is never re-enumerated here or in any stage report,
   at every tier: print, per validated artefact, the
-  one combined "N fixes applied" figure its summary line returned, with any
+  one "N fixes applied" figure its summary line returned, with any
   unrun/unjudged clause that line carries, and nothing more. Anything settled
   under "The prompt policy" (rule 10) joins a per-run settled-decisions record
-  instead: one entry per question, naming the answer adopted, the stage it
-  came from, and which path applied it, the validator or a re-authored
-  artefact, with any entry rule 10's risk test called risky marked and listed
+  instead: one entry per question, naming the answer adopted and the stage it
+  came from, with any entry rule 10's risk test called risky marked and listed
   first. Produce that record every run. Of it, the summary prints exactly one
   line, verbatim with K filled in ("K decisions were settled automatically;
   say 'show them' to see them."), omitted when K is 0. The summary never
@@ -842,7 +834,7 @@ do not summarise it, reformat it, drop columns, or fold it into prose.
   entry in it. An open finding rule 10 could not settle is not suppressed by
   any of this: it always prints, in the numbered list above, in every mode.
   The consolidated summary ends the run and prints once. A later event carrying
-  no new instruction (a subagent completion notice, a duplicated message, an
+  no new instruction (a background completion notice, a duplicated message, an
   echo of the answered request) gets one line pointing at that summary,
   nothing more: no re-printed summary, no re-run stage or upkeep, and no
   restated counts or their breakdown. A new
