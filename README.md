@@ -146,8 +146,10 @@ cheaper, faster choice.
   Execute and commit run without asking.
 
 Three floors hold at every setting. A question with no recommendation always comes to
-you. Anything that could lose work, data or history always comes to you. A failure
-always halts the run.
+you. Anything that could lose work, data or history always comes to you. An aborted
+task, a checklist item that stays failed or a stage that cannot complete always halts
+the run. A failing test-run task is the one exception: it halts the run only at its
+two-round cap, as described above.
 
 Tell the orchestrator "default to diff mode for this project" and it writes the
 matching line for you.
