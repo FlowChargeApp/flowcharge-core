@@ -11,7 +11,7 @@ add the brackets.
 Versions follow Semantic Versioning. There is one FlowCharge Core suite version and every
 skill mirrors it. See VERSIONING.md.
 
-## Unreleased
+## 0.5.0 - 2026-09-26
 
 ### Added
 
@@ -20,16 +20,75 @@ skill mirrors it. See VERSIONING.md.
   every task list ends with a test-update task, which updates the tests the change
   makes wrong and adds only tests the request asks for, then a test-run task,
   which runs every recorded suite. A test-run failure is filed as an issue and
-  fixed through its own task list, never inline. A project with no suite gets
-  neither task.
+  fixed through its own task list, never inline, capped at 2 fix rounds. A project
+  with no suite gets neither task.
 - `fc-index.mjs --check` warns on a `done` task list with a non-empty
   `test_commands` that has no test-update task, no test-run task, or a test-run
   record other than `passed`.
+- Only the recorded test-run baseline may classify a failure as non-blocking. An
+  agent can no longer override that classification with its own invented recheck
+  (a revert, a stash, a rerun outside the normal test entrypoint); a failure it
+  believes predates the task list is still recorded as blocking, with its
+  reasoning stated, and the fix-and-recheck path decides from there.
+- Evidence-based checklist verification for task lists: a `runtime` frontmatter
+  key records how the project runs itself (or `none`), detected from disk only,
+  and `e2e_tooling` records what's already present. Every checklist item is
+  tagged by evidence class — source, runtime, or rendered — and an item whose
+  evidence can't be produced is marked `NOT CHECKED` rather than assumed done.
+- A rendered-evidence probe may run the project's own recorded build as setup,
+  when its `runtime` already needs one, without that build counting as evidence
+  itself. Every other use of a build, a full test suite, a deploy, or an install
+  as evidence stays forbidden.
+- fc-plan-feature states real content decisions — headline copy, hex values,
+  layout numbers — directly in the plan whenever a task author would otherwise
+  have to invent them, in a new Content specification section, one table per
+  artefact. Only production mechanics still defer to tasks.
+- The whole pipeline may be started as one separate agent instance (for example,
+  running in the background): that agent becomes the one session, every stage
+  still runs inline in it, and a prompt the run can't satisfy or waive still
+  stops it, since it cannot ask a user.
+- `flowcharge/tags.md`, the tag pool, is now created automatically (from every
+  tag already in use, plus the two automatic tags) whenever it's missing and a
+  run writes files, matching the ID registry's existing self-seeding behavior.
 
 ### Changed
 
+- The orchestrator and its four stage templates now run every pipeline stage —
+  plan-and-tasks authoring, validation, execution — inline, in the orchestrator's
+  own session, with zero subagent spawning, replacing the previous
+  one-subagent-per-stage design. Every existing setting keeps its meaning
+  unchanged: `task_list_mode`, all three `prompts` tiers, `validate: on/off`, and
+  the workstream lease.
+- fc-validate replaces its three-class correction boundary with one rule: it
+  fixes anything the source or a cited file proves wrong, in place and on its own
+  authority, including coverage gaps and invented content, and reports only a
+  finding that would be irreversible or whose correct content the source does not
+  determine. A fourth check class covers spelling, formatting, YAML and schema
+  conformance. A settled open question now hands straight back to the validator
+  instead of triggering an orchestrator-mediated re-spawn.
+- A prompt-template briefing may only draw facts from files under `flowcharge/`,
+  never from the target project's own source — closing a path where the
+  orchestrator could leak project-source detail (line numbers, quoted fixture
+  content) into a subagent's briefing instead of letting that subagent discover
+  it for itself.
+- Plans and task lists scale to the size of the request: a companion test file
+  (`e2e/*`, `*.spec.*`, `*.test.*`) no longer counts as a "second file" when
+  judging scale or mini-task eligibility; empty plan sections are omitted rather
+  than written as "none"; Requirements is merged into Scope with tier-tagged
+  acceptance criteria; Final summary is dropped; the deployment-assumption line
+  only appears when the plan actually touches data, an API, or the release path.
+- The workstream lease now generates its own random token instead of identifying
+  its holder through a harness-specific environment variable, fixing a real
+  behavior bug tied to one harness.
 - A full test suite no longer counts as the user's step after execution: it runs
   only in the test-run task.
+- Every model-, harness-, or tech-stack-specific reference found in a full audit
+  of `skills/` is removed (example text naming a specific model, an example
+  commit citing a competing harness, a Python-only check command in an otherwise
+  Node-based suite).
+- 11 contradictions found by a skill-file audit are resolved, and 23 duplicated
+  rules/procedures are consolidated into single canonical sources, so a rule is
+  stated once and pointed to rather than restated with drift.
 
 ## 0.4.0 - 2026-09-18
 
