@@ -5251,7 +5251,7 @@ testCase('the prompt policy still carries the no-recommendation rule', () => {
 // wraps across source lines in the file.
 
 const CORRECTION_DIRECTION_SECTION_OPEN = '## 1. Inputs';
-const CORRECTION_DIRECTION_SECTION_END = '## 2. The three check classes';
+const CORRECTION_DIRECTION_SECTION_END = '## 2. The four check classes';
 const CORRECTION_DIRECTION_RULE =
   'The upstream artefact is never edited to agree with the downstream one.';
 
