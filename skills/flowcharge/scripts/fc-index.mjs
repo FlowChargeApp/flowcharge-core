@@ -443,15 +443,15 @@ function parseTasks(text) {
         if (v) current.issues.push(v);
       }
     }
-    // test_gate and test_gate_result feed the done-list test-gate check, which
-    // takes the last task carrying test_gate as the list's test-gate task;
+    // test_run and test_run_result feed the done-list test-run check, which
+    // takes the last task carrying test_run as the list's test-run task;
     // test_update marks the test-update task that check also requires.
-    const km = line.match(/^\s+(pattern|verify|checklist|test_gate|test_gate_result|test_update):\s*(.*)$/);
+    const km = line.match(/^\s+(pattern|verify|checklist|test_run|test_run_result|test_update):\s*(.*)$/);
     if (km) {
       current.keys.add(km[1]);
       if (km[1] === 'pattern') current.pattern = unquoteScalar(km[2].trim());
-      if (km[1] === 'test_gate') current.testGate = unquoteScalar(km[2].trim());
-      if (km[1] === 'test_gate_result') current.testGateResult = unquoteScalar(km[2].trim());
+      if (km[1] === 'test_run') current.testRun = unquoteScalar(km[2].trim());
+      if (km[1] === 'test_run_result') current.testRunResult = unquoteScalar(km[2].trim());
       if (km[1] === 'test_update') current.testUpdate = true;
     }
   }
@@ -1323,21 +1323,21 @@ for (const a of artefacts) {
   if (a.type === 'tasklist' && a.tasks.total > 0 && a.tasks.open === 0 && a.status !== 'done' && a.status !== 'dropped') {
     warnings.push(`${a.id} (${a.file}): all ${a.tasks.total} tasks checked but status is "${a.status}". Close it?`);
   }
-  // CONVENTIONS.md's test-gate rule. A done list whose test_commands is not []
-  // must hold a passed test-gate record and, unless its test-gate task is the
+  // CONVENTIONS.md's test-run rule. A done list whose test_commands is not []
+  // must hold a passed test-run record and, unless its test-run task is the
   // recheck form of a fix list, a test-update task. A list with test_commands
   // [] has no suite, and one with no test_commands key predates the rule
   // (forward-only); neither is checked.
   const noSuite = Array.isArray(a.testCommands) && a.testCommands.length === 0;
   if (a.type === 'tasklist' && a.status === 'done' && a.fmKeys.has('test_commands') && !noSuite) {
-    const gate = a.tasks.items.filter((t) => t.testGate).pop();
-    const result = gate && gate.testGateResult ? gate.testGateResult : 'missing';
-    if (!gate) {
-      warnings.push(`${a.id} (${a.file}): status is "done" but it has no test-gate task`);
+    const testRunTask = a.tasks.items.filter((t) => t.testRun).pop();
+    const result = testRunTask && testRunTask.testRunResult ? testRunTask.testRunResult : 'missing';
+    if (!testRunTask) {
+      warnings.push(`${a.id} (${a.file}): status is "done" but it has no test-run task`);
     } else if (result !== 'passed') {
-      warnings.push(`${a.id} (${a.file}): status is "done" but its test-gate record is "${result}": expected passed`);
+      warnings.push(`${a.id} (${a.file}): status is "done" but its test-run record is "${result}": expected passed`);
     }
-    if (!(gate && gate.testGate === 'recheck') && !a.tasks.items.some((t) => t.testUpdate)) {
+    if (!(testRunTask && testRunTask.testRun === 'recheck') && !a.tasks.items.some((t) => t.testUpdate)) {
       warnings.push(`${a.id} (${a.file}): status is "done" but it has no test-update task`);
     }
   }

@@ -286,12 +286,12 @@ Additional keys by type:
   fc-task-list skill, Runtime detection). The generator checks neither, and an
   absent key reads as `none` and `[]`, because the rule is forward-only. Also
   `test_commands: [...]`, the project's own suite commands (see the fc-task-list
-  skill, Test commands detection), which only the list's final test-gate task runs;
-  `[]` means no suite, and the list then has no test-update or test-gate task. A
-  `done` task list whose `test_commands` is not `[]` must hold a `passed` test-gate
+  skill, Test commands detection), which only the list's final test-run task runs;
+  `[]` means no suite, and the list then has no test-update or test-run task. A
+  `done` task list whose `test_commands` is not `[]` must hold a `passed` test-run
   record and, unless it is a fix list ending with the recheck form, a test-update
-  task. Otherwise `--check` WARNs `status is "done" but it has no test-gate task`,
-  `status is "done" but its test-gate record is "<value>": expected passed` or
+  task. Otherwise `--check` WARNs `status is "done" but it has no test-run task`,
+  `status is "done" but its test-run record is "<value>": expected passed` or
   `status is "done" but it has no test-update task`, and exits 2. A list with no
   `test_commands` key predates the rule and is not checked, because the rule is
   forward-only.
@@ -361,8 +361,8 @@ plus `blocked`, defined in `fc-issue-list/SKILL.md`. Meanings:
   starts at, and a run may author into such a record or execute against it with no
   intermediate step
 - `ready`: optional, user-driven staging. A person marks records `ready` to batch the
-  several workstreams they mean to work next. It is **never a gate** that work must
-  pass through, because `backlog` is already actionable. For artefacts, freshly
+  several workstreams they mean to work next. It is **never a required step**,
+  because `backlog` is already actionable. For artefacts, freshly
   authored counts as ready (workstream records are the one exception: see the
   creation default below)
 - `in-progress`: actively being worked

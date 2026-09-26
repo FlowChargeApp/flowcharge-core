@@ -174,9 +174,9 @@ function registry(counters = {}, omit = [], head = REGISTRY_HEADER) {
 
 // tags.md in the same one-per-line shape the real pool file carries. Every
 // tag the fixtures use is listed here, so the membership check fires only for
-// a case that deliberately carries an unlisted tag. gates and orchestration
+// a case that deliberately carries an unlisted tag. checks and orchestration
 // are the two entries the near-match cases measure against.
-const TAG_POOL = ['gates', 'generator', 'orchestration', 'skills'];
+const TAG_POOL = ['checks', 'generator', 'orchestration', 'skills'];
 
 const tagPool = (tags = TAG_POOL) =>
   `# FlowCharge Tag Pool\n\n${tags.map((t) => `- ${t}`).join('\n')}\n`;
@@ -261,13 +261,13 @@ const cases = [];
 const testCase = (name, fn) => cases.push({ name, fn });
 
 // ---- cases: version check (git tag vs CHANGELOG.md) ------------------------
-// checkSuiteVersion() only fires through the same-repository gate, which
+// checkSuiteVersion() only fires through the same-repository guard, which
 // requires a real git repository whose own tag and own CHANGELOG.md the
 // check reads directly. A plain fixture() tree is not a git repository at
 // all, so every other case in this file already reads as "no tag" without
 // this machinery. These cases build a real git repository per fixture and,
 // by default, copy the shipped fc-index.mjs into it so the copy's own
-// self-root derivation resolves to the fixture root and the gate matches.
+// self-root derivation resolves to the fixture root and the guard matches.
 // runGit (defined later, in the fc-rename-artefacts.mjs section) is a
 // function declaration, so it is callable from here through hoisting.
 
@@ -400,7 +400,7 @@ testCase('version check: an Unreleased heading above a valid release heading is 
   });
 });
 
-// This case proves the same-repository gate holds by running the real
+// This case proves the same-repository guard holds by running the real
 // script at its own path in this repository, never a copy, against a
 // fixture that plants the same mismatch the copy warns about above.
 // Consumers of the plugin are never warned about their own git tags or
@@ -1525,23 +1525,23 @@ testCase('a tree carrying several schema and shape faults warns about each of th
 // ---- cases: tag pool membership --------------------------------------------
 // The generator's own check is a literal edit-distance backstop, not a synonym
 // finder: orchestrator sits two edits from orchestration and draws a
-// suggestion, while gating sits three from gates and draws none. Both forms of
+// suggestion, while checking sits three from checks and draws none. Both forms of
 // the WARN are asserted in one case, so a change to either string fails here.
 
 testCase('a workstream tag outside the pool warns, with a nearest match only when one is close', () => {
   withFixture(baseTree({
-    [WS1]: workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', tags: ['orchestrator', 'gating'] }),
+    [WS1]: workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', tags: ['orchestrator', 'checking'] }),
   }), (dir) => {
     expectWarns(dir, [
       `WS-1-abcdef (${WS1}): tag "#orchestrator" not in the tag pool, nearest defined tag: "#orchestration"`,
-      `WS-1-abcdef (${WS1}): tag "#gating" not in the tag pool`,
+      `WS-1-abcdef (${WS1}): tag "#checking" not in the tag pool`,
     ]);
   });
 });
 
 testCase('clean: tags listed in the pool warn about nothing', () => {
   withFixture(baseTree({
-    [WS1]: workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', tags: ['orchestration', 'gates'] }),
+    [WS1]: workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', tags: ['orchestration', 'checks'] }),
   }), (dir) => {
     expectWarns(dir, []);
   });
@@ -2034,46 +2034,46 @@ testCase('clean: a full task naming two files is not audited as mini', () => {
   });
 });
 
-// ---- cases: done-list test-gate record --------------------------------------
-// A done task list whose test_commands is not [] must hold a passed test-gate
+// ---- cases: done-list test-run record --------------------------------------
+// A done task list whose test_commands is not [] must hold a passed test-run
 // record and a test-update task. The owning
 // workstream is done too in each done case, so no close-it warning joins the
 // expected set.
 
 const WS1_DONE = workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', status: 'done' });
 const withTestCommands = (text, value) => text.replace(/^mode: spec$/m, `mode: spec\ntest_commands: ${value}`);
-const testGateTask = (n, result) =>
-  `- [x] ${n}. Test-gate task\n  test_gate: full\n  verify:\n    - "run-suite"\n  self_eval:\n    passed: true\n    test_gate_result: ${result}\n`;
+const testRunTask = (n, result) =>
+  `- [x] ${n}. Test-run task\n  test_run: full\n  verify:\n    - "run-suite"\n  self_eval:\n    passed: true\n    test_run_result: ${result}\n`;
 const testUpdateTask = (n, pattern = 'test/a.test.js') =>
   `- [x] ${n}. Test-update task\n  test_update: true\n  pattern: "${pattern}"\n  verify:\n    - "grep -c updated ${pattern}"\n  self_eval:\n    passed: true\n`;
 const doneList = (value, tasks) => withTestCommands(tasklist({ id: 'TL-1-abcdef', status: 'done', tasks }), value);
-const testGateRecordWarn = (value) =>
-  `TL-1-abcdef (${TL1}): status is "done" but its test-gate record is "${value}": expected passed`;
+const testRunRecordWarn = (value) =>
+  `TL-1-abcdef (${TL1}): status is "done" but its test-run record is "${value}": expected passed`;
 
-testCase('clean: a done list with a passed test-gate record warns about nothing', () => {
+testCase('clean: a done list with a passed test-run record warns about nothing', () => {
   withFixture(baseTree({
     [WS1]: WS1_DONE,
-    [TL1]: doneList('["run-suite"]', [taskLine(1, true), testUpdateTask(2), testGateTask(3, 'passed')]),
+    [TL1]: doneList('["run-suite"]', [taskLine(1, true), testUpdateTask(2), testRunTask(3, 'passed')]),
   }, { TL: 1 }), (dir) => {
     expectWarns(dir, []);
   });
 });
 
-testCase('a done list whose test-gate record is failed warns', () => {
+testCase('a done list whose test-run record is failed warns', () => {
   withFixture(baseTree({
     [WS1]: WS1_DONE,
-    [TL1]: doneList('["run-suite"]', [taskLine(1, true), testUpdateTask(2), testGateTask(3, 'failed')]),
+    [TL1]: doneList('["run-suite"]', [taskLine(1, true), testUpdateTask(2), testRunTask(3, 'failed')]),
   }, { TL: 1 }), (dir) => {
-    expectWarns(dir, [testGateRecordWarn('failed')]);
+    expectWarns(dir, [testRunRecordWarn('failed')]);
   });
 });
 
-testCase('a done list carrying test_commands with no test-gate task warns', () => {
+testCase('a done list carrying test_commands with no test-run task warns', () => {
   withFixture(baseTree({
     [WS1]: WS1_DONE,
     [TL1]: doneList('["run-suite"]', [taskLine(1, true), testUpdateTask(2)]),
   }, { TL: 1 }), (dir) => {
-    expectWarns(dir, [`TL-1-abcdef (${TL1}): status is "done" but it has no test-gate task`]);
+    expectWarns(dir, [`TL-1-abcdef (${TL1}): status is "done" but it has no test-run task`]);
   });
 });
 
@@ -2086,7 +2086,7 @@ testCase('clean: a done list with test_commands [] needs neither test task', () 
   });
 });
 
-testCase('clean: a done list with no test_commands key predates the test-gate rule and warns about nothing', () => {
+testCase('clean: a done list with no test_commands key predates the test-run rule and warns about nothing', () => {
   withFixture(baseTree({
     [WS1]: WS1_DONE,
     [TL1]: tasklist({ id: 'TL-1-abcdef', status: 'done', tasks: [taskLine(1, true)] }),
@@ -2095,9 +2095,9 @@ testCase('clean: a done list with no test_commands key predates the test-gate ru
   });
 });
 
-testCase('clean: a list not yet done is not checked for a test-gate record', () => {
+testCase('clean: a list not yet done is not checked for a test-run record', () => {
   withFixture(baseTree({
-    [TL1]: withTestCommands(tasklist({ id: 'TL-1-abcdef', tasks: [taskLine(1, false), testGateTask(2, 'pending')] }), '["run-suite"]'),
+    [TL1]: withTestCommands(tasklist({ id: 'TL-1-abcdef', tasks: [taskLine(1, false), testRunTask(2, 'pending')] }), '["run-suite"]'),
   }, { TL: 1 }), (dir) => {
     expectWarns(dir, []);
   });
@@ -2106,7 +2106,7 @@ testCase('clean: a list not yet done is not checked for a test-gate record', () 
 testCase('a done list with a non-empty test_commands and no test-update task warns', () => {
   withFixture(baseTree({
     [WS1]: WS1_DONE,
-    [TL1]: doneList('["run-suite"]', [taskLine(1, true), testGateTask(2, 'passed')]),
+    [TL1]: doneList('["run-suite"]', [taskLine(1, true), testRunTask(2, 'passed')]),
   }, { TL: 1 }), (dir) => {
     expectWarns(dir, [`TL-1-abcdef (${TL1}): status is "done" but it has no test-update task`]);
   });
@@ -2115,7 +2115,7 @@ testCase('a done list with a non-empty test_commands and no test-update task war
 testCase('clean: a done fix list ending with the recheck form needs no test-update task', () => {
   withFixture(baseTree({
     [WS1]: WS1_DONE,
-    [TL1]: doneList('["run-suite"]', [taskLine(1, true), testGateTask(2, 'passed').replace('test_gate: full', 'test_gate: recheck')]),
+    [TL1]: doneList('["run-suite"]', [taskLine(1, true), testRunTask(2, 'passed').replace('test_run: full', 'test_run: recheck')]),
   }, { TL: 1 }), (dir) => {
     expectWarns(dir, []);
   });
@@ -2124,7 +2124,7 @@ testCase('clean: a done fix list ending with the recheck form needs no test-upda
 testCase('clean: a test-update task naming several files is not audited as mini', () => {
   withFixture(baseTree({
     [WS1]: WS1_DONE,
-    [TL1]: doneList('["run-suite"]', [taskLine(1, true), testUpdateTask(2, 'src/a.ts, src/b.ts'), testGateTask(3, 'passed')]),
+    [TL1]: doneList('["run-suite"]', [taskLine(1, true), testUpdateTask(2, 'src/a.ts, src/b.ts'), testRunTask(3, 'passed')]),
   }, { TL: 1 }), (dir) => {
     expectWarns(dir, []);
   });
@@ -4581,10 +4581,10 @@ function ruleDMatches(line) {
 
 // Rule E, the mechanism word. This suite calls the thing that stops the user a
 // prompt, and the `prompts:` key in flowcharge/agents.md governs it, so the word
-// gate must never name that mechanism again. The word survives in this tree in
-// several unrelated senses (a pre-commit safety gate, a baseline gate, a
-// candidate filter, a `#gates+` tag token), so every live occurrence is
-// allowlisted with the sense it carries, and only a new one fails. The
+// gate must never name that mechanism again. No other sense of the word
+// survives in the scanned files either, so the allowlist carries no Rule E
+// entry and any occurrence fails. An occurrence that carries some other sense
+// needs an allowlist entry recording that sense before it passes. The
 // (?<![\w-]) and (?![\w-]) guards are the pair rules B, C and D use:
 // together they keep investigate, delegated, navigate and mitigate out of the
 // results.
@@ -4697,86 +4697,6 @@ const DOCS_ALLOWLIST = [
       'Rule D. Line 8 is this entry skill\'s own H1, the document heading every ' +
       'sibling skill carries for itself, naming the FlowCharge Core suite this ' +
       'skill belongs to.',
-  },
-  {
-    file: 'fc-git/SKILL.md',
-    text: 'gate',
-    why:
-      'Rule E. The pre-commit safety gate, which refuses a staged diff carrying ' +
-      'secrets. It is a refusal in the skill itself, not a prompt to the user.',
-  },
-  {
-    file: 'fc-git/SKILL.md',
-    text: 'gate is',
-    why:
-      'Rule E. The same pre-commit safety gate, in the sentence recording that ' +
-      'it is not skippable.',
-  },
-  {
-    file: 'flowcharge/CONVENTIONS.md',
-    text: 'gate',
-    why:
-      'Rule E. The "never a gate" remark about workstream status: the remark ' +
-      'exists to deny that status blocks work, so the word is used to rule the ' +
-      'sense out, not to name a mechanism.',
-  },
-  {
-    file: 'flowcharge/templates/validate.md',
-    text: 'gate',
-    why:
-      "Rule E. The template tells the validator to apply fc-validate's baseline " +
-      'gate, which is the precondition for running verify steps, not a prompt.',
-  },
-  {
-    file: 'fc-task-list/SKILL.md',
-    text: 'gated on',
-    why:
-      'Rule E. "gated on" describes what depends_on does to execution order. It ' +
-      'is a dependency constraint, not a stop that asks the user anything.',
-  },
-  {
-    file: 'fc-validate/SKILL.md',
-    text: 'gate and',
-    why:
-      "Rule E. The baseline gate, the precondition fc-validate applies before it " +
-      'runs any command. Named alongside the runnable command class.',
-  },
-  {
-    file: 'fc-validate/SKILL.md',
-    text: 'gate',
-    why:
-      'Rule E. The "The baseline gate" heading, and the third correction class ' +
-      'that is gated rather than exempt. Both are preconditions inside the ' +
-      'skill, not the interrupt mechanism.',
-  },
-  {
-    file: 'fc-validate/SKILL.md',
-    text: 'gate is',
-    why: 'Rule E. The baseline gate, in the sentence saying what it is never keyed on.',
-  },
-  {
-    file: 'fc-validate/SKILL.md',
-    text: 'gate would',
-    why: 'Rule E. The baseline gate, in the sentence rejecting a clean-tree gate.',
-  },
-  {
-    file: 'fc-validate/SKILL.md',
-    text: 'gate fails',
-    why: 'Rule E. The baseline gate, in the sentence saying what happens when it fails.',
-  },
-  {
-    file: 'fc-validate/SKILL.md',
-    text: 'gate a',
-    why:
-      'Rule E. "to gate a change to project code": the executor sense of the ' +
-      'verb, describing what a project test does.',
-  },
-  {
-    file: 'fc-validate/SKILL.md',
-    text: 'gated rather',
-    why:
-      'Rule E. The third correction class is gated rather than exempt. It names ' +
-      "the class's own admission rules, not a user prompt.",
   },
 ];
 
@@ -5047,7 +4967,7 @@ const SINGLE_COPY_PHRASES = [
   { phrase: "the authoring stage's own report, its rationale", files: ['flowcharge/SKILL.md'] },
   { phrase: 'Measure before you write', files: ['fc-task-list/SKILL.md'] },
   { phrase: 'A suite runs in one place only', files: ['fc-task-list/SKILL.md'] },
-  // A suite's one owner is the test-gate task, so the wording that made running
+  // A suite's one owner is the test-run task, so the wording that made running
   // a suite the user's own step is pinned deleted from every skill file.
   { phrase: "user's own step", files: [] },
   { phrase: 'prints exactly one line and writes nothing', files: ['flowcharge/CONVENTIONS.md'] },

@@ -17,8 +17,8 @@ intending when you wrote it, which is the discipline a fresh reader gets for fre
 You hold the authority a senior reviewer holds over a draft: fix what the source proves
 wrong, and hand back only what you cannot decide.
 
-This file is the single place the validator's baseline gate, runnable command class and
-correction rule are defined. The prompt templates that carry a validation reference this
+This file is the single place the validator's baseline precondition, runnable command
+class and correction rule are defined. The prompt templates that carry a validation reference this
 file rather than restating any of them, so each has exactly one wording. Where a template
 and this file appear to disagree, this file is right.
 
@@ -78,9 +78,9 @@ realises, are both comparison 2's to fix.
 
 Read the artefact and its source in full, then check all four classes.
 
-A task list's final test-gate task, where `test_commands` is not `[]`, in its full or recheck form (the fc-task-list skill's Test-gate task section), comes from that skill's schema, not from the source. It is never a coverage gap or invented content, Part 3 never runs or judges its `verify`, and Form, against its fixed shape, is the only class checked against it. The frontmatter `test_commands` is checked for Accuracy like any other command.
+A task list's final test-run task, where `test_commands` is not `[]`, in its full or recheck form (the fc-task-list skill's Test-run task section), comes from that skill's schema, not from the source. It is never a coverage gap or invented content, Part 3 never runs or judges its `verify`, and Form, against its fixed shape, is the only class checked against it. The frontmatter `test_commands` is checked for Accuracy like any other command.
 
-The test-update task (the fc-task-list skill's Test-update task section) is checked like any task. Its absence, where `test_commands` is not `[]` and the list does not fix test-gate failures, is a Coverage gap. A test it adds that no source asks for is Invented content.
+The test-update task (the fc-task-list skill's Test-update task section) is checked like any task. Its absence, where `test_commands` is not `[]` and the list does not fix test-run failures, is a Coverage gap. A test it adds that no source asks for is Invented content.
 
 ### Coverage
 
@@ -132,7 +132,7 @@ Spelling, formatting and schema.
 Only a task list carries `verify` commands, so this part applies to a task list and to
 nothing else.
 
-### The baseline gate
+### The baseline precondition
 
 Before you run any command at all, both of these conditions must hold.
 
@@ -141,14 +141,14 @@ Before you run any command at all, both of these conditions must hold.
    would never match. Compare the short value against the front of the full one.
 2. No tracked file outside `flowcharge/` is modified.
 
-The gate is never "the working tree is clean". At validation time the generated index,
-the board and the workstream record are routinely modified by the upkeep that runs
-between stages, and the lease file plus the artefact under validation are untracked. A
-clean-tree gate would therefore fail on every in-pipeline run, and the whole of this
-part would silently never execute.
+The precondition is never "the working tree is clean". At validation time the generated
+index, the board and the workstream record are routinely modified by the upkeep that
+runs between stages, and the lease file plus the artefact under validation are
+untracked. A clean-tree precondition would therefore fail on every in-pipeline run, and
+the whole of this part would silently never execute.
 
-Where the gate fails you run nothing. Report the drift and name which half failed: the
-`base_commit` prefix, or a modified tracked file outside `flowcharge/`.
+Where the precondition fails you run nothing. Report the drift and name which half
+failed: the `base_commit` prefix, or a modified tracked file outside `flowcharge/`.
 
 ### The runnable command class
 
@@ -166,7 +166,7 @@ as readily as after the change, and a tautology finding against one is unactiona
 the correction rule's remedy is a replacement step that fails at `base_commit`,
 and no project-wide command can fail on unmodified code. The executor runs lint and
 type-check as static steps after the change lands, and test suites run only in the task
-list's final test-gate task, which is where each catches something.
+list's final test-run task, which is where each catches something.
 
 A step outside the class is reported as **unrun**. You never execute it, and an unrun
 step is neither a pass nor a failure.
@@ -174,7 +174,7 @@ step is neither a pass nor a failure.
 This class is wider than the class the executor template
 `skills/flowcharge/templates/execute-parent-task.md` works under. The reason is that
 the two run a command for different purposes: you run it to judge whether it
-discriminates, while the executor runs it to gate a change to project code. That
+discriminates, while the executor runs it to approve a change to project code. That
 template is not yours to edit, and nothing here changes it.
 
 ### The judgment

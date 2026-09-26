@@ -55,7 +55,7 @@ Mirror the plan's scope, design and stage order; the decomposition into tasks is
 * One parent task per plan stage, in the plan's order. Decompose each stage into atomic child tasks yourself, derived from the stage's goal, the plan's Design contracts and Content specification values, and its acceptance criteria; the plan carries no per-task detail to copy. Atomic per the fc-task-list skill: one file, one coherent change, one verify sequence, and in diff mode one SEARCH/REPLACE block; plus, per the skill, at most one verification-only child on a stage that produces a UI or a running service.
 * Shape each task per the skill's Mini shape: write `description`, `pattern`, `implement` and `verify` first, run its test, and add the full keys only where the test makes the task full. No key is optional.
 * Cover every stage. This plan exists because partial implementation is the failure mode, and an untasked stage is how that happens.
-* Where `test_commands` is not `[]`, end the list with the test-update task, then the test-gate task, each per its section in the skill.
+* Where `test_commands` is not `[]`, end the list with the test-update task, then the test-run task, each per its section in the skill.
 * Carry the plan's acceptance criteria into the tasks that satisfy them, as `verify` steps or `checklist` items, keeping the plan's own measurable form (e.g. a grep that must return zero). Tag every checklist item per the skill's Evidence classes. Turn the plan's Testing-strategy review criteria into `rendered` items carrying the plan's thresholds, on the verification-only child where one exists. Where the frontmatter records no tooling for an item's class, author it as `source` or `[unverified-by-execution]`, per the skill.
 * Honour the plan's exclusions: anything it says a change must not touch stays untouched. Build what the plan specifies and nothing beyond it: no extra abstractions, options, or capabilities you judge would help.
 
@@ -67,7 +67,7 @@ How much of the codebase to read again before authoring:
 
 Where a stage depends on an open question or on an assumption the plan marks unconfirmed, author no task for it and list it instead. Do not settle it yourself.
 
-Author `verify` steps per the fc-task-list skill's `verify` rules and Verify tiers: measured at `base_commit`, the project's own lint or type-check command only where configured, at most one runtime probe per task, never a full test suite or build outside the test-gate task. Where the plan names issue IDs, record them in the task's `issues:` key.
+Author `verify` steps per the fc-task-list skill's `verify` rules and Verify tiers: measured at `base_commit`, the project's own lint or type-check command only where configured, at most one runtime probe per task, never a full test suite or build outside the test-run task. Where the plan names issue IDs, record them in the task's `issues:` key.
 
 ## Return
 Reply in chat only, briefly. Report both artefacts. When `{stages}` named one artefact, report only the one you wrote and drop the other's lines.

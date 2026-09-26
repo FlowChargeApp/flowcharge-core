@@ -106,10 +106,10 @@ the issue list. Any failure halts the pipeline rather than improvising around it
 When your project already defines its own test suites, in a build-tool script, a CI
 step or an equivalent, every task list records those commands and ends with two
 tasks. A test-update task updates any existing test the change makes wrong. A
-test-gate task runs the suites once before the first task and once after the last.
+test-run task runs the suites once before the first task and once after the last.
 A project with no suites gets neither task, and nothing is installed or configured.
 
-A failing test gate does not halt the run at once. The orchestrator files each new
+A failing test-run task does not halt the run at once. The orchestrator files each new
 failure as an issue in the same workstream and fixes it through a new task list,
 never inline. It halts after two fix rounds that do not pass. A failure that was
 already there before the first task never blocks the run, and its issue stays open.
@@ -186,7 +186,7 @@ skill disagrees with it, that document wins.
 | `skills/flowcharge/` | The orchestrator: hard rules, operations, the stage files it follows as written, the generator |
 | `skills/flowcharge/CONVENTIONS.md` | The canonical data model. Start here |
 | `skills/fc-issue-list/` | Issue-list schema: per-issue YAML blocks, severities, cross-linking |
-| `skills/fc-task-list/` | Task-list schema: spec and diff modes, `base_commit` guard, test-update and test-gate tasks, self-eval |
+| `skills/fc-task-list/` | Task-list schema: spec and diff modes, `base_commit` guard, test-update and test-run tasks, self-eval |
 | `skills/fc-plain-text-kanban/` | Board skill: the generated-view rules and file format |
 | `skills/fc-plan-feature/` | Feature planning: approach prompt, required plan structure |
 | `skills/fc-validate/` | Checks an authored artifact against its source |
