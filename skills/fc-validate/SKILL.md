@@ -1,6 +1,6 @@
 ---
 name: fc-validate
-description: Validate an authored FlowCharge Core artefact against the source it was authored from, a plan against the brief and workstream record behind it, a task list against its backing plan or issue list, an issue list against the findings it was filed from. Checks three classes (coverage of the source, content with no source behind it, and accuracy of anchors, paths, counts and claims about other artefacts) and, for a task list, runs the verify steps it may run at the recorded baseline to catch a task that verifies nothing. Applies only provable in-field corrections, reports every coverage gap and every piece of invented content as an open question carrying a recommendation, and never edits frontmatter. Use whenever the user asks to validate, check, cross-check or sanity-check an authored artefact against its source, asks "does this task list cover the plan", "did the plan miss anything from the brief", "check the issues against the findings", "was anything invented here", or takes up the closing offer one of the generating skills prints after writing a new artefact. Also triggers on /fc-validate. Do NOT use to hunt defects in code, and do NOT use for pull-request or code review work, which a separate skill handles. This skill compares an authored document with the source it came from; it never judges the code an executor produced or whether a task's chosen approach is right, but how that approach is expressed — every command, flag, argument, path, anchor and count — is in scope wherever a file the artefact cites disproves it. Part of the FlowCharge Core suite.
+description: Validate an authored FlowCharge Core artefact against the source it was authored from, a plan against the brief and workstream record behind it, a task list against its backing plan or issue list, an issue list against the findings it was filed from. Checks four classes (coverage of the source, content with no source behind it, accuracy of anchors, paths, counts and claims about other artefacts, and form, meaning spelling, formatting and schema conformance) and, for a task list, runs the verify steps it may run at the recorded baseline to catch a task that verifies nothing. Fixes every defect the source or a cited file proves wrong, in place and on its own authority, adding, rewriting or deleting items as the proof requires, and reports only a finding whose fix would be irreversible or whose correct content the source does not determine. Use whenever the user asks to validate, check, cross-check or sanity-check an authored artefact against its source, asks "does this task list cover the plan", "did the plan miss anything from the brief", "check the issues against the findings", "was anything invented here", or takes up the closing offer one of the generating skills prints after writing a new artefact. Also triggers on /fc-validate. Do NOT use to hunt defects in code, and do NOT use for pull-request or code review work, which a separate skill handles. This skill compares an authored document with the source it came from; it never judges the code an executor produced or whether a task's chosen approach is right, but how that approach is expressed — every command, flag, argument, path, anchor and count — is in scope wherever a file the artefact cites disproves it. Part of the FlowCharge Core suite.
 metadata:
   version: "0.4.0"
 ---
@@ -9,12 +9,18 @@ metadata:
 
 You check an authored artefact against the source it was authored from, with fresh
 context. You did not write the artefact, you never see the account its author gave of
-writing it, and that is the whole value you add.
+writing it, and that is the whole value you add. Inside a FlowCharge Core run, the
+orchestrator validates artefacts it authored itself earlier in the same session: there,
+judge the artefact against its cited source only, never against what you recall
+intending when you wrote it, which is the discipline a fresh reader gets for free.
 
-This file is the single place the validator's baseline gate and runnable command class
-are defined. The prompt templates that carry a validation reference this file rather
-than restating either rule, so both have exactly one wording. Where a template and this
-file appear to disagree, this file is right.
+You hold the authority a senior reviewer holds over a draft: fix what the source proves
+wrong, and hand back only what you cannot decide.
+
+This file is the single place the validator's baseline precondition, runnable command
+class and correction rule are defined. The prompt templates that carry a validation reference this
+file rather than restating any of them, so each has exactly one wording. Where a template
+and this file appear to disagree, this file is right.
 
 The contract has five parts.
 
@@ -41,14 +47,14 @@ in a fixed order. Exactly two chains are permitted, and no others.
 Where a chain's first pairing has no artefact to check, or its second has none, run the
 other pairing alone, and say which one you skipped.
 
-**The first comparison completes before the second begins, and every correction it
-applies lands before the second comparison reads the upstream artefact. The upstream
-artefact is never edited to agree with the downstream one. A discrepancy the second
-comparison finds is a finding against the task list, whatever its apparent cause. Where
-the second comparison shows the upstream artefact itself is wrong against its own
-source, report that as a first-comparison finding under the first heading, and never
-apply it. The reason: a validator holding both artefacts could align the upstream one to
-the downstream one, which launders an error rather than finding it.**
+**The first comparison completes before the second begins, and every fix it applies
+lands before the second comparison reads the upstream artefact. The upstream artefact is
+never edited to agree with the downstream one. A discrepancy the second comparison finds
+is a finding against the task list, whatever its apparent cause. Where the second
+comparison shows the upstream artefact itself is wrong against its own source, report
+that as a first-comparison finding under the first heading, and never apply it. The
+reason: a validator holding both artefacts could align the upstream one to the
+downstream one, which launders an error rather than finding it.**
 
 The issue-list source arrives as text rather than as a path, because user-supplied
 findings are never written to a file. Treat that text as the source exactly as you would
@@ -58,17 +64,23 @@ Where the pairing you are given is not one of these four, or the chain you are g
 not one of these two, say so and stop.
 
 Parts 2, 3 and 4 are unchanged in substance under a sequenced pass; a sequenced pass
-changes only how each is read. The three check classes in Part 2 apply to each
+changes only how each is read. The four check classes in Part 2 apply to each
 comparison against that comparison's own source. Part 3, verify execution, applies to
 the second comparison only, because only a task list carries `verify` commands. Part 4's
-correction boundary applies per comparison, reading "the artefact under validation" as
-the upstream artefact in comparison 1 and as the task list in comparison 2. The fix label
-every open finding already carries is unchanged, and it is what the orchestrator routes
-on.
+correction rule applies per comparison, reading "the artefact under validation" as the
+upstream artefact in comparison 1 and as the task list in comparison 2. Because
+comparison 1's fixes land before comparison 2 reads the upstream artefact, comparison 2
+always checks the task list against the corrected upstream artefact. A task that a
+comparison 1 fix leaves without a source, and a corrected upstream item that no task yet
+realises, are both comparison 2's to fix.
 
-## 2. The three check classes
+## 2. The four check classes
 
-Read the artefact and its source in full, then check all three classes.
+Read the artefact and its source in full, then check all four classes.
+
+A task list's final test-run task, where `test_commands` is not `[]`, in its full or recheck form (the fc-task-list skill's Test-run task section), comes from that skill's schema, not from the source. It is never a coverage gap or invented content, Part 3 never runs or judges its `verify`, and Form, against its fixed shape, is the only class checked against it. The frontmatter `test_commands` is checked for Accuracy like any other command.
+
+The test-update task (the fc-task-list skill's Test-update task section) is checked like any task. Its absence, where `test_commands` is not `[]` and the list does not fix test-run failures, is a Coverage gap. A test it adds that no source asks for is Invented content.
 
 ### Coverage
 
@@ -84,7 +96,7 @@ Everything in the source that should be realised downstream is realised downstre
 Nothing downstream lacks a source.
 
 - A task implementing something the plan never asked for.
-- A plan requirement the brief never carried.
+- A plan requirement the brief never carried, including one the brief forbids.
 - An issue for a finding that was not filed.
 
 ### Accuracy
@@ -105,12 +117,22 @@ You follow only the references the artefact itself makes. You never survey the
 workstream or the repository for related artefacts, and an artefact the artefact under
 validation does not name is not your subject.
 
+### Form
+
+Spelling, formatting and schema.
+
+- A misspelt word, or a malformed Markdown construct.
+- Frontmatter that does not parse as YAML, or that breaks the owning skill's schema:
+  `fc-task-list` for a task list, `fc-issue-list` for an issue list.
+- A task or issue block that departs from the shape the owning skill's schema
+  prescribes.
+
 ## 3. Verify execution, task lists only
 
 Only a task list carries `verify` commands, so this part applies to a task list and to
 nothing else.
 
-### The baseline gate
+### The baseline precondition
 
 Before you run any command at all, both of these conditions must hold.
 
@@ -119,14 +141,14 @@ Before you run any command at all, both of these conditions must hold.
    would never match. Compare the short value against the front of the full one.
 2. No tracked file outside `flowcharge/` is modified.
 
-The gate is never "the working tree is clean". At validation time the generated index,
-the board and the workstream record are routinely modified by the upkeep that runs
-between stages, and the lease file plus the artefact under validation are untracked. A
-clean-tree gate would therefore fail on every in-pipeline run, and the whole of this
-part would silently never execute.
+The precondition is never "the working tree is clean". At validation time the generated
+index, the board and the workstream record are routinely modified by the upkeep that
+runs between stages, and the lease file plus the artefact under validation are
+untracked. A clean-tree precondition would therefore fail on every in-pipeline run, and
+the whole of this part would silently never execute.
 
-Where the gate fails you run nothing. Report the drift and name which half failed: the
-`base_commit` prefix, or a modified tracked file outside `flowcharge/`.
+Where the precondition fails you run nothing. Report the drift and name which half
+failed: the `base_commit` prefix, or a modified tracked file outside `flowcharge/`.
 
 ### The runnable command class
 
@@ -141,9 +163,10 @@ writes outside a temporary directory.
 Lint, type-check and test commands are excluded although they are fast and
 side-effect-free. They assert nothing about the task, so they pass at `base_commit`
 as readily as after the change, and a tautology finding against one is unactionable:
-the correction boundary's remedy is a replacement step that fails at `base_commit`,
-and no project-wide command can fail on unmodified code. The executor runs them after
-the change lands, which is where they catch something.
+the correction rule's remedy is a replacement step that fails at `base_commit`,
+and no project-wide command can fail on unmodified code. The executor runs lint and
+type-check as static steps after the change lands, and test suites run only in the task
+list's final test-run task, which is where each catches something.
 
 A step outside the class is reported as **unrun**. You never execute it, and an unrun
 step is neither a pass nor a failure.
@@ -151,7 +174,7 @@ step is neither a pass nor a failure.
 This class is wider than the class the executor template
 `skills/flowcharge/templates/execute-parent-task.md` works under. The reason is that
 the two run a command for different purposes: you run it to judge whether it
-discriminates, while the executor runs it to gate a change to project code. That
+discriminates, while the executor runs it to approve a change to project code. That
 template is not yours to edit, and nothing here changes it.
 
 ### The judgment
@@ -166,87 +189,83 @@ Judge per task. Never per command.
 
 You change no file in the working tree while running commands.
 
-## 4. The correction boundary
+## 4. The correction rule
 
-Apply a correction only when all three of these conditions hold. Where any one of them
-fails, report the finding instead.
+Apply a fix whenever both of these conditions hold.
 
-1. **In artefact.** The change is confined to existing fields of the artefact under
-   validation. It may touch more than one field, as long as every field it touches is
-   already in that artefact. You add no field and you touch no other file.
-2. **Provable.** The change is proved against a file on disk, or by running a command
-   whose result you state in the return.
-3. **Additive to nothing, subtractive from nothing.** The change removes nothing, and it
-   adds no new task, issue, stage or acceptance criterion. This condition counts items,
-   not words. Rewriting existing text to what a cited file holds adds nothing and removes
-   nothing for this condition's purpose, while authoring a missing task and deleting an
-   unsourced one still fail it.
+1. **Proved wrong.** The source, a file the artefact itself cites, or a command you ran
+   and whose result you state in the return, shows the artefact is wrong.
+2. **Proved right.** The same evidence determines what the correct content is, so the
+   fix transcribes the evidence and never guesses.
 
-Three classes satisfy all three.
+Where both hold, fix it in place, immediately, on your own authority. You consult
+nobody, you wait for no approval, and you never send the finding back for
+re-authoring. The fix takes whatever shape the evidence requires: rewriting a field,
+adding an item, or deleting one. Adding and deleting are in scope exactly as rewriting
+is.
 
-- **Accuracy corrections.** A wrong path, a wrong anchor, a wrong count, a wrong ID, or
-  a factual claim the artefact makes about a file it itself cites, where reading that
-  file disproves the claim. The artefact must pin that claim to a named file. A claim
-  with no file behind it is not provable and reports. Each member is proved by reading
-  the file the artefact itself cites.
-- **A replaced tautological `verify` step.** Proved in the strongest form available to
-  you, because you run the replacement at `base_commit` and state that it fails there.
-- **A settled finding whose recommended fix you labelled localised.** The caller has
-  already settled the finding and handed back the answer it adopted, and the fix that
-  answer asks for is a wording change inside sections the artefact already has.
+The rule covers, without being limited to:
 
-The third class is gated rather than exempt, and the rules that follow are the gate. Each
-of them binds that class alone.
+- a spelling, formatting, YAML or schema defect (Form);
+- a wrong path, anchor, count, ID or `depends_on` target, and a command, flag or
+  argument a cited file shows wrong (Accuracy);
+- a claim about another FlowCharge Core artefact, named by ID or by path, that reading
+  that artefact disproves (Accuracy);
+- a tautological `verify` list, replaced with a step you ran at `base_commit` and state
+  fails there (Part 3);
+- a task that does not address the plan stage or issue it is tied to, rewritten so it
+  does (Coverage, Invented content);
+- a detail in a plan, issue list or task list that the source does not support,
+  including one the source forbids, deleted (Invented content);
+- a source item nothing downstream realises, authored: a plan stage or acceptance
+  criterion with no task, a filed issue with no task, a briefing decision the plan
+  omits, a finding no issue carries (Coverage).
 
-**The adopted answer arrives from the orchestrator, or the class does not apply.** You
-apply this class only where the orchestrator supplied the adopted answer, and you write
-that answer exactly as the orchestrator states it. You never compose, infer, complete or
-improve it. Where no adopted answer arrived from the orchestrator, the class does not
-apply, and you report the finding instead. A missing answer is never a reason to write
-one.
+### The two stop conditions
 
-**The edit stays inside sections that already exist.** It changes no stage structure and
-no scope shape, and it adds no stage, no task, no issue and no acceptance criterion. This
-class therefore does not weaken condition 3, *additive to nothing, subtractive from
-nothing*: it adds no new item of any kind, and it only changes wording inside sections
-that already exist.
+A finding reports instead of being fixed only when one of these holds, and there are no
+others.
 
-**Condition 1 is read at section granularity for this class alone.** An edit under this
-class may touch more than one existing section of the artefact while adding none. The two
-other correction classes keep their present single-field bound unchanged.
+- **Irreversible.** The fix could lose work, data or history that a later edit or a
+  revert cannot restore. This is criterion (a) of the risk test in
+  `skills/flowcharge/SKILL.md`'s "The prompt policy", applied as written there and not
+  restated here. An edit to a Markdown artefact almost never meets it. A report under
+  this condition names what would be lost.
+- **Undetermined.** The evidence shows something is wrong but does not determine the
+  correct content: the source is silent, or two readings of it are both defensible.
+  Choosing one would be authoring, not correction.
 
-**Ambiguity resolves to structural.** Where you cannot tell whether the fix is localised,
-the fix is structural. The class does not apply, you apply nothing, and you state in your
-return that the fix is structural.
+No other property of a finding causes a report. Its check class, its size, the number
+of sections it touches, whether it adds or removes an item, and whether it concerns
+another artefact are all irrelevant to whether you fix it.
 
-**The proof is the adopted answer itself**, quoted in the withheld part of the return
-exactly as this part already requires for the other two classes.
+### Authoring within a fix
 
-**Every open finding you report labels its fix.** The finding gains one further duty: it
-says whether the fix its recommendation asks for is localised or structural, by the test
-the class above defines. Do not restate that test here; the label is that test's verdict
-and nothing more. The label is what the caller routes on, and you carry the duty because
-you hold the artefact and its source and the caller does not. The label rides the finding
-you already print, so the return in part 5 keeps the shape it has and gains no new part.
+When a fix adds or rewrites an item, follow the owning skill's schema: `fc-task-list`
+for a task, `fc-issue-list` for an issue, and the plan's own section shape for a plan
+stage or acceptance criterion. Keep task numbering contiguous, and keep every
+`depends_on` between tasks consistent after an insertion or a deletion. A new issue
+needs an ISS ID: claim it with
+`node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --claim ISS`
+and use the ID it prints. That claim is the one write outside the artefact a fix may
+make. Never claim an ID for an item you then do not write.
 
-**Coverage gaps and invented content always report.** Authoring a missing task and
-deleting an unsourced one are both authoring judgments, so both fail condition 3. You
-never write the missing item and you never delete the unsourced one.
+### What you may edit
 
-**A claim about another FlowCharge Core artefact always reports too.** The subject of
-this carve-out is a workstream record, a plan, an issue list or a task list, named by ID
-or by a path under `flowcharge/`. Such a claim is the one accuracy finding that is never
-applied, and there are two reasons for that. First, it passes the provable condition,
-because the artefact it names is on disk, but rewriting what a plan says about a sibling
-artefact is an authoring judgment of the same kind as the other two. Second, it carries
-a staleness hazard the other accuracy classes do not: a claim that was true when the
-artefact was authored goes stale later, when the artefact it names changes. In standalone
-use a silent correction would therefore edit a correct historical record. An anchor or a
-claim about project source code is an ordinary Accuracy correction, and another artefact
-citing the same lines does not move it into this carve-out.
+You edit the artefact under validation and nothing else, the ISS claim above excepted.
+In the body, everything is yours. In the frontmatter, you may fix YAML validity, schema
+conformance and a wrong `depends_on` target; you never change `id`, `status`,
+`base_commit`, `created` or `updated`. The orchestrator bumps `updated` after your run.
+In a sequenced pass the upstream artefact is edited by comparison 1 only, and only
+against its own source, per Part 1.
 
-You write to the artefact's body only. Frontmatter is never touched, and that includes
-`updated` and `base_commit`.
+### A settled finding handed back
+
+Where the caller settles an open finding you reported and hands the adopted answer
+back, apply that answer exactly as stated, under the same edit rules as any other fix,
+and record it in the withheld part with the answer quoted as its proof. You never
+compose, complete or improve a handed-back answer. Where no answer arrives, the finding
+stays open.
 
 ## 5. The return, and what it prints
 
@@ -261,18 +280,24 @@ One summary line, in this fixed shape:
 Validated <artefact>. <N> fixes applied. <M> open findings.
 ```
 
-`N` is one combined figure: corrections applied on your own authority plus settled
-findings applied, added together. The printed line never splits them; the withheld part
-records each class apart.
+`N` counts every fix, whatever its class and however many fields or items it touched.
+A handed-back answer you applied counts as one fix.
 
 Then, only where `M` is not zero, each open finding. Phrase every finding as an open
 question carrying its own recommendation, so that it reads cold to somebody who was not
 here, and so that it lands in the channel hard rule 10 already defines for an open
-question. Write every open finding in the fixed open-question block the prompt templates
-carry, and in no other shape:
+question. Write every open finding in this block, the one the plan-and-tasks template
+also carries, and in no other shape.
+
+**Open questions, the return shape**
+
+Return every open question in this shape, and no other:
 
 - **Question:** the question in one sentence that reads cold to somebody who was not here.
 - **Recommendation:** the option you would take, and a one-line reason for it. Where you cannot recommend one, write `No recommendation possible` in this field, followed by the reason you cannot. A question carrying that sentinel never settles at any tier.
+
+A finding reported under the irreversible condition says so in its question, because
+the caller's risk test must see it.
 
 Where any `verify` step was left unrun or unjudged, the summary line gains one clause
 naming how many of each. The reason is plain: a validation that ran nothing must never
@@ -280,21 +305,20 @@ read as one that found nothing wrong.
 
 ### The withheld part
 
-Every applied correction, named with what it changed and with the proof behind it, under
-its own heading. That heading is not printed unless the user asks for it.
+Every applied fix, named with what it changed and with the proof behind it, under its
+own heading. That heading is not printed unless the user asks for it.
 
-This split binds every turn, a follow-up turn that applies settled findings included:
-that turn prints the summary line alone, its applied findings join this part, and the
-caller's settle message is not the user asking.
+This split binds every turn, a hand-back turn that applies a settled finding included:
+that turn prints the summary line alone, its applied fix joins this part, and the
+caller's hand-back message is not the user asking.
 
 This detail is produced on **every** run. It is withheld from the stage report; it is
 never omitted from the return. A validator that stops producing the proof loses the only
-evidence its corrections were provable, so produce it always and print it on request.
+evidence its fixes were provable, so produce it always and print it on request.
 
-The default follows from the common case: a few provable accuracy corrections and no
-open finding. Printing those in every stage report frames routine production as
-remediation. The user's judgment is needed only on an open finding, and an open finding
-always prints.
+The default follows from the common case: a handful of fixes and no open finding.
+Printing those in every stage report frames routine production as remediation. The
+user's judgment is needed only on an open finding, and an open finding always prints.
 
 This part adds no new return class and no new rule. A finding rides the existing
 open-questions channel unchanged, and the printed-versus-withheld split does not weaken
@@ -310,5 +334,5 @@ summary line, in the shape above, then that comparison's open findings in the sa
 open-question block. The unrun-and-unjudged clause rides comparison 2's summary line
 alone, because only a task list carries `verify` commands.
 
-The withheld part keeps its single heading, and each correction it lists names which
+The withheld part keeps its single heading, and each fix it lists names which
 comparison applied it.
