@@ -1,46 +1,46 @@
 {
-  "suite_version": "0.4.0",
-  "generated": "2026-09-18",
+  "suite_version": "0.5.0",
+  "generated": "2026-09-26",
   "skills": [
     {
       "name": "fc-dev-principles",
-      "version": "0.4.0",
-      "sha256": "87f723fd07833e64250cecb952defde36c054df625e9f4dff1b9e4c69f547bd5"
+      "version": "0.5.0",
+      "sha256": "15f920f243eb4f535ecd261212dcce72268e325edc058d99be1c0b78733bb200"
     },
     {
       "name": "fc-git",
-      "version": "0.4.0",
-      "sha256": "b5019933a9cec0ca81ff46097930b283825ea11bec5dfd9481e449f0d90ad281"
+      "version": "0.5.0",
+      "sha256": "fd1f55965df9d7b59243fda65c5fcdba53ddbfd94557c744e1129a606d3d6596"
     },
     {
       "name": "fc-issue-list",
-      "version": "0.4.0",
-      "sha256": "cb701b537e97f23ae3747d97aa3a7a1675a3d5d1d35d4ee7a2d278dee3cdf764"
+      "version": "0.5.0",
+      "sha256": "823a9586b57c20a907b459c683ef61458f38525b8ece132e60e59abed8c29fc6"
     },
     {
       "name": "fc-plain-text-kanban",
-      "version": "0.4.0",
-      "sha256": "46379adf26ea272a07df92aa190c519a8ecfa927ec41f67023ae32ca5ea7e8d6"
+      "version": "0.5.0",
+      "sha256": "d87522f398b4b065f6cd332eea97923b1e576bd0068370701b0cc7feab119efc"
     },
     {
       "name": "fc-plan-feature",
-      "version": "0.4.0",
-      "sha256": "d446932b1d6e61c67fccd000433bf460c45eafebc467b4ce227e2b575cb8d125"
+      "version": "0.5.0",
+      "sha256": "a53e611bcfab2f38538025a75b5053b45f683f52c001d44019d911ce62ede563"
     },
     {
       "name": "fc-task-list",
-      "version": "0.4.0",
-      "sha256": "1da9499e372d5c7333e2ed5c5c08f1f5b5e44544819f0417110857436c77dc48"
+      "version": "0.5.0",
+      "sha256": "f7865f3d23f60546749398ae545433582b00dcc13bf66143c7e6e193358a04aa"
     },
     {
       "name": "fc-validate",
-      "version": "0.4.0",
-      "sha256": "6db4b8b174493c3796b4c793e117978f35700435657f2a26cba1ce7043d5ca22"
+      "version": "0.5.0",
+      "sha256": "ea926d94a2a74e13767d978d619bf3ac4c5c462a716bbd526132196af136c0df"
     },
     {
       "name": "flowcharge",
-      "version": "0.4.0",
-      "sha256": "fbc5a7e20aabe37eb0ebe8437c1b8eefe35412d15d90c1b0e6c2429dfd731e40"
+      "version": "0.5.0",
+      "sha256": "0de9f89eacd110a4f779e1c71e7be016cb1b2ec05218e06913b5434050e560d0"
     }
   ]
 }

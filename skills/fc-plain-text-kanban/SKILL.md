@@ -2,7 +2,7 @@
 name: fc-plain-text-kanban
 description: Manage the FlowCharge Core kanban board, a generated Obsidian "Plain Text Kanban" markdown file (kanban.md) whose thin cards are derived views of workstream records under flowcharge/. Use this skill whenever the user wants the FlowCharge Core board created, regenerated, read, or a card moved/added/edited. Card moves happen by editing workstream frontmatter status and regenerating, never by hand-editing the board. Also documents the plain-text-kanban plugin format (columns, cards, labels, tabs) for reading boards and for repairs. Part of the FlowCharge Core suite (parallel successor to ak-plain-text-kanban).
 metadata:
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # Kanban Manager
