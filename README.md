@@ -42,7 +42,7 @@ for Claude Code. Delete any older folder of the same name in `<skills-dir>` firs
 
 **From the release zip.** Download `flowcharge-core-<X.Y.Z>.zip` from the
 [Releases page](https://github.com/FlowChargeApp/flowcharge-core/releases) and unzip
-it into `<skills-dir>`. The current release is `0.1.0`. The skill folders sit at the
+it into `<skills-dir>`. The current release is `0.5.0`. The skill folders sit at the
 top level of the archive, so this is the whole install:
 
 ```bash
@@ -104,9 +104,12 @@ FlowCharge Core only does what you asked: "Write up an issue list" stops at
 the issue list. Any failure halts the pipeline rather than improvising around it.
 
 When your project already defines its own test suites, in a build-tool script, a CI
-step or an equivalent, every task list records those commands and ends with two
-tasks. A test-update task updates any existing test the change makes wrong. A
-test-run task runs the suites once before the first task and once after the last.
+step or an equivalent, every task list records those commands in its
+`test_commands` frontmatter key and ends with two tasks. A test-update task updates
+any existing test the change makes wrong, and adds a new test only where the
+request, plan or issue asks for one. A test-run task runs the suites once before
+the first task and once after the last. A task list that fixes test-run failures is
+the exception: it ends with one recheck task, which re-runs only the failing checks.
 A project with no suites gets neither task, and nothing is installed or configured.
 
 A failing test-run task does not halt the run at once. The orchestrator files each new
@@ -126,8 +129,9 @@ prompts: manual | assist | cruise  # how much the orchestrator decides on its ow
 validate: on | off                 # whether artefacts are checked against their source
 ```
 
-`on` runs one check of the run's artefacts against what they were authored from; `off`
-runs none and is the cheaper, faster choice.
+`on`, the built-in default, checks the artefacts each authoring stage wrote against
+what they were authored from, once per authoring stage; `off` runs no check and is the
+cheaper, faster choice.
 
 `prompts:` decides how much of a run comes back to you. `manual` is the default.
 
@@ -151,13 +155,14 @@ matching line for you.
 ## Layout in a target project
 
 FlowCharge Core adds one folder to your project, `flowcharge/`, plus three lines to
-your `.gitignore` for the generated files. Each workstream, the unit of work the
-board tracks, gets one folder under `flowcharge/workstreams/`. Date is metadata,
-never location.
+your `.gitignore` for the two generated views and the temporary ID-claim markers.
+Each workstream, the unit of work the board tracks, gets one folder under
+`flowcharge/workstreams/`. Date is metadata, never location.
 
 ```
 flowcharge/
   ids.md                          # the global ID registry
+  ids/                            # temporary ID-claim markers, git-ignored
   agents.md                       # optional per-project defaults (see above)
   tags.md                         # the tag pool: every workstream tag is defined here
   index.md                        # GENERATED: the query layer
@@ -191,7 +196,7 @@ skill disagrees with it, that document wins.
 | `skills/fc-plan-feature/` | Feature planning: approach prompt, required plan structure |
 | `skills/fc-validate/` | Checks an authored artifact against its source |
 | `skills/fc-git/` | Disciplined git operations: commit, branch, merge, worktrees, recovery |
-| `skills/fc-dev-principles/` | Engineering-principles checklist loaded by the planning and tasking prompts |
+| `skills/fc-dev-principles/` | Engineering-principles checklist loaded by the plan-and-tasks and issues-and-tasks stage files |
 
 Every skill also works on its own, `/fc-plan-feature` or `/fc-git`, when you want a
 single artifact rather than a pipeline.
