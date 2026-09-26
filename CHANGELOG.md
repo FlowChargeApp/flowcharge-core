@@ -66,11 +66,10 @@ skill mirrors it. See VERSIONING.md.
   determine. A fourth check class covers spelling, formatting, YAML and schema
   conformance. A settled open question now hands straight back to the validator
   instead of triggering an orchestrator-mediated re-spawn.
-- A prompt-template briefing may only draw facts from files under `flowcharge/`,
-  never from the target project's own source — closing a path where the
-  orchestrator could leak project-source detail (line numbers, quoted fixture
-  content) into a subagent's briefing instead of letting that subagent discover
-  it for itself.
+- Stage files no longer carry a briefing. Every stage runs in the orchestrator's
+  own session, so no hand-written summary of project-source detail (line numbers,
+  quoted fixture content) passes from one stage to the next: each stage reads the
+  target project for itself, as its stage file directs.
 - Plans and task lists scale to the size of the request: a companion test file
   (`e2e/*`, `*.spec.*`, `*.test.*`) no longer counts as a "second file" when
   judging scale or mini-task eligibility; empty plan sections are omitted rather
