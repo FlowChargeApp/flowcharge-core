@@ -309,9 +309,10 @@ author's intent, not the file's shape, so documented guidance is its only defenc
 
 **Author attribution.** `author` is a plaintext name carried by all six record
 kinds: the four artefact kinds above in their frontmatter (`workstream`, `plan`,
-`issuelist`, `tasklist`), plus each issue inside an issue list and each adult or
-child task inside a task list, in that item's own YAML. Parent tasks keep the
-description-only rule and take no `author`; a mini-shape task inherits the file's. Read the value from the generator at
+`issuelist`, `tasklist`), plus each issue inside an issue list, in that issue's
+own YAML. A task inside a task list carries `author` only when it differs from the
+file's, and an absent task `author` is the file's. Parent tasks keep the
+description-only rule and take no `author`. Read the value from the generator at
 authoring time and write the printed line verbatim:
 
 ```bash

@@ -146,8 +146,6 @@ Each file follows this structure (after the file frontmatter):
 - [ ] 1. Task (Childless / Adult)
   ```yaml
   description: "Describe the task"
-  author: Ada Lovelace
-  issues: []
   implement:
     - "Step or instruction"
     - "Option A: ..."
@@ -164,9 +162,6 @@ Each file follows this structure (after the file frontmatter):
     - "runtime [verify 1]: criterion the named probe proves; see Evidence classes"
   self_eval:
     passed: false
-    evidence: []
-    unverified: []
-    failures: []
   ```
 - [ ] 2. Parent task
 
@@ -177,8 +172,6 @@ Each file follows this structure (after the file frontmatter):
   - [ ] 2.1 Child task / Subtask
     ```yaml
     description: "Describe the child task"
-    author: Ada Lovelace
-    issues: []
     implement:
       - "Step or instruction"
     pattern: "Files applicable"
@@ -193,9 +186,6 @@ Each file follows this structure (after the file frontmatter):
       - "rendered [verify 2]: ..."
     self_eval:
       passed: false
-      evidence: []
-      unverified: []
-      failures: []
     ```
   - [ ] 2.2 Mini child task (see Mini shape)
     ```yaml
@@ -207,9 +197,6 @@ Each file follows this structure (after the file frontmatter):
       - "Command with an unambiguous pass/fail"
     self_eval:
       passed: false
-      evidence: []
-      unverified: []
-      failures: []
     ```
   - [x] 2.3 Completed child task / subtask
 
@@ -258,9 +245,9 @@ Two prohibitions:
 Every task includes an indented YAML block immediately after the task line. These are the standard keys:
 
 - `description`: concise task description
-- `author`: plaintext name of whoever authored the task. See **Author attribution** below. Adult and child tasks only.
+- `author`: plaintext name of whoever authored the task. See **Author attribution** below. Adult and child tasks only. Omit when it equals the file's `author`.
 - `mode`: **optional** per-task override of the file's mode: `spec` or `diff`. Omit unless this one task needs the other form.
-- `issues`: **optional** list of issue IDs from `fc-issue-list` that this task addresses (e.g. `[ISS-3-q2j5w7, ISS-7-s5g9y0]`). Use `[]` if none. When populated, update the corresponding issue's `tasks` key and set its `status` to `in-progress`.
+- `issues`: **optional** list of issue IDs from `fc-issue-list` that this task addresses (e.g. `[ISS-3-q2j5w7, ISS-7-s5g9y0]`). Omit when none. When populated, update the corresponding issue's `tasks` key and set its `status` to `in-progress`.
 - `implement`: **ordered list** of implementation steps or instructions. Each item is a discrete action. Use multiple items to capture branching options (e.g. `"Option A: ..."`, `"Option B: ..."`) rather than embedding them in prose. **The form of these steps is set by the task's mode:**
 
   **`spec` mode**
@@ -278,22 +265,22 @@ Every task includes an indented YAML block immediately after the task line. Thes
   - The SEARCH text must be copied from the file as read in this session, never recalled from memory or reconstructed. See **Diff-mode staleness guard** above.
 
 - `pattern`: files, paths, or applicable scope; omitted only on a verification-only child (see **Rules**)
-- `imports`: required components, packages, modules, or dependencies
-- `compatibility`: required design patterns, package versions, or compatibility constraints
-- `gotcha`: likely pitfalls, edge cases, or foreseeable issues
+- `imports`: required components, packages, modules, or dependencies. Omit when none.
+- `compatibility`: required design patterns, package versions, or compatibility constraints. Omit unless it holds what the executor cannot get from the plan or the code.
+- `gotcha`: likely pitfalls, edge cases, or foreseeable issues. Omit unless it holds what the executor cannot get from the plan or the code.
 - `verify`: **ordered list** of verification steps. The first item is the primary command or tool. Subsequent items are follow-up checks on the output of the previous step (e.g. inspect a value, hit an endpoint, assert a file exists). Steps are executed in sequence. Later steps may depend on earlier ones succeeding. Every step sits in one tier of **Verify tiers** below. See **Smoke Tests** below for tasks whose output is a class/method with observable state. Each step asserts something specific to the change (a grep, a count, a file-existence check). Add the project's own lint or type-check command alongside, only where the project already has one configured (`package.json` scripts, a Makefile, CI config, `pyproject.toml`, `go.mod`, or equivalent); never invent one, and never issue a command against a project whose toolchain does not match it. Never add a test-suite or build command as a verify step: it asserts nothing about the task and passes before the change as readily as after. A suite runs in one place only: the list's final test-run task (see **Test-run task**). **Measure before you write.** Where a step asserts a count, a file's existence, or the presence or absence of a string, run it at `base_commit` before writing it down and record what it actually returned, not what you expect. Where it already passes with nothing changed it does not discriminate: rewrite it until it fails at `base_commit`, or state in the step why it cannot fail there. Rewriting makes the assertion specific to the change; it never deletes the step or weakens what it asserts.
 - `checklist`: full shape only. 4–6 binary YES/NO criteria derived from `imports`, `compatibility`, `gotcha`, or `pattern`, each opening with its class per **Evidence classes** below
 - `self_eval`: post-execution evaluation object with:
   - `passed`: boolean, true only if no checklist item is NO
-  - `evidence`: array with one entry per checklist item, in order, each with `item`, `result` (`YES`/`NO`/`NOT CHECKED`) and `measured` (what was observed); `[]` until executed
-  - `unverified`: array of NOT CHECKED items, each with `item` and `reason`; `[]` when none
-  - `failures`: array of failed checklist items, each with `item`, `reason`, and `fix`
+  - `evidence`: array with one entry per checklist item, in checklist order, each with `result` (`YES`/`NO`/`NOT CHECKED`) and `measured` (what was observed). An entry's position names its item, so the item text is never copied into it. Absent until executed
+  - `unverified`: array of NOT CHECKED items, each with `item` (its position, such as `checklist 3`, or `verify 2` in a mini task) and `reason`; omitted when none
+  - `failures`: array of failed checklist items, each with `item` (its position), `reason`, and `fix`; omitted when none
 
-**Parent tasks only have the `description` key**, so never `author`. All other task types (adult, child) carry the full set of keys above or the mini set (see **Mini shape**); no key is optional in either.
+**Parent tasks only have the `description` key**, so never `author`. All other task types (adult, child) carry the full set of keys above or the mini set (see **Mini shape**). A key that is empty or equals its default is omitted, and an absent key means empty or default: an absent `author` is the file's author, an absent `issues` is `[]`, an absent `imports`, `compatibility` or `gotcha` is none, and an absent `unverified` or `failures` is `[]`.
 
 ### Author attribution
 
-Read `author` with `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --whoami` and write the printed line verbatim into the file's frontmatter and every full-shape adult and child task's YAML; a mini task inherits the file's (CONVENTIONS.md, Author attribution).
+Read `author` with `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --whoami` and write the printed line verbatim into the file's frontmatter; a task carries its own `author` only when it differs from the file's (CONVENTIONS.md, Author attribution).
 
 ### Where the detail sits, by mode
 
@@ -321,7 +308,7 @@ Every adult or child task except the test-run and test-update tasks (see their s
 3. The change needs a new package dependency.
 4. `verify` has no step with an unambiguous pass/fail.
 
-Mini carries `description`, `pattern`, `implement`, `verify` and `self_eval`, plus `issues` only when non-empty and `mode` only as an override; every other key is forbidden. Full carries every key; none is optional. A mini task is a leaf: it never has children. The verification-only child is always full. In a mini task `verify` is the checklist: `self_eval.evidence` holds one entry per `verify` step, classed by the step's tier (static is `source`; a probe is `runtime` or `rendered` as the step states). `fc-index.mjs --check` flags a mini task whose `pattern` names more than one file or that has sub-tasks.
+Mini carries `description`, `pattern`, `implement`, `verify` and `self_eval`, plus `issues` only when non-empty and `mode` only as an override; every other key is forbidden. Full carries the keys of **Metadata Schema**, omitting any that is empty or default. A mini task is a leaf: it never has children. The verification-only child is always full. In a mini task `verify` is the checklist: `self_eval.evidence` holds one entry per `verify` step, classed by the step's tier (static is `source`; a probe is `runtime` or `rendered` as the step states). `fc-index.mjs --check` flags a mini task whose `pattern` names more than one file or that has sub-tasks.
 
 ### Evidence classes
 
