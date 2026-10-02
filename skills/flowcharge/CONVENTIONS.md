@@ -252,7 +252,9 @@ Additional keys by type:
   nothing past the first line reaches the board. Markdown headings are skipped by the
   generator, so the body may use them freely. What the body is **not** is a running
   log: it records the request as given, while analysis, design decisions and progress
-  notes belong in the plan / issue list / task list.
+  notes belong in the plan / issue list / task list. A statement that holds for every
+  workstream, such as a standards paragraph, is written once in a project-level file such
+  as `AGENTS.md` and never repeated in a record.
   `blocked`: **optional**, workstream records only, and a single-line double-quoted
   scalar like `title`. Write it immediately after `title`, always before
   `status`. Its value is the reason the work cannot proceed. An absent key means the
