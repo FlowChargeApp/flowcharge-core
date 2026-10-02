@@ -37,4 +37,4 @@ Execute the nominated parent task and its subtasks, and nothing else. Change no 
 - Every NOT CHECKED item, with its reason, as its own list
 - Every promoted subtask, with its reason
 - The populated `self_eval` for the parent task
-- For a test-run task: its `test_run_result`, its `test_run_baseline`, and every `test_run_failures` entry with its `check`, `command`, `message` and `blocking` value
+- For a test-run task: its `test_run_result`, its `test_run_counts`, its `test_run_baseline`, and every `test_run_failures` entry with its `check`, `command`, `message` and `blocking` value
