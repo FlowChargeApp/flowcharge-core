@@ -5032,6 +5032,7 @@ const SINGLE_COPY_PHRASES = [
   { phrase: 'Archive by moving the ENTIRE folder', files: ['flowcharge/CONVENTIONS.md'] },
   { phrase: 'refuses a taken slug', files: ['flowcharge/CONVENTIONS.md'] },
   { phrase: "sed -E 's/^WS-", files: [] },
+  { phrase: 'Plain `--force` is never used', files: ['fc-git/operations.md'] },
   { phrase: 'this project\'s own structural or reference documentation', files: ['flowcharge/SKILL.md'] },
 ];
 
@@ -5526,6 +5527,18 @@ testCase('the root LICENSE has the expected shape', () => {
     text.includes('shall be included in all'),
     'the root LICENSE must hold MIT\'s inclusion sentence',
   );
+});
+
+testCase("fc-git's operations sections live only in operations.md, which SKILL.md names", () => {
+  const problems = onDemandProblems([
+    {
+      skill: 'fc-git',
+      file: 'operations.md',
+      sections: ['Init (new project)', 'Merging & rebasing', 'Worktrees', 'Stashing', 'Tags & releases', 'Remotes & pushing'],
+      readers: [],
+    },
+  ]);
+  assert.deepStrictEqual(problems, [], `the fc-git split is broken:\n${problems.map((p) => `  skills/${p}`).join('\n')}`);
 });
 
 // ---- runner ----------------------------------------------------------------

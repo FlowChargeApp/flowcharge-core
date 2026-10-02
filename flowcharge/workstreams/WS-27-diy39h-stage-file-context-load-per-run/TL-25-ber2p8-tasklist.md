@@ -886,13 +886,13 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
           measured: "grep -cF returned 1"
     ```
 
-- [ ] 4. fc-git core and operations.md
+- [x] 4. fc-git core and operations.md
 
   ```yaml
   description: "Move the six operation sections of skills/fc-git/SKILL.md, verbatim except one pointer, into the new skills/fc-git/operations.md, and pin the split. Realises PLN-21-ayjwfl stage 4 (criteria 6, 7, 8 and 9)."
   ```
 
-  - [ ] 4.1 Create skills/fc-git/operations.md
+  - [x] 4.1 Create skills/fc-git/operations.md
     ```yaml
     description: "New file: the SEARCH section is empty. It holds the six moved sections as ## headings, verbatim except the tier-list pointer (PLN-21-ayjwfl, Design, fc-git split)."
     pattern: "skills/fc-git/operations.md"
@@ -1011,10 +1011,13 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     verify:
       - "grep -c '^## ' skills/fc-git/operations.md  # expect 6; no such file at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -c returned 6"
     ```
 
-  - [ ] 4.2 Replace Init with the operations.md pointer
+  - [x] 4.2 Replace Init with the operations.md pointer
     ```yaml
     description: "In skills/fc-git/SKILL.md, the Operations catalog opens with the operations.md pointer in place of the Init section 4.1 moved."
     pattern: "skills/fc-git/SKILL.md"
@@ -1049,10 +1052,13 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     verify:
       - "grep -cF \"Read \\`operations.md\\` in this skill's folder in full\" skills/fc-git/SKILL.md  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cF returned 1"
     ```
 
-  - [ ] 4.3 Remove the five moved operation sections from the core
+  - [x] 4.3 Remove the five moved operation sections from the core
     ```yaml
     description: "In skills/fc-git/SKILL.md, delete Merging & rebasing through Remotes & pushing, which 4.1 moved."
     pattern: "skills/fc-git/SKILL.md"
@@ -1161,10 +1167,15 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
       - "grep -cE '^### (Init \\(new project\\)|Merging & rebasing|Worktrees|Stashing|Tags & releases|Remotes & pushing)$' skills/fc-git/SKILL.md  # expect 0; 6 at base_commit"
       - "test $(wc -c < skills/fc-git/SKILL.md) -lt $(git show 1d1db92:skills/fc-git/SKILL.md | wc -c) && echo smaller  # expect smaller; no output, the sizes are equal at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cE returned 0"
+        - result: YES
+          measured: "the test printed smaller: fc-git/SKILL.md is smaller than at base_commit"
     ```
 
-  - [ ] 4.4 Pin the force-push rule to operations.md
+  - [x] 4.4 Pin the force-push rule to operations.md
     ```yaml
     description: "In skills/flowcharge/scripts/test/run-tests.mjs, SINGLE_COPY_PHRASES pins the plain-force rule to fc-git/operations.md."
     pattern: "skills/flowcharge/scripts/test/run-tests.mjs"
@@ -1180,10 +1191,13 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     verify:
       - "grep -cF \"files: ['fc-git/operations.md']\" skills/flowcharge/scripts/test/run-tests.mjs  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cF returned 1"
     ```
 
-  - [ ] 4.5 Pin the fc-git split
+  - [x] 4.5 Pin the fc-git split
     ```yaml
     description: "In skills/flowcharge/scripts/test/run-tests.mjs, add the fc-git case before the runner, reusing onDemandProblems from 2.16."
     pattern: "skills/flowcharge/scripts/test/run-tests.mjs"
@@ -1210,7 +1224,10 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     verify:
       - "grep -cF \"fc-git's operations sections live only in operations.md\" skills/flowcharge/scripts/test/run-tests.mjs  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cF returned 1"
     ```
 
 - [ ] 5. Test-update task: bring the tests in line with this change
