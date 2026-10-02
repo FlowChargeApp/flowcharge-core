@@ -176,10 +176,15 @@ once, never restate, justify, or explain what a section already carries.
 Before finishing, check the acceptance criteria pairwise for
 contradiction: resolve it, or flag it under Open questions.
 
-**One home per fact.** Each fact or decision is stated in exactly one section:
-Design states the decision, Alternatives states what was rejected and why, Scope's
-assumptions state the premise. Summary and every other section point at it, never
-restate it.
+**One home per fact.** Each fact or decision is stated in exactly one section;
+every other section cites it (`criterion 6`, `Design, Filters`) and never restates
+it. The homes: a behaviour the brief demands is a Scope criterion; a contract, a
+code constant or a value the executor would otherwise choose is Design; a content
+value is Content specification; a rejected option with its reason is Alternatives,
+and an assumption resting on it states the premise only; a test is Testing
+strategy. Nothing the task author can read directly is reproduced: the request
+stays in the workstream record, and existing code is cited by `file:line`, never
+quoted. **No script can check** this: it reads meaning.
 
 **Empty sections are forbidden.** Key flows, Data & compatibility, Non-functional
 requirements, Open questions and Adjacent opportunities are omitted entirely when
@@ -191,17 +196,19 @@ they have nothing to say. Never write a section to say "none", "not needed" or
 Use these sections, in this order:
 
 - **Summary.** The problem, who it is for, what success looks like, the chosen
-  approach, and the top risk, one line each.
-- **Scope.** In-scope behavior as acceptance criteria (concrete, testable
-  statements: "a user who X sees Y", not "improve the X experience"), each tagged
-  Must, Should or Could; one criterion per capability the brief demands, plus one
-  per edge case that changes observable behavior; a Should or Could criterion is
-  marked conditional. A Won't list only where a deferral genuinely needs
-  recording, one line each. Out-of-scope items. Assumptions the user confirmed vs
-  assumptions still open, including every value decided under the hard rule above.
-  One line each, no sub-bullets. A criterion that needs commands or
-  multi-line mechanics states the outcome here and leaves the mechanics to the
-  matching task's verification in the task list.
+  approach, and the top risk, one short line each, naming what the body decides,
+  never explaining it.
+- **Scope.** In-scope behavior as a numbered list of acceptance criteria (concrete,
+  testable statements: "a user who X sees Y", not "improve the X experience"), each
+  tagged Must, Should or Could; one criterion per capability the brief demands, plus
+  one per edge case that changes observable behavior; a Should or Could criterion is
+  marked conditional. A criterion states its behaviour once, naming the Design
+  contract it exercises by symbol; it never lists a test's cases (Testing strategy),
+  and one that needs commands or multi-line mechanics states the outcome and leaves
+  the mechanics to the matching task's verification in the task list. A Won't list
+  only where a deferral genuinely needs recording, one line each. Out-of-scope items.
+  Assumptions the user confirmed vs assumptions still open, including every value
+  decided under the hard rule above. One line each, no sub-bullets.
 - **Key flows.** Only where the feature has user-visible behavior beyond what
   the criteria already state. One short block per flow, inline bold labels, no
   subheadings: **<Flow name>**: **Actor:** … **Preconditions:** … **Main
@@ -211,23 +218,26 @@ Use these sections, in this order:
   data models, API/interface contracts (define these first: they're the hardest to
   change later), module boundaries, and which existing patterns/utilities are reused.
   Cite actual files. State what each new module knows about and what it must NOT
-  know about. Design states decisions, never mechanics. A decision is any value
-  the executor would otherwise have to choose. For code, the contract (signatures,
-  data shapes, field names, types, nullability) is the decision and the body is the
-  executor's. For a content, configuration or design-token deliverable, the value
+  know about. Design states decisions, never mechanics, and never narrates a
+  behaviour a criterion states: it holds the contract and cites the criterion by
+  number. A decision is any value the executor would otherwise have to choose. For
+  code, the contract (signatures, data shapes, field names, types, nullability) is
+  the decision and the body is the executor's. For a content, configuration or design-token deliverable, the value
   itself is the decision and it goes in Content specification. Mechanics
   (step-by-step procedures, command sequences with bodies, SEARCH/REPLACE bodies,
   how a file is produced) belong to the task list. Test: if a task author would
   have to invent a value the user could reasonably reject, the plan states it.
   For a file the plan will cause to be written, name it here.
 - **Content specification.** Only where a deliverable is content-bearing (copy,
-  palette, typography, spacing, layout, config or schema values); omit otherwise.
+  palette, typography, spacing, layout, config or schema values); omit otherwise. A
+  code constant, limit or threshold is a Design contract, never a row here.
   One table per artefact: element, exact value, one-line rationale where a choice
   was made. Values verbatim: the headline text, the hex, the size with its unit.
   A value decided under an assumption names that assumption in its rationale.
 - **Stages.** Ordered vertical slices, riskiest first, each leaving the app
   working and demonstrable. One line per stage: its goal, why it holds this
-  position, and what is observable when it ends. For a content deliverable the
+  position, and what is observable when it ends, as criterion numbers where a
+  criterion states it. For a content deliverable the
   line also names the content block it lands. No per-task detail. Files
   touched, effort, and verify steps belong to the task list, whose skill
   decomposes each stage.
@@ -238,11 +248,13 @@ Use these sections, in this order:
 - **Non-functional requirements.** Only where one applies: performance, security,
   accessibility, observability and platform support, proportionally (see
   Non-functional requirements under Planning principles). Behavioral targets,
-  never implementation.
-- **Testing strategy.** What gets unit vs integration coverage, per stage. This is
-  a pointer for a later test-writing pass (the write-tests skill), not the tests
-  themselves. For a content deliverable, review criteria instead: what a reviewer
-  checks and the measurable threshold (copy length, contrast ratio, breakpoints),
+  never implementation; a mechanism Design states is cited, not repeated.
+- **Testing strategy.** Per stage: the test files, unit vs integration, and each
+  test named by the criteria it proves (`criterion 6`) plus only the cases no
+  criterion states. This is a pointer for a later test-writing pass (the
+  write-tests skill), not the tests themselves. For a content deliverable, review
+  criteria instead: what a reviewer checks and the measurable threshold (copy
+  length, contrast ratio, breakpoints),
   each a number an executor can measure, because the task list turns each one
   into a `rendered` checklist item.
 - **Open questions.** Genuine unknowns only, each with the options and your

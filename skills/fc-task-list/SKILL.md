@@ -189,7 +189,7 @@ Each file follows this structure (after the file frontmatter):
     ```
   - [ ] 2.2 Mini child task (see Mini shape)
     ```yaml
-    description: "One change in one existing file"
+    description: "One change in one file"
     pattern: "src/one/file.ts"
     implement:
       - "Anchor and the change"
@@ -272,7 +272,7 @@ Every task includes an indented YAML block immediately after the task line. Thes
 - `checklist`: full shape only. 4–6 binary YES/NO criteria derived from `imports`, `compatibility`, `gotcha`, or `pattern`, each opening with its class per **Evidence classes** below
 - `self_eval`: post-execution evaluation object with:
   - `passed`: boolean, true only if no checklist item is NO
-  - `evidence`: array with one entry per checklist item, in checklist order, each with `result` (`YES`/`NO`/`NOT CHECKED`) and `measured` (what was observed). An entry's position names its item, so the item text is never copied into it. Absent until executed
+  - `evidence`: array with one entry per checklist item, in checklist order, each with `result` (`YES`/`NO`/`NOT CHECKED`) and `measured` (what was observed); the entry's position names its item, so its text is never copied. Absent until executed
   - `unverified`: array of NOT CHECKED items, each with `item` (its position, such as `checklist 3`, or `verify 2` in a mini task) and `reason`; omitted when none
   - `failures`: array of failed checklist items, each with `item` (its position), `reason`, and `fix`; omitted when none
 
@@ -289,7 +289,7 @@ Both modes use the same schema, but the informational load moves. Filling every 
 | Key | `spec` | `diff` |
 | --- | --- | --- |
 | `implement` | **Terse.** Intent plus anchor. The executor derives the edit. | **Long.** The block *is* the task. |
-| `imports`, `compatibility`, `gotcha` | **Referential when a plan backs the list.** Name the plan's contract (plan id plus section) and add only task-local facts the plan does not state, a few lines each. Copying the plan's Design into a task is duplication. **Rich** only when no plan backs the list (e.g. authored from an issue list alone): then these constraints are what let the executor derive a correct edit. | **Terse.** The block already encodes them; restating is duplication. |
+| `imports`, `compatibility`, `gotcha` | **Task-local when a plan backs the list.** Only facts the plan does not state, a few lines each, naming the plan section each extends; a key with nothing to add is omitted, and copying the plan's Design into a task is duplication. **Rich** only when no plan backs the list (e.g. authored from an issue list alone): then these constraints are what let the executor derive a correct edit. | **Terse.** The block already encodes them; restating is duplication. |
 | `checklist` | Outcome-based, "behaviour X holds", "no caller of Y is broken". | Mechanical, "block applied cleanly", "`grep` confirms Z", "type-check clean". |
 | `verify` | May require judgement about the result. | Should be a runnable command with an unambiguous pass/fail. |
 
@@ -303,7 +303,7 @@ from an issue list is unaffected.
 
 Every adult or child task except the test-run and test-update tasks (see their sections) takes one of two shapes, decided by a test on its own content, never by preference. Write `description`, `pattern`, `implement` and `verify` first, then test. The task is **full** if any one holds, else **mini**:
 
-1. `pattern` names more than one file (a test file for the same change does not count: one under a `test`, `tests`, `spec`, `specs`, `e2e` or `__tests__` directory, or named `*.test.*` / `*.spec.*`), or a file the task deletes. Creating one small file is mini.
+1. `pattern` names more than one file (a test file for the same change does not count: one under a `test`, `tests`, `spec`, `specs`, `e2e` or `__tests__` directory, or named `*.test.*` / `*.spec.*`), or a file the task deletes; creating one small file does not make it full.
 2. `implement` changes more than one anchor (function, symbol or region) in the file.
 3. The change needs a new package dependency.
 4. `verify` has no step with an unambiguous pass/fail.
@@ -385,7 +385,7 @@ A list authored to fix test-run failures ends with the recheck form instead, nev
 - `test_run_baseline`: `pending`, `unavailable`, or the list of checks that failed at the baseline run, `[]` when none did.
 - `test_run_failures`: one entry per check failing at the last run, with `check`, `command`, `message` (the runner's failure text, trimmed) and `blocking`: `false` when the check is in the baseline, else `true`. In the recheck form every entry blocks. Only the baseline sets `false`: never on evidence from another run, revert or stash. An entry you believe predates the list stays `true`, with that reason in its `message`.
 - `test_run_result`: `passed` when no entry blocks, else `failed`.
-- `test_run_counts`: one entry per command run at the last run, holding the command and the passed and failed counts the runner printed, such as `npm test: 654 passed, 0 failed`; `no counts` when the output prints none.
+- `test_run_counts`: one entry per command run at the last run: the command and the passed and failed counts the runner printed, such as `npm test: 654 passed, 0 failed`, or `no counts` when it prints none.
 - Set `passed: true` and mark the task `[x]` on `passed` only. On `failed`, leave it unchecked.
 
 Never fix a failure, never edit a file to make a check pass, and never record a failing run as passed. Return every entry. A fix goes through a recorded issue and task, never inline; inside a flowcharge run, the orchestrator's test-run loop does this.
@@ -410,7 +410,6 @@ It may edit several test files and blocks, and takes neither the full nor the mi
     - "<one static step per test updated or added>"
   self_eval:
     passed: false
-    evidence: []
   ```
 ````
 
@@ -439,7 +438,7 @@ When generating a task that adds/changes a class or method with externally obser
 - If a task has child tasks, it is a parent task (see **Three task types**).
   - If a task's scope is large, break it down into atomic child tasks.
   - **Atomic = one coherent change, provable by a single `verify` sequence.** Prefer fewer, larger child tasks over many small ones. In `spec` mode a child task spans every file of its change, its test file and any file that only wires it in (an export, a registration, a config key) included, and names each in `pattern`. In `diff` mode, additionally: **one SEARCH/REPLACE block**, so a multi-file change splits into one child task per block.
-  - **Verification-only child.** An exception to one-file (the **Test-update task** is the other): a child whose whole body is a `verify` sequence of probes, with no `pattern` and an `implement` of one step, "no edit; run `verify`". At most one per parent whose plan stage produces a UI or a running service, numbered last among that parent's children; its checklist holds the stage's `runtime` and `rendered` items.
+  - **Verification-only child.** A child with no edit: its whole body is a `verify` sequence of probes, with no `pattern` and an `implement` of one step, "no edit; run `verify`". At most one per parent whose plan stage produces a UI or a running service, numbered last among that parent's children; its checklist holds the stage's `runtime` and `rendered` items.
   - If a task's scope is already atomic, keep it as a parent-level adult task.
   - A mini task is a leaf and never a parent (see **Mini shape**).
   - When all subtasks of a parent are completed, mark the parent task as completed too.
