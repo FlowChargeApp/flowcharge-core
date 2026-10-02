@@ -1230,7 +1230,7 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
           measured: "grep -cF returned 1"
     ```
 
-- [ ] 5. Test-update task: bring the tests in line with this change
+- [x] 5. Test-update task: bring the tests in line with this change
   ```yaml
   description: "Update every test the other tasks make wrong or out of date; add only the tests the source asks for"
   test_update: true
@@ -1238,7 +1238,7 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     - "No edit: tasks 1.3, 2.15, 2.16, 3.3, 4.4 and 4.5 already add or move every pin the plan asks for, inside the parent task whose change each pins (PLN-21-ayjwfl, Design, Tests), so no test is left wrong or out of date"
   verify: []
   self_eval:
-    passed: false
+    passed: true
   ```
 
 - [ ] 6. Test-run task: run the project's test suites
