@@ -4,7 +4,7 @@ type: workstream
 workstream: WS-27-diy39h
 slug: stage-file-context-load-per-run
 title: "Stage files load their full text into context on every run"
-status: backlog
+status: in-progress
 tags: [prompts, skills, orchestration, feature]
 created: 2026-10-02
 updated: 2026-10-03

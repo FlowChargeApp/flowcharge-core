@@ -6,7 +6,7 @@ For this stage you act as a senior software architect and senior software develo
 ## Skills
 /fc-dev-principles
 /fc-plan-feature
-/fc-issue-list (for the frontmatter conventions it documents)
+/fc-issue-list, only when the plan names issue IDs
 /fc-task-list
 
 ## Context

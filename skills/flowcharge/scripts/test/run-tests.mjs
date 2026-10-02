@@ -5326,6 +5326,26 @@ testCase('hard rule 8 performs each stage inline, and the orchestrator may read 
   assert.ok(text.includes('You read the target project yourself'), '"Parsing the request" no longer says the orchestrator reads the target project');
 });
 
+// Hard rule 1 keeps a file read once per session from being read again, and
+// plan-and-tasks loads fc-issue-list only when the plan names issue IDs. No
+// script reads a run, so these prose pins stand in for both reads.
+testCase('hard rule 1 reads a file once per session, and plan-and-tasks loads fc-issue-list only for issue IDs', () => {
+  const rule = fs.readFileSync(FLOWCHARGE_SKILL, 'utf8').replace(/\s+/g, ' ');
+  assert.ok(
+    rule.includes('is not read again while its full text is still in your context and its file is unchanged since that read; when unsure, read it again.'),
+    'hard rule 1 no longer stops a file already read in this session from being read again',
+  );
+  const stage = fs.readFileSync(path.join(STAGE_FILES_DIR, 'plan-and-tasks.md'), 'utf8');
+  const from = stage.indexOf('## Skills');
+  const to = stage.indexOf('## Context', from + 1);
+  const skills = from === -1 || to === -1 ? '' : stage.slice(from, to);
+  assert.ok(skills.trim().length > 0, 'the Skills section could not be sliced out of templates/plan-and-tasks.md');
+  assert.ok(
+    skills.includes('/fc-issue-list, only when the plan names issue IDs'),
+    'templates/plan-and-tasks.md no longer loads fc-issue-list only when the plan names issue IDs',
+  );
+});
+
 testCase('default_agent stays a documented key, marked currently unused', () => {
   const text = fs.readFileSync(FLOWCHARGE_SKILL, 'utf8');
   assert.ok(text.includes('default_agent: <verbatim string>'), 'the agents.md key list no longer carries default_agent');

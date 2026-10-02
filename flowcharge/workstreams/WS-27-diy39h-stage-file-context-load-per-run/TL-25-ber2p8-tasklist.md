@@ -25,13 +25,13 @@ Implements PLN-21-ayjwfl. Hard rule 1 stops a second read of a file still in con
 
 Each parent task carries the `run-tests.mjs` edits that pin its own change, so the suite passes at every parent-task boundary (PLN-21-ayjwfl, Design, Tests). Every SEARCH text was copied from the file at `base_commit`, or, inside one file, from the REPLACE text of an earlier task in this list; tasks touching one file never overlap. Each `verify` step was run at `base_commit`: the value after "at base_commit" is what it returned there, and each one fails there. A `grep -c` that counts zero exits 1, so its pass is the printed `0`. The repository configures no lint or type-check command, so no task carries one.
 
-- [ ] 1. Read each file once per session
+- [x] 1. Read each file once per session
 
   ```yaml
   description: "Hard rule 1 stops a second read of a stage file, skill or CONVENTIONS.md that is still in context and unchanged, and plan-and-tasks loads fc-issue-list only when the plan names issue IDs, each pinned by a test case. Realises PLN-21-ayjwfl stage 1 (criteria 1, 2 and 8)."
   ```
 
-  - [ ] 1.1 Add the read-once sentence to hard rule 1
+  - [x] 1.1 Add the read-once sentence to hard rule 1
     ```yaml
     description: "In skills/flowcharge/SKILL.md, hard rule 1 gains the read-once sentence and its no-script-can-check note (PLN-21-ayjwfl, Content specification, Hard rule 1)."
     pattern: "skills/flowcharge/SKILL.md"
@@ -61,10 +61,13 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     verify:
       - "grep -cF 'is not read again while its full text is still in your context and' skills/flowcharge/SKILL.md  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cF returned 1"
     ```
 
-  - [ ] 1.2 Load fc-issue-list only for a plan that names issue IDs
+  - [x] 1.2 Load fc-issue-list only for a plan that names issue IDs
     ```yaml
     description: "In skills/flowcharge/templates/plan-and-tasks.md, the Skills line for fc-issue-list gains its condition (PLN-21-ayjwfl, Content specification)."
     pattern: "skills/flowcharge/templates/plan-and-tasks.md"
@@ -79,10 +82,13 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     verify:
       - "grep -cxF '/fc-issue-list, only when the plan names issue IDs' skills/flowcharge/templates/plan-and-tasks.md  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cxF returned 1"
     ```
 
-  - [ ] 1.3 Pin hard rule 1 and the fc-issue-list condition
+  - [x] 1.3 Pin hard rule 1 and the fc-issue-list condition
     ```yaml
     description: "Add a prose-pin case to skills/flowcharge/scripts/test/run-tests.mjs after the hard rule 8 case (PLN-21-ayjwfl, Testing strategy, stage 1)."
     pattern: "skills/flowcharge/scripts/test/run-tests.mjs"
@@ -119,7 +125,10 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     verify:
       - "grep -cF 'hard rule 1 reads a file once per session' skills/flowcharge/scripts/test/run-tests.mjs  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cF returned 1"
     ```
 
 - [ ] 2. fc-task-list core and authoring.md
@@ -1161,6 +1170,6 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
   self_eval:
     passed: false
     test_run_result: pending
-    test_run_baseline: pending
+    test_run_baseline: []
     test_run_failures: []
   ```

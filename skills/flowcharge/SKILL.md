@@ -31,10 +31,15 @@ in that case.
 
 1. **Stage files are followed as written.** At the start of every stage, Read its
    stage file fresh from this skill's `templates/` directory and follow it exactly:
-   every step, in its order, with its emphasis. Read each marked slot as the value
-   this run resolved for it. Never paraphrase, trim, reorder, skip, or add a step.
-   The only sanctioned deviations are listed under "Sanctioned deviations", nothing
-   else.
+   every step, in its order, with its emphasis. Fresh means read in this session,
+   never recalled. A stage file, skill or CONVENTIONS.md already read in full in
+   this session is not read again while its full text is still in your context and
+   its file is unchanged since that read; when unsure, read it again. Read each
+   marked slot as the value this run resolved for it. Never paraphrase, trim,
+   reorder, skip, or add a step. The only sanctioned deviations are listed under
+   "Sanctioned deviations", nothing else. **No script can check** whether a file
+   is read again, because no script reads a run (see DEVELOPMENT.md's note on
+   unverifiable rules).
 2. **One slot kind.** `{name}` slots (e.g. `{artefact}`, `{plan}`, `{issuelist}`,
    `{tasklist}`, `{ws_id}`, `{slug}`, `{ws_dir}`, `{item1}`) take a literal value, a path or
    identifier, which you resolve before the stage begins. A stage file carries no
