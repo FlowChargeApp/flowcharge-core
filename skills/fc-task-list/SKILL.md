@@ -50,9 +50,9 @@ depends_on: [IL-3-k9d2s5]
 links: []
 mode: spec              # spec | diff
 base_commit: a1b2c3d    # required wherever SEARCH blocks appear, the commit they were authored against
-runtime: "npm run dev"  # how the project runs itself, or none; see Runtime detection
+runtime: "npm run dev"  # how the project runs itself, or none; see Runtime detection (authoring.md)
 e2e_tooling: [playwright] # browser/e2e tooling already present, or []
-test_commands: ["<suite command>"] # the project's own suite commands, or []; see Test commands detection
+test_commands: ["<suite command>"] # the project's own suite commands, or []; see Test commands detection (authoring.md)
 ---
 ```
 

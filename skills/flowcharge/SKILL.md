@@ -19,7 +19,8 @@ The stage files in `templates/` are the user's own stage instructions. Your
 job is faithful execution and sequencing, never rewriting, improving, or skipping a
 stage file's steps.
 
-**At the start of every run, Read `CONVENTIONS.md` in this skill's directory.** It
+**At the start of every run, Read `CONVENTIONS.md` in this skill's directory**
+(hard rule 1 decides whether a repeat read is needed). It
 is the FlowCharge Core data model: layout, IDs, frontmatter, status lifecycle,
 index/board generation. Where anything below is silent, CONVENTIONS.md answers.
 

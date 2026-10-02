@@ -5453,6 +5453,12 @@ testCase('the on-demand check flags a missing file, a section left in SKILL.md a
     ['s/gone.md does not exist'],
     'the on-demand check missed a missing file',
   );
+  const unnamed = (rel) => (rel === 's/SKILL.md' ? '### Kept\n' : read(rel));
+  assert.deepStrictEqual(
+    onDemandProblems([{ skill: 's', file: 'part.md', sections: [], readers: [] }], unnamed),
+    ['s/SKILL.md does not name part.md'],
+    'the on-demand check missed a SKILL.md that does not name the file',
+  );
 });
 
 testCase("fc-task-list's authoring sections live only in authoring.md, and every authoring reader names it", () => {
