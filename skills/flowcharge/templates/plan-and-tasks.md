@@ -7,7 +7,7 @@ For this stage you act as a senior software architect and senior software develo
 /fc-dev-principles
 /fc-plan-feature
 /fc-issue-list, only when the plan names issue IDs
-/fc-task-list
+/fc-task-list and its `authoring.md`, read in full before Part 2
 
 ## Context
 Read the documents this stage needs from the run's context-docs list, not all of them, to understand the structure and purpose of the app.

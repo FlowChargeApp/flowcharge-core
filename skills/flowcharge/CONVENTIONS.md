@@ -287,10 +287,11 @@ Additional keys by type:
   and never requires `base_commit`. The author supplies it. Also `runtime:
   "<command>" | none` and `e2e_tooling: [...]`, how the project runs itself and
   what browser/e2e tooling it already has, detected from disk at authoring (see the
-  fc-task-list skill, Runtime detection). The generator checks neither, and an
-  absent key reads as `none` and `[]`, because the rule is forward-only. Also
-  `test_commands: [...]`, the project's own suite commands (see the fc-task-list
-  skill, Test commands detection), which only the list's final test-run task runs;
+  fc-task-list skill's `authoring.md`, Runtime detection). The generator checks
+  neither, and an absent key reads as `none` and `[]`, because the rule is
+  forward-only. Also `test_commands: [...]`, the project's own suite commands (see
+  the fc-task-list skill's `authoring.md`, Test commands detection), which only the
+  list's final test-run task runs;
   `[]` means no suite, and the list then has no test-update or test-run task. A
   `done` task list whose `test_commands` is not `[]` must hold a `passed` test-run
   record and, unless it is a fix list ending with the recheck form, a test-update

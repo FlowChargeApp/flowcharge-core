@@ -131,13 +131,13 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
           measured: "grep -cF returned 1"
     ```
 
-- [ ] 2. fc-task-list core and authoring.md
+- [x] 2. fc-task-list core and authoring.md
 
   ```yaml
   description: "Move the eight authoring-only sections of skills/fc-task-list/SKILL.md, verbatim except pointer wording, into the new skills/fc-task-list/authoring.md, repoint every reader, move the two single-copy pins and pin the split. Realises PLN-21-ayjwfl stage 2 (criteria 3, 4, 7, 8 and 9)."
   ```
 
-  - [ ] 2.1 Create skills/fc-task-list/authoring.md
+  - [x] 2.1 Create skills/fc-task-list/authoring.md
     ```yaml
     description: "New file: the SEARCH section is empty. It holds the eight moved sections as ## headings, verbatim except pointer wording, and the Divergences prohibition gains the clause from the Rules bullet it absorbs (PLN-21-ayjwfl, Design, fc-task-list split)."
     pattern: "skills/fc-task-list/authoring.md"
@@ -260,10 +260,13 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     verify:
       - "grep -c '^## ' skills/fc-task-list/authoring.md  # expect 8; no such file at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -c returned 8"
     ```
 
-  - [ ] 2.2 Add the authoring.md pointer and remove the create and add procedures
+  - [x] 2.2 Add the authoring.md pointer and remove the create and add procedures
     ```yaml
     description: "In skills/fc-task-list/SKILL.md, When to use me gains the authoring.md pointer, and Storage loses the create-a-list and add-a-task procedures that 2.1 moved."
     pattern: "skills/fc-task-list/SKILL.md"
@@ -314,10 +317,15 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
       - "grep -cF 'CREATE THE FILE, NOT A TASK' skills/fc-task-list/SKILL.md  # expect 0; 1 at base_commit"
       - "grep -cF \"Read \\`authoring.md\\` in this skill's folder in full\" skills/fc-task-list/SKILL.md  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cF returned 0"
+        - result: YES
+          measured: "grep -cF returned 1"
     ```
 
-  - [ ] 2.3 Repoint the runtime and test_commands frontmatter bullets
+  - [x] 2.3 Repoint the runtime and test_commands frontmatter bullets
     ```yaml
     description: "In skills/fc-task-list/SKILL.md, the two frontmatter bullets point at authoring.md instead of below."
     pattern: "skills/fc-task-list/SKILL.md"
@@ -334,10 +342,13 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     verify:
       - "grep -cF '(authoring.md), never' skills/fc-task-list/SKILL.md  # expect 2; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cF returned 2"
     ```
 
-  - [ ] 2.4 Remove Runtime detection and Test commands detection from the core
+  - [x] 2.4 Remove Runtime detection and Test commands detection from the core
     ```yaml
     description: "In skills/fc-task-list/SKILL.md, delete the two sections 2.1 moved."
     pattern: "skills/fc-task-list/SKILL.md"
@@ -371,10 +382,13 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     verify:
       - "grep -cE '^### (Runtime detection|Test commands detection)$' skills/fc-task-list/SKILL.md  # expect 0; 2 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cE returned 0"
     ```
 
-  - [ ] 2.5 Remove Divergences from the core
+  - [x] 2.5 Remove Divergences from the core
     ```yaml
     description: "In skills/fc-task-list/SKILL.md, delete the Divergences section 2.1 moved. The Task List Format example keeps its fenced ## Divergences sample."
     pattern: "skills/fc-task-list/SKILL.md"
@@ -422,10 +436,13 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     verify:
       - "grep -cx '### Divergences' skills/fc-task-list/SKILL.md  # expect 0; 1 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cx returned 0"
     ```
 
-  - [ ] 2.6 Cut the verify key to its schema and point at Writing verify steps
+  - [x] 2.6 Cut the verify key to its schema and point at Writing verify steps
     ```yaml
     description: "In skills/fc-task-list/SKILL.md, the verify key keeps its schema sentences and points at Writing verify steps, which 2.1 moved."
     pattern: "skills/fc-task-list/SKILL.md"
@@ -440,10 +457,13 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     verify:
       - "grep -cF 'How to write them: **Writing verify steps** (authoring.md).' skills/fc-task-list/SKILL.md  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cF returned 1"
     ```
 
-  - [ ] 2.7 Remove Where the detail sits, by mode from the core
+  - [x] 2.7 Remove Where the detail sits, by mode from the core
     ```yaml
     description: "In skills/fc-task-list/SKILL.md, delete the section and its closing paragraph, which 2.1 moved."
     pattern: "skills/fc-task-list/SKILL.md"
@@ -475,10 +495,13 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     verify:
       - "grep -cx '### Where the detail sits, by mode' skills/fc-task-list/SKILL.md  # expect 0; 1 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cx returned 0"
     ```
 
-  - [ ] 2.8 Repoint the test-run task exemption
+  - [x] 2.8 Repoint the test-run task exemption
     ```yaml
     description: "In skills/fc-task-list/SKILL.md, the Test-run task exemption names Writing verify steps in authoring.md instead of Measure before you write."
     pattern: "skills/fc-task-list/SKILL.md"
@@ -494,10 +517,15 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
       - "grep -cF \"so authoring.md's **Writing verify steps** and the Forbidden tier do not apply to it\" skills/fc-task-list/SKILL.md  # expect 1; 0 at base_commit"
       - "grep -cF 'Measure before you write' skills/fc-task-list/SKILL.md  # expect 0; 2 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cF returned 1"
+        - result: YES
+          measured: "grep -cF returned 0"
     ```
 
-  - [ ] 2.9 Remove Smoke Tests and the first two Rules bullets from the core
+  - [x] 2.9 Remove Smoke Tests and the first two Rules bullets from the core
     ```yaml
     description: "In skills/fc-task-list/SKILL.md, delete Smoke Tests, the feature-summary bullet (moved by 2.1) and the divergence bullet (absorbed by the Divergences prohibition in 2.1)."
     pattern: "skills/fc-task-list/SKILL.md"
@@ -530,10 +558,15 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
       - "grep -cx '### Smoke Tests' skills/fc-task-list/SKILL.md  # expect 0; 1 at base_commit"
       - "grep -cF 'Always include a detailed-yet-concise summary' skills/fc-task-list/SKILL.md  # expect 0; 1 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cx returned 0"
+        - result: YES
+          measured: "grep -cF returned 0"
     ```
 
-  - [ ] 2.10 Remove the two authoring-only Rules bullets from the core
+  - [x] 2.10 Remove the two authoring-only Rules bullets from the core
     ```yaml
     description: "In skills/fc-task-list/SKILL.md, delete the only-add-new-tasks bullet and the standalone validation offer, which 2.1 moved."
     pattern: "skills/fc-task-list/SKILL.md"
@@ -560,10 +593,13 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     verify:
       - "grep -cE 'Only add tasks that|close by offering a standalone' skills/fc-task-list/SKILL.md  # expect 0; 2 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cE returned 0"
     ```
 
-  - [ ] 2.11 Name authoring.md in plan-and-tasks
+  - [x] 2.11 Name authoring.md in plan-and-tasks
     ```yaml
     description: "In skills/flowcharge/templates/plan-and-tasks.md, the fc-task-list Skills line names authoring.md, read in full before Part 2 (PLN-21-ayjwfl, Content specification)."
     pattern: "skills/flowcharge/templates/plan-and-tasks.md"
@@ -578,10 +614,13 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     verify:
       - "grep -cxF '/fc-task-list and its `authoring.md`, read in full before Part 2' skills/flowcharge/templates/plan-and-tasks.md  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cxF returned 1"
     ```
 
-  - [ ] 2.12 Name authoring.md in issues-and-tasks
+  - [x] 2.12 Name authoring.md in issues-and-tasks
     ```yaml
     description: "In skills/flowcharge/templates/issues-and-tasks.md, the fc-task-list Skills line names authoring.md, read in full before Part 2."
     pattern: "skills/flowcharge/templates/issues-and-tasks.md"
@@ -598,10 +637,13 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     verify:
       - "grep -cxF '/fc-task-list and its `authoring.md`, read in full before Part 2' skills/flowcharge/templates/issues-and-tasks.md  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cxF returned 1"
     ```
 
-  - [ ] 2.13 Name authoring.md in fc-validate Form
+  - [x] 2.13 Name authoring.md in fc-validate Form
     ```yaml
     description: "In skills/fc-validate/SKILL.md, the Form class names both fc-task-list files as the task list schema."
     pattern: "skills/fc-validate/SKILL.md"
@@ -617,10 +659,13 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     verify:
       - "grep -cF '(its `SKILL.md` and `authoring.md`) for a task list' skills/fc-validate/SKILL.md  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cF returned 1"
     ```
 
-  - [ ] 2.14 Repoint the two CONVENTIONS.md tasklist pointers
+  - [x] 2.14 Repoint the two CONVENTIONS.md tasklist pointers
     ```yaml
     description: "In skills/flowcharge/CONVENTIONS.md, the Runtime detection and Test commands detection pointers name authoring.md."
     pattern: "skills/flowcharge/CONVENTIONS.md"
@@ -642,10 +687,13 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     verify:
       - "grep -cF \"skill's \\`authoring.md\\`, \" skills/flowcharge/CONVENTIONS.md  # expect 2; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cF returned 2"
     ```
 
-  - [ ] 2.15 Move the two verify-step pins to authoring.md
+  - [x] 2.15 Move the two verify-step pins to authoring.md
     ```yaml
     description: "In skills/flowcharge/scripts/test/run-tests.mjs, SINGLE_COPY_PHRASES pins Measure before you write and A suite runs in one place only to fc-task-list/authoring.md."
     pattern: "skills/flowcharge/scripts/test/run-tests.mjs"
@@ -662,10 +710,13 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     verify:
       - "grep -cF \"files: ['fc-task-list/authoring.md']\" skills/flowcharge/scripts/test/run-tests.mjs  # expect 2; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cF returned 2"
     ```
 
-  - [ ] 2.16 Pin the fc-task-list split
+  - [x] 2.16 Pin the fc-task-list split
     ```yaml
     description: "In skills/flowcharge/scripts/test/run-tests.mjs, add the on-demand section block before the LICENSE cases: the onDemandProblems helper, its fixture case and the fc-task-list case (PLN-21-ayjwfl, Design, Tests)."
     pattern: "skills/flowcharge/scripts/test/run-tests.mjs"
@@ -753,7 +804,10 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     verify:
       - "grep -cF \"fc-task-list's authoring sections live only in authoring.md\" skills/flowcharge/scripts/test/run-tests.mjs  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cF returned 1"
     ```
 
 - [ ] 3. Executor stage file points instead of restating

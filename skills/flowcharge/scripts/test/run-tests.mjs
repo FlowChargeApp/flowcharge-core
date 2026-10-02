@@ -5017,8 +5017,8 @@ const SINGLE_COPY_PHRASES = [
   // deleted.
   { phrase: 'never open one to describe it', files: [] },
   { phrase: "the authoring stage's own report, its rationale", files: ['flowcharge/SKILL.md'] },
-  { phrase: 'Measure before you write', files: ['fc-task-list/SKILL.md'] },
-  { phrase: 'A suite runs in one place only', files: ['fc-task-list/SKILL.md'] },
+  { phrase: 'Measure before you write', files: ['fc-task-list/authoring.md'] },
+  { phrase: 'A suite runs in one place only', files: ['fc-task-list/authoring.md'] },
   // A suite's one owner is the test-run task, so the wording that made running
   // a suite the user's own step is pinned deleted from every skill file.
   { phrase: "user's own step", files: [] },
@@ -5380,6 +5380,79 @@ testCase('fc-validate carries the discipline for validating an artefact its own 
     text.includes('judge the artefact against its cited source only, never against what you recall intending when you wrote it'),
     'fc-validate no longer tells an inline validation to judge against the cited source only',
   );
+});
+
+// ---- cases: on-demand skill sections ---------------------------------------
+// A skill whose readers need different parts keeps a core SKILL.md and moves
+// the sections only some readers need into one file beside it. The core names
+// that file, and so does every stage file or skill that must read it. Nothing
+// runs the prose, so a static check pins the split: each moved section is a
+// `## ` heading in its file and no longer a heading in SKILL.md outside a fenced
+// example, SKILL.md names the file, and every listed reader names it too.
+
+function readSkillText(rel) {
+  const full = path.join(SKILLS_ROOT, rel);
+  return fs.existsSync(full) ? fs.readFileSync(full, 'utf8') : null;
+}
+
+function onDemandProblems(entries, readText = readSkillText) {
+  const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const problems = [];
+  for (const e of entries) {
+    const core = (readText(`${e.skill}/SKILL.md`) || '').replace(/^(`{3,}).*\n[\s\S]*?^\1[ \t]*$/gm, '');
+    const part = readText(`${e.skill}/${e.file}`);
+    if (part === null) { problems.push(`${e.skill}/${e.file} does not exist`); continue; }
+    if (!core.includes(`\`${e.file}\``)) problems.push(`${e.skill}/SKILL.md does not name ${e.file}`);
+    for (const s of e.sections) {
+      if (!part.includes(`\n## ${s}\n`)) problems.push(`${e.skill}/${e.file} has no "## ${s}" heading`);
+      if (new RegExp(`\\n#+ ${esc(s)}\\n`).test(core)) problems.push(`${e.skill}/SKILL.md still carries a "${s}" heading`);
+    }
+    for (const r of e.readers) {
+      const text = readText(r);
+      if (text === null || !text.includes(`\`${e.file}\``)) problems.push(`${r} does not name ${e.skill}'s ${e.file}`);
+    }
+  }
+  return problems;
+}
+
+const FC_TASK_LIST_AUTHORING = {
+  skill: 'fc-task-list',
+  file: 'authoring.md',
+  sections: [
+    'Creating a list and adding a task',
+    'Runtime detection',
+    'Test commands detection',
+    'Writing verify steps',
+    'Where the detail sits, by mode',
+    'Divergences',
+    'Smoke Tests',
+    'Authoring rules',
+  ],
+  readers: ['flowcharge/templates/plan-and-tasks.md', 'flowcharge/templates/issues-and-tasks.md', 'fc-validate/SKILL.md'],
+};
+
+testCase('the on-demand check flags a missing file, a section left in SKILL.md and a reader that does not name the file', () => {
+  const files = {
+    's/SKILL.md': 'Read `part.md`.\n### Kept\n### Moved\n```md\n## Fenced\n```\n',
+    's/part.md': '# part\n\n## Moved\n',
+    'r.md': 'no pointer here',
+  };
+  const read = (rel) => (rel in files ? files[rel] : null);
+  assert.deepStrictEqual(
+    onDemandProblems([{ skill: 's', file: 'part.md', sections: ['Moved', 'Fenced'], readers: ['r.md'] }], read),
+    ['s/SKILL.md still carries a "Moved" heading', 's/part.md has no "## Fenced" heading', "r.md does not name s's part.md"],
+    'the on-demand check missed a section left in SKILL.md or a reader that does not name the file',
+  );
+  assert.deepStrictEqual(
+    onDemandProblems([{ skill: 's', file: 'gone.md', sections: [], readers: [] }], read),
+    ['s/gone.md does not exist'],
+    'the on-demand check missed a missing file',
+  );
+});
+
+testCase("fc-task-list's authoring sections live only in authoring.md, and every authoring reader names it", () => {
+  const problems = onDemandProblems([FC_TASK_LIST_AUTHORING]);
+  assert.deepStrictEqual(problems, [], `the fc-task-list split is broken:\n${problems.map((p) => `  skills/${p}`).join('\n')}`);
 });
 
 // ---- cases: LICENSE presence and agreement ---------------------------------

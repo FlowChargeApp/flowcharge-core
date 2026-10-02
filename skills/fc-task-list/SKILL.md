@@ -19,6 +19,8 @@ The FlowCharge Core data model (layout, IDs, frontmatter, status lifecycle, inde
 
 Inside a FlowCharge Core run, the flowcharge stage file answers every question this skill would ask a user (mode, smoke tests); follow it, and do not stop mid-stage to ask.
 
+**Read `authoring.md` in this skill's folder in full before you create a task list, add a task to one, or validate one.** It holds **Creating a list and adding a task**, **Runtime detection**, **Test commands detection**, **Writing verify steps**, **Where the detail sits, by mode**, **Divergences**, **Smoke Tests** and **Authoring rules**. Executing a task needs only this file.
+
 ## Content
 
 ### Storage: workstream folders
@@ -26,21 +28,6 @@ Inside a FlowCharge Core run, the flowcharge stage file answers every question t
 Each workstream keeps ONE task list at: `./flowcharge/workstreams/{{WS-N-SUFFIX}}-{{slug}}/{{TL-N-SUFFIX}}-tasklist.md`, where `{{TL-N-SUFFIX}}` is the file's own frontmatter `id`. If a second, separate list is needed in the same workstream, name it `{{TL-N-SUFFIX}}-tasklist-{{qualifier}}.md` in the same folder. The qualifier stays a tail after the plain name. There are no date buckets and no `_done/` folders. Completion is `status: done` in frontmatter, and the file stays put.
 
 **Choosing the `{{slug}}`.** The workstream's folder is `{{WS-N-SUFFIX}}-{{slug}}` (for example `WS-4-a3x9k2-scope-service-bug-fixes`); `{{slug}}` stays bare and unprefixed (CONVENTIONS.md, Slugs).
-
-**CRITICAL: "create a task list for X" means CREATE THE FILE, NOT A TASK.**
-
-When the user says "create a task list for X":
-
-1. Do NOT add any task to any existing file.
-2. Ask which authoring mode applies (see **Two authoring modes** below).
-3. Create `./flowcharge/workstreams/{{WS-N-SUFFIX}}-{{slug}}/{{TL-N-SUFFIX}}-tasklist.md` with the frontmatter, heading, and summary block only (no tasks). Claim its `TL-N-SUFFIX` ID from the registry first (see Frontmatter). The filename is built from it. If the workstream folder is new, create it with `--new-ws` (CONVENTIONS.md, Creating a workstream).
-4. Tell the user the file was created, with its ID and mode.
-
-When the user says "add a task to X":
-
-1. Resolve the file path: `./flowcharge/workstreams/{{WS-N-SUFFIX}}-{{slug}}/{{TL-N-SUFFIX}}-tasklist.md`.
-2. If the file doesn't exist, create it first as above, then add the task.
-3. Resolve the file's mode before authoring the task. The mode determines the form of `implement`.
 
 If no workstream is specified in a request, consult `index.md` (regenerate if stale); if it stays undecidable, ask the user.
 
@@ -74,33 +61,14 @@ test_commands: ["<suite command>"] # the project's own suite commands, or []; se
 - `depends_on`: the IDs this list is built from and blocked on, the issue list or plan it implements, and any list that must execute first. The orchestrator refuses to execute a list whose `depends_on` are not all `done` (a `type: plan` or `type: issuelist` dependency is satisfied once authored: any status but `backlog`/`dropped`). Ordering constraints are data here, never only prose.
 - `updated`: bump on EVERY edit to the file.
 - `mode` / `base_commit`: see below. These live in the frontmatter, not a separate header block.
-- `runtime` / `e2e_tooling`: facts about the project, recorded at authoring per **Runtime detection** below, never choices.
-- `test_commands`: the project's own suite commands, recorded at authoring per **Test commands detection** below, never chosen or invented; only the list's **Test-run task** runs them.
+- `runtime` / `e2e_tooling`: facts about the project, recorded at authoring per **Runtime detection** (authoring.md), never choices.
+- `test_commands`: the project's own suite commands, recorded at authoring per **Test commands detection** (authoring.md), never chosen or invented; only the list's **Test-run task** runs them.
 
 After any status or task-state change, regenerate the index:
 
 ```bash
 node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root>
 ```
-
-### Runtime detection
-
-At authoring time, record from disk alone how the project runs itself:
-
-- `runtime`: a double-quoted command or approach found in a `start`/`dev` script, a Makefile target, a binary entrypoint, or a static-file approach for plain HTML (e.g. `"npm run dev"`, `"make serve"`, `"static: index.html"`); `none` when nothing runs.
-- `e2e_tooling`: browser or e2e tooling already present (a Playwright, Cypress or Puppeteer config or dependency, an existing `e2e/` directory) as an inline array; `[]` when none.
-
-Detection only: never invent, install or configure anything. These two keys alone decide, for the whole list, whether a probe exists: `runtime: none` allows no probe, and `e2e_tooling: []` allows no `rendered` probe (see **Evidence classes**). A list with no `runtime` key predates this rule: read it as `none`.
-
-### Test commands detection
-
-At authoring time, record from disk alone, as `test_commands`, every test suite the project defines: an inline array of double-quoted commands, each run from the project root.
-
-- Record a command only where a project file names it: a build-tool script or target, a CI step, or an equivalent. A runner's default command that no project file names is never recorded.
-- Record every suite (unit, integration, e2e), not one. Leave out a command that only runs other recorded ones, and every lint, type-check or build command.
-- `[]` means the project defines no suite: the list then has no test-update or test-run task.
-
-Detection only: never invent, install or configure anything. Only the **Test-run task** runs these commands. A list with no `test_commands` key predates this rule.
 
 ### Two authoring modes: `spec` and `diff`
 
@@ -207,39 +175,6 @@ Each file follows this structure (after the file frontmatter):
 1. **Short label.** What the plan assumed; what the file actually contains; the consequence.
 ````
 
-### Divergences
-
-Record every divergence found while authoring the file in one section named exactly
-`Divergences`. Add no suffix and no artefact ID to the name. The source artefact is
-already in `depends_on`, and the fixed string is what makes the section greppable.
-
-Give the heading the level `##`, a sibling of the `## Feature Name` heading. Put the
-section last in the file, after the final task line and after any other trailing
-section.
-
-Write the section only when at least one divergence was found. Omit it entirely when
-nothing diverged. One optional closing sentence may record that every other cited file
-matched the plan.
-
-Write the entries as an ordered numbered list from 1, one entry per divergence. Open
-each entry with a bold short label, then state in prose:
-
-1. what the plan assumed,
-2. what the file or the project actually contains, cited by path and by the line or
-   short SHA read at authoring time,
-3. the consequence: the tasks affected, or that no task was authored.
-
-Any task may point at an entry with the literal form `see Divergence N`, from
-`implement`, `gotcha`, `verify`, or `checklist`. Never renumber an entry once it is
-written, because those references are not updated with it.
-
-Two prohibitions:
-
-- Never use checkbox syntax in an entry. A `- [ ]` line here is counted as a task by
-  the index generator.
-- Record a divergence in this section and nowhere else in the file, not in the feature
-  summary, and not as a bold inline paragraph.
-
 ### Metadata Schema
 
 Every task includes an indented YAML block immediately after the task line. These are the standard keys:
@@ -268,7 +203,7 @@ Every task includes an indented YAML block immediately after the task line. Thes
 - `imports`: required components, packages, modules, or dependencies. Omit when none.
 - `compatibility`: required design patterns, package versions, or compatibility constraints. Omit unless it holds what the executor cannot get from the plan or the code.
 - `gotcha`: likely pitfalls, edge cases, or foreseeable issues. Omit unless it holds what the executor cannot get from the plan or the code.
-- `verify`: **ordered list** of verification steps. The first item is the primary command or tool. Subsequent items are follow-up checks on the output of the previous step (e.g. inspect a value, hit an endpoint, assert a file exists). Steps are executed in sequence. Later steps may depend on earlier ones succeeding. Every step sits in one tier of **Verify tiers** below. See **Smoke Tests** below for tasks whose output is a class/method with observable state. Each step asserts something specific to the change (a grep, a count, a file-existence check). Add the project's own lint or type-check command alongside, only where the project already has one configured (`package.json` scripts, a Makefile, CI config, `pyproject.toml`, `go.mod`, or equivalent); never invent one, and never issue a command against a project whose toolchain does not match it. Never add a test-suite or build command as a verify step: it asserts nothing about the task and passes before the change as readily as after. A suite runs in one place only: the list's final test-run task (see **Test-run task**). **Measure before you write.** Where a step asserts a count, a file's existence, or the presence or absence of a string, run it at `base_commit` before writing it down and record what it actually returned, not what you expect. Where it already passes with nothing changed it does not discriminate: rewrite it until it fails at `base_commit`, or state in the step why it cannot fail there. Rewriting makes the assertion specific to the change; it never deletes the step or weakens what it asserts.
+- `verify`: **ordered list** of verification steps. The first item is the primary command or tool. Subsequent items are follow-up checks on the output of the previous step (e.g. inspect a value, hit an endpoint, assert a file exists). Steps are executed in sequence. Later steps may depend on earlier ones succeeding. Every step sits in one tier of **Verify tiers** below. How to write them: **Writing verify steps** (authoring.md).
 - `checklist`: full shape only. 4–6 binary YES/NO criteria derived from `imports`, `compatibility`, `gotcha`, or `pattern`, each opening with its class per **Evidence classes** below
 - `self_eval`: post-execution evaluation object with:
   - `passed`: boolean, true only if no checklist item is NO
@@ -281,23 +216,6 @@ Every task includes an indented YAML block immediately after the task line. Thes
 ### Author attribution
 
 Read `author` with `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --whoami` and write the printed line verbatim into the file's frontmatter; a task carries its own `author` only when it differs from the file's (CONVENTIONS.md, Author attribution).
-
-### Where the detail sits, by mode
-
-Both modes use the same schema, but the informational load moves. Filling every key to the same depth in both modes is what makes task files bloat.
-
-| Key | `spec` | `diff` |
-| --- | --- | --- |
-| `implement` | **Terse.** Intent plus anchor. The executor derives the edit. | **Long.** The block *is* the task. |
-| `imports`, `compatibility`, `gotcha` | **Task-local when a plan backs the list.** Only facts the plan does not state, a few lines each, naming the plan section each extends; a key with nothing to add is omitted, and copying the plan's Design into a task is duplication. **Rich** only when no plan backs the list (e.g. authored from an issue list alone): then these constraints are what let the executor derive a correct edit. | **Terse.** The block already encodes them; restating is duplication. |
-| `checklist` | Outcome-based, "behaviour X holds", "no caller of Y is broken". | Mechanical, "block applied cleanly", "`grep` confirms Z", "type-check clean". |
-| `verify` | May require judgement about the result. | Should be a runnable command with an unambiguous pass/fail. |
-
-When a plan backs the list, each parent task realises one plan stage, and its child
-tasks are derived from that stage's goal, the plan's Design contracts and Content
-specification values, and its acceptance criteria. The plan carries no per-task
-detail to copy. A list authored
-from an issue list is unaffected.
 
 ### Mini shape
 
@@ -340,7 +258,7 @@ A mini task that turns out to need a design decision (an approach to choose, a s
 
 ### Test-run task
 
-Where `test_commands` is not `[]`, the list ends with one test-run task: the last top-level task, numbered after every other. Add it exactly as written below, predicting no edit. It checks the whole change and detects no single one, so **Measure before you write** and the Forbidden tier do not apply to it, and it takes neither the full nor the mini shape. Every other task keeps both rules.
+Where `test_commands` is not `[]`, the list ends with one test-run task: the last top-level task, numbered after every other. Add it exactly as written below, predicting no edit. It checks the whole change and detects no single one, so authoring.md's **Writing verify steps** and the Forbidden tier do not apply to it, and it takes neither the full nor the mini shape. Every other task keeps both.
 
 ````md
 - [ ] N. Test-run task: run the project's test suites
@@ -415,21 +333,8 @@ It may edit several test files and blocks, and takes neither the full nor the mi
 
 **No script can check** that it updated every affected test. `fc-index.mjs --check` checks only that a `done` list whose `test_commands` is not `[]`, other than a fix list, holds this task.
 
-### Smoke Tests
-
-A smoke test is a minimal script that instantiates/calls the changed code with concrete inputs and asserts a concrete expected output/state, proving it runs and does the basic thing, without a full test suite.
-
-When generating a task that adds/changes a class or method with externally observable state (file written, DB row, API response, computed value), ask the user: *"Add a smoke-test verify step for this task?"* If yes, the `verify` entry must specify, inline, not just "run a smoke test":
-- exact instantiation/call (class, method, args)
-- concrete input values (e.g. temp dir, sample IDs)
-- exact expected output and how to compute it independently of the code under test
-- runtime to execute it with (match the project's actual entrypoint runtime, e.g. `tsx`, not `bun`, if the project runs via `tsx`; verify with the user or codebase if unknown)
-- cleanup step if it writes temp files
-
 ### Rules
 
-- Always include a detailed-yet-concise summary of the feature, from the discussion recently conducted about it, to give the section context. It sits under the `## Feature Name` heading, after the frontmatter.
-- Record every authoring-time divergence in the file's `## Divergences` section (see **Divergences** above) and never in the feature summary or inline in a task's prose.
 - **CRITICAL. Task Numbering:**
   - Parent and adult tasks are ALWAYS numbered `1.`, `2.`, etc.
   - Child tasks / subtasks are ALWAYS numbered `1.1`, `1.2`, etc., incorporating the parent task number. This is **IMPERATIVE**.
@@ -442,14 +347,12 @@ When generating a task that adds/changes a class or method with externally obser
   - If a task's scope is already atomic, keep it as a parent-level adult task.
   - A mini task is a leaf and never a parent (see **Mini shape**).
   - When all subtasks of a parent are completed, mark the parent task as completed too.
-- Only add tasks that don't already exist in the file.
 - Mark complete by switching `[ ]` → `[x]`.
 - When every task line is `[x]`, set the frontmatter `status` to `done`. Inside a flowcharge pipeline the orchestrator or `--sync` does this; the execute stage itself changes no frontmatter key but `updated`.
 - Bump the frontmatter `updated` date on every edit, and regenerate the index (command above) after the edit lands.
 - Preserve all existing content, ordering, indentation, and metadata exactly.
 - Never record a model, vendor, product, or tier name in a task file. Mode captures the instruction format; that is the only distinction the file needs.
 - After writing, summarise what was added/updated/completed, and state the mode used.
-- Where the edit authored a new task list, close by offering a standalone `/fc-validate` of it against the plan or issue list it was authored from. Offer this only for a newly authored list, never after a status flip, a checkbox change, or a one-line correction.
 
 ---
 

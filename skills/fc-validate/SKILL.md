@@ -123,7 +123,8 @@ Spelling, formatting and schema.
 
 - A misspelt word, or a malformed Markdown construct.
 - Frontmatter that does not parse as YAML, or that breaks the owning skill's schema:
-  `fc-task-list` for a task list, `fc-issue-list` for an issue list.
+  `fc-task-list` (its `SKILL.md` and `authoring.md`) for a task list, `fc-issue-list`
+  for an issue list.
 - A task or issue block that departs from the shape the owning skill's schema
   prescribes.
 
