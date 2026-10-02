@@ -316,9 +316,9 @@ from an issue list is unaffected.
 
 Every adult or child task except the test-run and test-update tasks (see their sections) takes one of two shapes, decided by a test on its own content, never by preference. Write `description`, `pattern`, `implement` and `verify` first, then test. The task is **full** if any one holds, else **mini**:
 
-1. `pattern` names more than one file (a test file for the same change does not count: one under a `test`, `tests`, `spec`, `specs`, `e2e` or `__tests__` directory, or named `*.test.*` / `*.spec.*`), or a file the task creates or deletes.
+1. `pattern` names more than one file (a test file for the same change does not count: one under a `test`, `tests`, `spec`, `specs`, `e2e` or `__tests__` directory, or named `*.test.*` / `*.spec.*`), or a file the task deletes. Creating one small file is mini.
 2. `implement` changes more than one anchor (function, symbol or region) in the file.
-3. The change needs a new dependency, module or component (`imports` would be non-empty).
+3. The change needs a new package dependency.
 4. `verify` has no step with an unambiguous pass/fail.
 
 Mini carries `description`, `pattern`, `implement`, `verify` and `self_eval`, plus `issues` only when non-empty and `mode` only as an override; every other key is forbidden. Full carries every key; none is optional. A mini task is a leaf: it never has children. The verification-only child is always full. In a mini task `verify` is the checklist: `self_eval.evidence` holds one entry per `verify` step, classed by the step's tier (static is `source`; a probe is `runtime` or `rendered` as the step states). `fc-index.mjs --check` flags a mini task whose `pattern` names more than one file or that has sub-tasks.
@@ -450,7 +450,7 @@ When generating a task that adds/changes a class or method with externally obser
 - Tasks may include an inline description: `1. Task name (description)`
 - If a task has child tasks, it is a parent task (see **Three task types**).
   - If a task's scope is large, break it down into atomic child tasks.
-  - **Atomic = one file, one coherent change, provable by a single `verify` sequence.** A source file and its test file for the same change count as one. In `diff` mode, additionally: **one SEARCH/REPLACE block**. Split multi-file changes into separate child tasks in either mode.
+  - **Atomic = one coherent change, provable by a single `verify` sequence.** Prefer fewer, larger child tasks over many small ones. In `spec` mode a child task spans every file of its change, its test file and any file that only wires it in (an export, a registration, a config key) included, and names each in `pattern`. In `diff` mode, additionally: **one SEARCH/REPLACE block**, so a multi-file change splits into one child task per block.
   - **Verification-only child.** An exception to one-file (the **Test-update task** is the other): a child whose whole body is a `verify` sequence of probes, with no `pattern` and an `implement` of one step, "no edit; run `verify`". At most one per parent whose plan stage produces a UI or a running service, numbered last among that parent's children; its checklist holds the stage's `runtime` and `rendered` items.
   - If a task's scope is already atomic, keep it as a parent-level adult task.
   - A mini task is a leaf and never a parent (see **Mini shape**).
