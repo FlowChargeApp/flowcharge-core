@@ -4,7 +4,7 @@ type: plan
 workstream: WS-27-diy39h
 slug: stage-file-context-load-per-run
 title: "Load each stage file once and only the sections a stage needs"
-status: ready
+status: done
 created: 2026-10-03
 updated: 2026-10-03
 author: Anthony Koukoullis

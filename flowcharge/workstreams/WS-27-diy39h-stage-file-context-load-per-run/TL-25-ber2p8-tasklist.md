@@ -4,7 +4,7 @@ type: tasklist
 workstream: WS-27-diy39h
 slug: stage-file-context-load-per-run
 title: "Load each stage file once and only the sections a stage needs"
-status: ready
+status: done
 created: 2026-10-03
 updated: 2026-10-03
 author: Anthony Koukoullis
@@ -1241,7 +1241,7 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     passed: true
   ```
 
-- [ ] 6. Test-run task: run the project's test suites
+- [x] 6. Test-run task: run the project's test suites
   ```yaml
   description: "Run every command in the frontmatter test_commands after every other task"
   test_run: full
@@ -1250,8 +1250,9 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
   verify:
     - "Every command in the frontmatter test_commands, in order, from the project root"
   self_eval:
-    passed: false
-    test_run_result: pending
+    passed: true
+    test_run_result: passed
+    test_run_counts: ["node skills/flowcharge/scripts/test/run-tests.mjs: 288 passed, 0 failed"]
     test_run_baseline: []
     test_run_failures: []
   ```
