@@ -5022,6 +5022,10 @@ const SINGLE_COPY_PHRASES = [
   // A suite's one owner is the test-run task, so the wording that made running
   // a suite the user's own step is pinned deleted from every skill file.
   { phrase: "user's own step", files: [] },
+  // The executor stage file points at fc-task-list's Evidence classes and
+  // Self-evaluation instead of restating them, so its copy is pinned deleted.
+  { phrase: 'You never decide that tooling is missing', files: [] },
+  { phrase: 'never decides for itself that tooling is missing', files: ['fc-task-list/SKILL.md'] },
   { phrase: 'prints exactly one line and writes nothing', files: ['flowcharge/CONVENTIONS.md'] },
   { phrase: 'local attribution, not a verified identity', files: ['flowcharge/CONVENTIONS.md'] },
   { phrase: 'trailing `+`', files: ['flowcharge/CONVENTIONS.md'] },

@@ -810,13 +810,13 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
           measured: "grep -cF returned 1"
     ```
 
-- [ ] 3. Executor stage file points instead of restating
+- [x] 3. Executor stage file points instead of restating
 
   ```yaml
   description: "The mini-subtask and evaluate bullets of skills/flowcharge/templates/execute-parent-task.md point at fc-task-list sections instead of restating them, keeping every sentence those sections do not carry, with single-copy pins. Realises PLN-21-ayjwfl stage 3 (criteria 5, 7, 8 and 9)."
   ```
 
-  - [ ] 3.1 Point the mini-subtask bullet at Self-evaluation and Mini shape
+  - [x] 3.1 Point the mini-subtask bullet at Self-evaluation and Mini shape
     ```yaml
     description: "In skills/flowcharge/templates/execute-parent-task.md, the mini-subtask bullet keeps its rule and its stop and points at the sections that state promotion and evidence (PLN-21-ayjwfl, Content specification)."
     pattern: "skills/flowcharge/templates/execute-parent-task.md"
@@ -831,10 +831,13 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     verify:
       - "grep -cF 'stop and promote it to the full shape' skills/flowcharge/templates/execute-parent-task.md  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cF returned 1"
     ```
 
-  - [ ] 3.2 Point the evaluate bullet at Evidence classes and Self-evaluation
+  - [x] 3.2 Point the evaluate bullet at Evidence classes and Self-evaluation
     ```yaml
     description: "In skills/flowcharge/templates/execute-parent-task.md, the evaluate bullet points at Evidence classes, Self-evaluation and the Metadata Schema's self_eval key, and keeps the already-applied-subtask sentence."
     pattern: "skills/flowcharge/templates/execute-parent-task.md"
@@ -850,10 +853,15 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
       - "grep -cF 'You never decide that tooling is missing' skills/flowcharge/templates/execute-parent-task.md  # expect 0; 1 at base_commit"
       - "test $(cat skills/flowcharge/templates/execute-parent-task.md skills/fc-task-list/SKILL.md | wc -c) -lt $(git show 1d1db92:skills/flowcharge/templates/execute-parent-task.md 1d1db92:skills/fc-task-list/SKILL.md | wc -c) && echo smaller  # expect smaller; no output, the sizes are equal at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cF returned 0"
+        - result: YES
+          measured: "the test printed smaller: the executor read set is smaller than at base_commit"
     ```
 
-  - [ ] 3.3 Pin the executor restatement deleted
+  - [x] 3.3 Pin the executor restatement deleted
     ```yaml
     description: "In skills/flowcharge/scripts/test/run-tests.mjs, SINGLE_COPY_PHRASES pins the executor phrase deleted and the fc-task-list phrase to its core."
     pattern: "skills/flowcharge/scripts/test/run-tests.mjs"
@@ -872,7 +880,10 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     verify:
       - "grep -cF \"{ phrase: 'You never decide that tooling is missing', files: [] }\" skills/flowcharge/scripts/test/run-tests.mjs  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "grep -cF returned 1"
     ```
 
 - [ ] 4. fc-git core and operations.md
