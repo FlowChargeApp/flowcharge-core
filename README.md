@@ -46,7 +46,7 @@ Code, OpenCode and OpenAI Codex are proven.
 Claude Code. Delete any earlier release's skill folders from it first: unzipping
 overwrites, but never deletes.
 
-**From the release zip.** The current release is `0.5.0`. Download
+**From the release zip.** The current release is `0.5.1`. Download
 `flowcharge-core-<X.Y.Z>.zip` from the
 [Releases page](https://github.com/FlowChargeApp/flowcharge-core/releases) and unzip
 it into `<skills-dir>`. The skill folders sit at the top level of the archive, so

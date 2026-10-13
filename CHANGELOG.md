@@ -11,6 +11,35 @@ add the brackets.
 Versions follow Semantic Versioning. There is one FlowCharge Core suite version and every
 skill mirrors it. See VERSIONING.md.
 
+## 0.5.1 - 2026-10-13
+
+### Changed
+
+- Every run reads fewer tokens. The orchestrator skips a second read of a stage
+  file that is unchanged and still in context, and plan-and-tasks loads
+  fc-issue-list only for a plan that names issue IDs.
+- The fc-task-list authoring rules moved to `authoring.md`, and the fc-git
+  operations other than committing moved to `operations.md`. Executors and the
+  commit stage read only the core `SKILL.md`. Authoring stages and validation
+  read the extra file. The rules themselves are unchanged.
+- The executor stage file cites the fc-task-list sections for self-evaluation,
+  evidence classes, the mini shape and the `self_eval` schema instead of
+  restating them.
+- Task records are shorter. Evidence entries drop the copied item text, empty and
+  default keys are omitted, and the executor edits the task list once per parent
+  task.
+- Spec-mode child tasks may span every file of one coherent change, so a task
+  list holds fewer, larger child tasks.
+- Plans state each fact once, and stale shape references are removed from the
+  plan, task-list and record wording.
+- A statement that holds for every workstream is written once in a project-level
+  file, not repeated in each workstream record.
+
+### Added
+
+- The test-run task records the passed and failed counts that each test command
+  printed.
+
 ## 0.5.0 - 2026-09-26
 
 ### Added
