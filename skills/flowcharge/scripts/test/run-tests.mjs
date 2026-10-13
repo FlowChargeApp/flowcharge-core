@@ -5017,17 +5017,22 @@ const SINGLE_COPY_PHRASES = [
   // deleted.
   { phrase: 'never open one to describe it', files: [] },
   { phrase: "the authoring stage's own report, its rationale", files: ['flowcharge/SKILL.md'] },
-  { phrase: 'Measure before you write', files: ['fc-task-list/SKILL.md'] },
-  { phrase: 'A suite runs in one place only', files: ['fc-task-list/SKILL.md'] },
+  { phrase: 'Measure before you write', files: ['fc-task-list/authoring.md'] },
+  { phrase: 'A suite runs in one place only', files: ['fc-task-list/authoring.md'] },
   // A suite's one owner is the test-run task, so the wording that made running
   // a suite the user's own step is pinned deleted from every skill file.
   { phrase: "user's own step", files: [] },
+  // The executor stage file points at fc-task-list's Evidence classes and
+  // Self-evaluation instead of restating them, so its copy is pinned deleted.
+  { phrase: 'You never decide that tooling is missing', files: [] },
+  { phrase: 'never decides for itself that tooling is missing', files: ['fc-task-list/SKILL.md'] },
   { phrase: 'prints exactly one line and writes nothing', files: ['flowcharge/CONVENTIONS.md'] },
   { phrase: 'local attribution, not a verified identity', files: ['flowcharge/CONVENTIONS.md'] },
   { phrase: 'trailing `+`', files: ['flowcharge/CONVENTIONS.md'] },
   { phrase: 'Archive by moving the ENTIRE folder', files: ['flowcharge/CONVENTIONS.md'] },
   { phrase: 'refuses a taken slug', files: ['flowcharge/CONVENTIONS.md'] },
   { phrase: "sed -E 's/^WS-", files: [] },
+  { phrase: 'Plain `--force` is never used', files: ['fc-git/operations.md'] },
   { phrase: 'this project\'s own structural or reference documentation', files: ['flowcharge/SKILL.md'] },
 ];
 
@@ -5326,6 +5331,26 @@ testCase('hard rule 8 performs each stage inline, and the orchestrator may read 
   assert.ok(text.includes('You read the target project yourself'), '"Parsing the request" no longer says the orchestrator reads the target project');
 });
 
+// Hard rule 1 keeps a file read once per session from being read again, and
+// plan-and-tasks loads fc-issue-list only when the plan names issue IDs. No
+// script reads a run, so these prose pins stand in for both reads.
+testCase('hard rule 1 reads a file once per session, and plan-and-tasks loads fc-issue-list only for issue IDs', () => {
+  const rule = fs.readFileSync(FLOWCHARGE_SKILL, 'utf8').replace(/\s+/g, ' ');
+  assert.ok(
+    rule.includes('is not read again while its full text is still in your context and its file is unchanged since that read; when unsure, read it again.'),
+    'hard rule 1 no longer stops a file already read in this session from being read again',
+  );
+  const stage = fs.readFileSync(path.join(STAGE_FILES_DIR, 'plan-and-tasks.md'), 'utf8');
+  const from = stage.indexOf('## Skills');
+  const to = stage.indexOf('## Context', from + 1);
+  const skills = from === -1 || to === -1 ? '' : stage.slice(from, to);
+  assert.ok(skills.trim().length > 0, 'the Skills section could not be sliced out of templates/plan-and-tasks.md');
+  assert.ok(
+    skills.includes('/fc-issue-list, only when the plan names issue IDs'),
+    'templates/plan-and-tasks.md no longer loads fc-issue-list only when the plan names issue IDs',
+  );
+});
+
 testCase('default_agent stays a documented key, marked currently unused', () => {
   const text = fs.readFileSync(FLOWCHARGE_SKILL, 'utf8');
   assert.ok(text.includes('default_agent: <verbatim string>'), 'the agents.md key list no longer carries default_agent');
@@ -5360,6 +5385,85 @@ testCase('fc-validate carries the discipline for validating an artefact its own 
     text.includes('judge the artefact against its cited source only, never against what you recall intending when you wrote it'),
     'fc-validate no longer tells an inline validation to judge against the cited source only',
   );
+});
+
+// ---- cases: on-demand skill sections ---------------------------------------
+// A skill whose readers need different parts keeps a core SKILL.md and moves
+// the sections only some readers need into one file beside it. The core names
+// that file, and so does every stage file or skill that must read it. Nothing
+// runs the prose, so a static check pins the split: each moved section is a
+// `## ` heading in its file and no longer a heading in SKILL.md outside a fenced
+// example, SKILL.md names the file, and every listed reader names it too.
+
+function readSkillText(rel) {
+  const full = path.join(SKILLS_ROOT, rel);
+  return fs.existsSync(full) ? fs.readFileSync(full, 'utf8') : null;
+}
+
+function onDemandProblems(entries, readText = readSkillText) {
+  const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const problems = [];
+  for (const e of entries) {
+    const core = (readText(`${e.skill}/SKILL.md`) || '').replace(/^(`{3,}).*\n[\s\S]*?^\1[ \t]*$/gm, '');
+    const part = readText(`${e.skill}/${e.file}`);
+    if (part === null) { problems.push(`${e.skill}/${e.file} does not exist`); continue; }
+    if (!core.includes(`\`${e.file}\``)) problems.push(`${e.skill}/SKILL.md does not name ${e.file}`);
+    for (const s of e.sections) {
+      if (!part.includes(`\n## ${s}\n`)) problems.push(`${e.skill}/${e.file} has no "## ${s}" heading`);
+      if (new RegExp(`\\n#+ ${esc(s)}\\n`).test(core)) problems.push(`${e.skill}/SKILL.md still carries a "${s}" heading`);
+    }
+    for (const r of e.readers) {
+      const text = readText(r);
+      if (text === null || !text.includes(`\`${e.file}\``)) problems.push(`${r} does not name ${e.skill}'s ${e.file}`);
+    }
+  }
+  return problems;
+}
+
+const FC_TASK_LIST_AUTHORING = {
+  skill: 'fc-task-list',
+  file: 'authoring.md',
+  sections: [
+    'Creating a list and adding a task',
+    'Runtime detection',
+    'Test commands detection',
+    'Writing verify steps',
+    'Where the detail sits, by mode',
+    'Divergences',
+    'Smoke Tests',
+    'Authoring rules',
+  ],
+  readers: ['flowcharge/templates/plan-and-tasks.md', 'flowcharge/templates/issues-and-tasks.md', 'fc-validate/SKILL.md'],
+};
+
+testCase('the on-demand check flags a missing file, a section left in SKILL.md and a reader that does not name the file', () => {
+  const files = {
+    's/SKILL.md': 'Read `part.md`.\n### Kept\n### Moved\n```md\n## Fenced\n```\n',
+    's/part.md': '# part\n\n## Moved\n',
+    'r.md': 'no pointer here',
+  };
+  const read = (rel) => (rel in files ? files[rel] : null);
+  assert.deepStrictEqual(
+    onDemandProblems([{ skill: 's', file: 'part.md', sections: ['Moved', 'Fenced'], readers: ['r.md'] }], read),
+    ['s/SKILL.md still carries a "Moved" heading', 's/part.md has no "## Fenced" heading', "r.md does not name s's part.md"],
+    'the on-demand check missed a section left in SKILL.md or a reader that does not name the file',
+  );
+  assert.deepStrictEqual(
+    onDemandProblems([{ skill: 's', file: 'gone.md', sections: [], readers: [] }], read),
+    ['s/gone.md does not exist'],
+    'the on-demand check missed a missing file',
+  );
+  const unnamed = (rel) => (rel === 's/SKILL.md' ? '### Kept\n' : read(rel));
+  assert.deepStrictEqual(
+    onDemandProblems([{ skill: 's', file: 'part.md', sections: [], readers: [] }], unnamed),
+    ['s/SKILL.md does not name part.md'],
+    'the on-demand check missed a SKILL.md that does not name the file',
+  );
+});
+
+testCase("fc-task-list's authoring sections live only in authoring.md, and every authoring reader names it", () => {
+  const problems = onDemandProblems([FC_TASK_LIST_AUTHORING]);
+  assert.deepStrictEqual(problems, [], `the fc-task-list split is broken:\n${problems.map((p) => `  skills/${p}`).join('\n')}`);
 });
 
 // ---- cases: LICENSE presence and agreement ---------------------------------
@@ -5429,6 +5533,18 @@ testCase('the root LICENSE has the expected shape', () => {
     text.includes('shall be included in all'),
     'the root LICENSE must hold MIT\'s inclusion sentence',
   );
+});
+
+testCase("fc-git's operations sections live only in operations.md, which SKILL.md names", () => {
+  const problems = onDemandProblems([
+    {
+      skill: 'fc-git',
+      file: 'operations.md',
+      sections: ['Init (new project)', 'Merging & rebasing', 'Worktrees', 'Stashing', 'Tags & releases', 'Remotes & pushing'],
+      readers: [],
+    },
+  ]);
+  assert.deepStrictEqual(problems, [], `the fc-git split is broken:\n${problems.map((p) => `  skills/${p}`).join('\n')}`);
 });
 
 // ---- runner ----------------------------------------------------------------

@@ -252,7 +252,11 @@ Additional keys by type:
   nothing past the first line reaches the board. Markdown headings are skipped by the
   generator, so the body may use them freely. What the body is **not** is a running
   log: it records the request as given, while analysis, design decisions and progress
-  notes belong in the plan / issue list / task list.
+  notes belong in the plan / issue list / task list. A statement that holds for every
+  workstream, such as a standards paragraph, is written once in a project-level file (a
+  conventions or agents document) that the record names instead of repeating. **No
+  script can check** this, because whether a statement is project-wide is a judgment
+  about its meaning.
   `blocked`: **optional**, workstream records only, and a single-line double-quoted
   scalar like `title`. Write it immediately after `title`, always before
   `status`. Its value is the reason the work cannot proceed. An absent key means the
@@ -283,10 +287,11 @@ Additional keys by type:
   and never requires `base_commit`. The author supplies it. Also `runtime:
   "<command>" | none` and `e2e_tooling: [...]`, how the project runs itself and
   what browser/e2e tooling it already has, detected from disk at authoring (see the
-  fc-task-list skill, Runtime detection). The generator checks neither, and an
-  absent key reads as `none` and `[]`, because the rule is forward-only. Also
-  `test_commands: [...]`, the project's own suite commands (see the fc-task-list
-  skill, Test commands detection), which only the list's final test-run task runs;
+  fc-task-list skill's `authoring.md`, Runtime detection). The generator checks
+  neither, and an absent key reads as `none` and `[]`, because the rule is
+  forward-only. Also `test_commands: [...]`, the project's own suite commands (see
+  the fc-task-list skill's `authoring.md`, Test commands detection), which only the
+  list's final test-run task runs;
   `[]` means no suite, and the list then has no test-update or test-run task. A
   `done` task list whose `test_commands` is not `[]` must hold a `passed` test-run
   record and, unless it is a fix list ending with the recheck form, a test-update
@@ -309,9 +314,10 @@ author's intent, not the file's shape, so documented guidance is its only defenc
 
 **Author attribution.** `author` is a plaintext name carried by all six record
 kinds: the four artefact kinds above in their frontmatter (`workstream`, `plan`,
-`issuelist`, `tasklist`), plus each issue inside an issue list and each adult or
-child task inside a task list, in that item's own YAML. Parent tasks keep the
-description-only rule and take no `author`; a mini-shape task inherits the file's. Read the value from the generator at
+`issuelist`, `tasklist`), plus each issue inside an issue list, in that issue's
+own YAML. A task inside a task list carries `author` only when it differs from the
+file's, and an absent task `author` is the file's. Parent tasks keep the
+description-only rule and take no `author`. Read the value from the generator at
 authoring time and write the printed line verbatim:
 
 ```bash

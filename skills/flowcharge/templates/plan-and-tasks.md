@@ -6,8 +6,8 @@ For this stage you act as a senior software architect and senior software develo
 ## Skills
 /fc-dev-principles
 /fc-plan-feature
-/fc-issue-list (for the frontmatter conventions it documents)
-/fc-task-list
+/fc-issue-list, only when the plan names issue IDs
+/fc-task-list and its `authoring.md`, read in full before Part 2
 
 ## Context
 Read the documents this stage needs from the run's context-docs list, not all of them, to understand the structure and purpose of the app.
@@ -44,7 +44,7 @@ Skip this part when `{stages}` is `plan-only`.
 
 Read the plan in full — the artefact you wrote in Part 1, or the one at `{plan}` when you skipped Part 1 — then author tasks that implement it, and save them to `{ws_dir}/<the TL ID you claim below>-tasklist.md` (if that file already exists for other work, use `<the TL ID you claim below>-tasklist-<qualifier>.md` in the same folder).
 
-Frontmatter per the fc-task-list skill, with `workstream: {ws_id}`, `slug: {slug}`, `status: ready`, `mode: {mode}`, `base_commit` as the current HEAD short SHA (so any SEARCH/REPLACE block is dated), `runtime` and `e2e_tooling` per the skill's Runtime detection and `test_commands` per its Test commands detection (read from the project, never invented), and `depends_on: [<the plan's ID from its own frontmatter>]`.
+Frontmatter per the fc-task-list skill, with `workstream: {ws_id}`, `slug: {slug}`, `status: ready`, `mode: {mode}`, `base_commit` as the current HEAD short SHA (so any SEARCH/REPLACE block is dated), `runtime` and `e2e_tooling` per the skill's Runtime detection (authoring.md) and `test_commands` per its Test commands detection (authoring.md) (read from the project, never invented), and `depends_on: [<the plan's ID from its own frontmatter>]`.
 
 Allocate the TL ID by running `node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root> --claim TL` and using the printed id verbatim.
 
@@ -52,8 +52,8 @@ The file is **{mode} mode**. Do not ask which mode to use and do not add smoke-t
 
 Mirror the plan's scope, design and stage order; the decomposition into tasks is yours:
 
-* One parent task per plan stage, in the plan's order. Decompose each stage into atomic child tasks yourself, derived from the stage's goal, the plan's Design contracts and Content specification values, and its acceptance criteria; the plan carries no per-task detail to copy. Atomic per the fc-task-list skill: one file, one coherent change, one verify sequence, and in diff mode one SEARCH/REPLACE block; plus, per the skill, at most one verification-only child on a stage that produces a UI or a running service.
-* Shape each task per the skill's Mini shape: write `description`, `pattern`, `implement` and `verify` first, run its test, and add the full keys only where the test makes the task full. No key is optional.
+* One parent task per plan stage, in the plan's order. Decompose each stage into atomic child tasks yourself, derived from the stage's goal, the plan's Design contracts and Content specification values, and its acceptance criteria; the plan carries no per-task detail to copy. Atomic per the fc-task-list skill: one coherent change and one verify sequence, spanning every file of the change in spec mode and one SEARCH/REPLACE block in diff mode. Author the fewest child tasks that keep each verify sequence unambiguous; plus, per the skill, at most one verification-only child on a stage that produces a UI or a running service.
+* Shape each task per the skill's Mini shape: write `description`, `pattern`, `implement` and `verify` first, run its test, and add the full keys only where the test makes the task full, omitting any that is empty or default.
 * Cover every stage. This plan exists because partial implementation is the failure mode, and an untasked stage is how that happens.
 * Where `test_commands` is not `[]`, end the list with the test-update task, then the test-run task, each per its section in the skill.
 * Carry the plan's acceptance criteria into the tasks that satisfy them, as `verify` steps or `checklist` items, keeping the plan's own measurable form (e.g. a grep that must return zero). Tag every checklist item per the skill's Evidence classes. Turn the plan's Testing-strategy review criteria into `rendered` items carrying the plan's thresholds, on the verification-only child where one exists. Where the frontmatter records no tooling for an item's class, author it as `source` or `[unverified-by-execution]`, per the skill.
@@ -67,7 +67,7 @@ How much of the codebase to read again before authoring:
 
 Where a stage depends on an open question or on an assumption the plan marks unconfirmed, author no task for it and list it instead. Do not settle it yourself.
 
-Author `verify` steps per the fc-task-list skill's `verify` rules and Verify tiers: measured at `base_commit`, the project's own lint or type-check command only where configured, at most one runtime probe per task, never a full test suite or build outside the test-run task. Where the plan names issue IDs, record them in the task's `issues:` key.
+Author `verify` steps per the fc-task-list skill's `verify` rules (authoring.md) and Verify tiers: measured at `base_commit`, the project's own lint or type-check command only where configured, at most one runtime probe per task, never a full test suite or build outside the test-run task. Where the plan names issue IDs, record them in the task's `issues:` key.
 
 ## Return
 Reply in chat only, briefly. Report both artefacts. When `{stages}` named one artefact, report only the one you wrote and drop the other's lines.
