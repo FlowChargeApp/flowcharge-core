@@ -4,8 +4,8 @@ type: workstream
 workstream: WS-28-64urkm
 slug: lease-live-status-heartbeat
 title: "Show live run activity for an in-progress workstream from its .lease file"
-status: backlog
-tags: [schema, generator, orchestration]
+status: in-progress
+tags: [schema, generator, orchestration, feature]
 created: 2026-10-16
 updated: 2026-10-16
 author: Anthony Koukoullis
