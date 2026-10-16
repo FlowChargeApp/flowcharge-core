@@ -406,8 +406,12 @@ Notes:
   `{parent_task}` as its number, evaluate its result, and only then begin the next.
   Before every run of the stage file, the baseline run included, refresh the lease
   (see FlowCharge Core upkeep, The lease file) with `stage` `execute-tasks`, the task
-  list's ID as `artefact`, and the note `parent task <N> of <M>`, with `, baseline run`
-  appended for the baseline run. If a
+  list's ID as `artefact`, the parent task's number as `task`, its title (the text
+  after `<N>. ` on its task-list line) as `task_title`, as `task_started` the time
+  this run begins, read once with
+  `node -e "console.log(new Date().toISOString())"` and passed unchanged to every
+  refresh within this run, and the note `parent task <N> of <M>`, with
+  `, baseline run` appended for the baseline run. If a
   result reports an abort or a checklist item that stays failed, halt per rule 7. A NOT
   CHECKED item is no failure: lift every one, with its reason, from each parent task's
   result into the run's final report, at every tier. Apply hard rule 13 once, before the
@@ -696,15 +700,27 @@ node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root>
   written at Start of run and never changed; then `heartbeat`, the time of the
   latest refresh, `stage`, the Operations table name of the stage the run begins
   next (`upkeep` once only the end-of-run bookkeeping remains), `artefact`, the ID
-  of the artefact that stage works on, and `note`, one line on progress inside the
-  stage, such as `parent task 3 of 7`, all four written by every refresh. Times are
-  ISO 8601 UTC. `artefact` and `note` are left empty when there is nothing to name.
+  of the artefact that stage works on, `task`, the number of the parent task whose
+  run is in progress, `task_title`, that task's title, copied from its task-list
+  line, `task_started`, the time that parent-task run began, the same on every
+  refresh within it, and `note`, one line on progress inside the stage, such as
+  `parent task 3 of 7`, all seven written by every refresh. Times are ISO 8601 UTC.
+  Only the refresh before a parent-task run (see Operations, execute-tasks) sets
+  `task`, `task_title` and `task_started`; every other refresh writes them empty, so
+  a finished task stops showing as current once its stage ends. `artefact` and
+  `note` are left empty when there is nothing to name. An empty value is written as
+  the key, a colon and a space, with nothing after them. A reader finds each value
+  by key name and reads a missing key as no value. The refresh collapses every
+  whitespace run in `task_title` and `note`, line breaks included, to one space.
   A refresh replaces the whole file through a temporary file in the same folder and
   a rename, so a reader never sees a half-written lease, e.g.
-  `node -e "const fs=require('fs'),[p,t,s='',a='',n='']=process.argv.slice(1),x=p+'.'+require('crypto').randomUUID()+'.tmp';try{const k=fs.readFileSync(p,'utf8').split('\n').filter(l=>/^(session|acquired):/.test(l));if(k.indexOf('session: '+t)<0)process.exit(1);fs.writeFileSync(x,[...k,'heartbeat: '+new Date().toISOString(),'stage: '+s,'artefact: '+a,'note: '+n.replace(/\s+/g,' ')].join('\n')+'\n');fs.renameSync(x,p)}catch(e){try{fs.unlinkSync(x)}catch{}process.exit(2)}" '<path>/.lease' '<token>' '<stage>' '<artefact>' '<note>'`.
+  `node -e "const fs=require('fs'),[p,t,s='',a='',i='',u='',b='',n='']=process.argv.slice(1),x=p+'.'+require('crypto').randomUUID()+'.tmp';try{const k=fs.readFileSync(p,'utf8').split('\n').filter(l=>/^(session|acquired):/.test(l));if(k.indexOf('session: '+t)<0)process.exit(1);fs.writeFileSync(x,[...k,'heartbeat: '+new Date().toISOString(),'stage: '+s,'artefact: '+a,'task: '+i,'task_title: '+u.replace(/\s+/g,' '),'task_started: '+b,'note: '+n.replace(/\s+/g,' ')].join('\n')+'\n');fs.renameSync(x,p)}catch(e){try{fs.unlinkSync(x)}catch{}process.exit(2)}" '<path>/.lease' '<token>' '<stage>' '<artefact>' '<task>' '<task_title>' '<task_started>' '<note>'`.
   It exits 1 when no line of the file reads `session: <token>`, and 2 when the file
   is missing or the write fails. On either exit this run no longer holds the
-  workstream's lease: halt per hard rule 7 and say so in the report.
+  workstream's lease: halt per hard rule 7 and say so in the report. Each value
+  reaches the command as one single-quoted argument: write a single quote inside a
+  value, such as an apostrophe in a task title, with the shell's escape for it
+  (`'\''` in a POSIX shell).
   **No script can check** that a run refreshes the lease at every write point,
   because no script reads a run; `fc-index.mjs` reports only a lease whose age
   passes `LEASE_STALE_MINUTES`.
