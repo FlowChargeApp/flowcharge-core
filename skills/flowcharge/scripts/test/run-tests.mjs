@@ -2200,14 +2200,22 @@ testCase('clean: an empty issues array on a task line is not a reference', () =>
 });
 
 // ---- cases: leases and the registry header ---------------------------------
-// The lease cases fix the acquired timestamp in the fixture rather than letting
-// the clock decide it, because the age the WARN reports is derived from it. The
-// two ages sit clearly on each side of the sixty-minute boundary.
+// The lease cases fix the acquired timestamp, and the heartbeat timestamp where
+// one is given, in the fixture rather than letting the clock decide them,
+// because the age the WARN reports is derived from them. The ages sit clearly
+// on each side of the sixty-minute boundary.
 
 const LEASE1 = 'flowcharge/workstreams/WS-1-abcdef-alpha/.lease';
 
-const lease = (session, minutesAgo) =>
-  `session: ${session}\nacquired: ${new Date(Date.now() - minutesAgo * 60000).toISOString()}\n`;
+const minutesAgoIso = (minutes) => new Date(Date.now() - minutes * 60000).toISOString();
+
+// A third argument adds the four keys every refresh writes, with the heartbeat
+// that many minutes ago. Without it the lease is the two-key form an acquire
+// writes, the form every lease took before heartbeats existed.
+const lease = (session, minutesAgo, heartbeatMinutesAgo) =>
+  `session: ${session}\nacquired: ${minutesAgoIso(minutesAgo)}\n`
+  + (heartbeatMinutesAgo === undefined ? ''
+    : `heartbeat: ${minutesAgoIso(heartbeatMinutesAgo)}\nstage: execute-tasks\nartefact: TL-1-abcdef\nnote: parent task 1 of 2\n`);
 
 // The header a registry carried before the script owned the text: the
 // read-and-write-back method, which --claim replaced.
@@ -2223,11 +2231,28 @@ testCase('clean: a lease acquired five minutes ago warns about nothing', () => {
   });
 });
 
-testCase('a lease held past sixty minutes warns with its session and its age', () => {
+testCase('a lease with no heartbeat, acquired past sixty minutes ago, warns from its acquire time', () => {
   withFixture(baseTree({ [LEASE1]: lease('sess-stale', 90.5) }), (dir) => {
     expectWarns(dir, [
-      'flowcharge/workstreams/WS-1-abcdef-alpha/.lease: held by session sess-stale for 90 minutes, stale',
+      'flowcharge/workstreams/WS-1-abcdef-alpha/.lease: held by session sess-stale, silent for 90 minutes, stale',
     ]);
+  });
+});
+
+// Acquired at 120 minutes and silent for 90.5: a generator still measuring from
+// acquired would report 120, so the expected line also proves the age source.
+testCase('a lease whose heartbeat is past sixty minutes old warns with its session and its silence', () => {
+  withFixture(baseTree({ [LEASE1]: lease('sess-silent', 120, 90.5) }), (dir) => {
+    expectWarns(dir, [
+      'flowcharge/workstreams/WS-1-abcdef-alpha/.lease: held by session sess-silent, silent for 90 minutes, stale',
+    ]);
+  });
+});
+
+// A run longer than sixty minutes keeps its lease fresh by refreshing it.
+testCase('clean: a lease acquired long ago with a fresh heartbeat warns about nothing', () => {
+  withFixture(baseTree({ [LEASE1]: lease('sess-live', 120, 5) }), (dir) => {
+    expectWarns(dir, []);
   });
 });
 

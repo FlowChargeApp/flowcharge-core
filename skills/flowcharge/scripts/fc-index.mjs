@@ -309,8 +309,9 @@ const ORPHAN_GRACE_DAYS = 1;
 // The board truncates a workstream's card description at this width, so a
 // longer first body line loses its tail on the board.
 const CARD_DESC_MAX = 200;
-// A workstream lease held past this many minutes is reported as stale. The
-// value SKILL.md publishes as LEASE_STALE_MINUTES; the two must not drift.
+// A workstream lease whose last heartbeat, or its acquisition when it carries
+// none, is older than this many minutes is reported as stale. The value
+// SKILL.md publishes as LEASE_STALE_MINUTES; the two must not drift.
 const LEASE_STALE_MINUTES = 60;
 // An undefined tag names a pool entry as its likely intent only when it sits
 // this close to one. The check is deliberately literal: a typo backstop, not
@@ -882,7 +883,9 @@ function checkIds(artefacts, byId, idsDir, registry) {
 // else: not the ID graph, not the registry, not the artefact records. It
 // reports and never deletes. Acquiring and releasing a lease stays in
 // SKILL.md, and a lease the generator removed would be a lock removed by a
-// process that never held it.
+// process that never held it. A lease's age runs from its heartbeat, the last
+// write its holder made, and from acquired for a lease written before
+// heartbeats existed.
 const ageInMinutes = (ms) => {
   const n = Math.floor(ms / 60000);
   return `${n} minute${n === 1 ? '' : 's'}`;
@@ -897,14 +900,18 @@ function checkLeases(wsDirs) {
     const text = fs.readFileSync(leasePath, 'utf8');
     const session = (text.match(/^session:[ \t]*(.*)$/m) || ['', ''])[1].trim();
     const acquired = (text.match(/^acquired:[ \t]*(.*)$/m) || ['', ''])[1].trim();
-    const at = Date.parse(acquired);
+    const heartbeat = (text.match(/^heartbeat:[ \t]*(.*)$/m) || ['', ''])[1].trim();
     // A lease the running session holds is fresh and correct, so it is the age
-    // that fires, never the presence. An unparseable timestamp yields no age at
-    // all: it is reported by neither branch rather than crashing the run.
+    // that fires, never the presence. The age runs from the last heartbeat, or
+    // from acquired for a lease that carries none. A lease where neither
+    // timestamp parses yields no age at all: it is reported by neither branch
+    // rather than crashing the run.
+    const beat = Date.parse(heartbeat);
+    const at = Number.isNaN(beat) ? Date.parse(acquired) : beat;
     if (Number.isNaN(at)) continue;
     const age = now - at;
     if (age > LEASE_STALE_MINUTES * 60000) {
-      out.push(`flowcharge/workstreams/${dir}/.lease: held by session ${session} for ${ageInMinutes(age)}, stale`);
+      out.push(`flowcharge/workstreams/${dir}/.lease: held by session ${session}, silent for ${ageInMinutes(age)}, stale`);
     }
   }
   return out;
@@ -1535,7 +1542,7 @@ if (fs.existsSync(registryPath)) {
 // links: and issues: cross-references.
 for (const w of checkIds(artefacts, byId, idsDir, reg)) warnings.push(w);
 
-// Workstream leases held past LEASE_STALE_MINUTES. Reported only: no mode of
+// Workstream leases silent past LEASE_STALE_MINUTES. Reported only: no mode of
 // this script ever deletes a lease.
 const leaseDirs = fs.readdirSync(wsRoot, { withFileTypes: true })
   .filter((d) => d.isDirectory()).map((d) => d.name).sort();

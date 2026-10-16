@@ -151,13 +151,13 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
       failures: []
     ```
 
-- [ ] 2. Generator staleness from heartbeat
+- [x] 2. Generator staleness from heartbeat
 
   ```yaml
   description: "checkLeases() in fc-index.mjs measures a lease's age from heartbeat, falling back to acquired, with the new WARN text, pinned by the lease cases in run-tests.mjs. Realises PLN-22-6khzm8 stage 2 (criteria 7, 8 and 10)."
   ```
 
-  - [ ] 2.1 Measure lease age from the heartbeat in checkLeases()
+  - [x] 2.1 Measure lease age from the heartbeat in checkLeases()
     ```yaml
     description: "checkLeases() parses heartbeat, takes the age from it when it parses and from acquired otherwise, skips a lease where neither parses, and WARNs 'held by session <s>, silent for <n> minutes, stale'; the four lease comments state the heartbeat rule"
     author: Anthony Koukoullis
@@ -182,12 +182,24 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
       - "source: checkLeases() keeps its signature, its LEASE_STALE_MINUTES comparison and deletes no file"
       - "source: the LEASE_STALE_MINUTES comment, the leases section comment, the in-function comment and the call-site comment each state the heartbeat rule"
     self_eval:
-      passed: false
-      evidence: []
+      passed: true
+      evidence:
+        - item: "checklist 1"
+          result: YES
+          measured: "checkLeases() reads heartbeat with the session/acquired match, sets at = Number.isNaN(beat) ? Date.parse(acquired) : beat, and continues when at is NaN; sed range shows 3 heartbeat lines (verify 3)"
+        - item: "checklist 2"
+          result: YES
+          measured: "grep -c for the silent-for template returned 1 (verify 1); grep -c for 'held by session ${session} for' returned 0 (verify 2)"
+        - item: "checklist 3"
+          result: YES
+          measured: "read checkLeases(wsDirs): signature unchanged, comparison age > LEASE_STALE_MINUTES * 60000 unchanged, no unlink or rm call in the function"
+        - item: "checklist 4"
+          result: YES
+          measured: "git diff shows the four comments rewritten; grep -c 'Workstream leases silent past LEASE_STALE_MINUTES' returned 1 (verify 4)"
       unverified: []
       failures: []
     ```
-  - [ ] 2.2 Pin the heartbeat age and the new WARN text
+  - [x] 2.2 Pin the heartbeat age and the new WARN text
     ```yaml
     description: "The lease() fixture builder takes an optional heartbeat age; the stale case becomes the acquired fallback case with the new text; two new cases pin a stale heartbeat and a fresh heartbeat on an old lease"
     author: Anthony Koukoullis
@@ -211,8 +223,20 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
       - "source: the heartbeat-stale case acquires at 120 minutes, sets heartbeat at 90.5, and expects 'silent for 90 minutes'"
       - "source: the fresh-heartbeat case acquires at 120 minutes, sets heartbeat at 5, and expects no WARN"
     self_eval:
-      passed: false
-      evidence: []
+      passed: true
+      evidence:
+        - item: "checklist 1"
+          result: YES
+          measured: "read lease(): the four refresh lines are appended only when heartbeatMinutesAgo is not undefined"
+        - item: "checklist 2"
+          result: YES
+          measured: "the renamed fallback case calls lease('sess-stale', 90.5) and expects 'held by session sess-stale, silent for 90 minutes, stale'; grep -c for the old text returned 0 (verify 2)"
+        - item: "checklist 3"
+          result: YES
+          measured: "the heartbeat-stale case calls lease('sess-silent', 120, 90.5) and expects 'silent for 90 minutes'; grep -c 'silent for 90 minutes, stale' returned 2 (verify 1)"
+        - item: "checklist 4"
+          result: YES
+          measured: "the fresh-heartbeat case calls lease('sess-live', 120, 5) and expects []; grep -cF of its name returned 1 (verify 3)"
       unverified: []
       failures: []
     ```
