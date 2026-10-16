@@ -2224,13 +2224,17 @@ const LEASE1 = 'flowcharge/workstreams/WS-1-abcdef-alpha/.lease';
 
 const minutesAgoIso = (minutes) => new Date(Date.now() - minutes * 60000).toISOString();
 
-// A third argument adds the four keys every refresh writes, with the heartbeat
-// that many minutes ago. Without it the lease is the two-key form an acquire
-// writes, the form every lease took before heartbeats existed.
-const lease = (session, minutesAgo, heartbeatMinutesAgo) =>
-  `session: ${session}\nacquired: ${minutesAgoIso(minutesAgo)}\n`
-  + (heartbeatMinutesAgo === undefined ? ''
-    : `heartbeat: ${minutesAgoIso(heartbeatMinutesAgo)}\nstage: execute-tasks\nartefact: TL-1-abcdef\nnote: parent task 1 of 2\n`);
+// A third argument adds the seven keys every refresh writes, with the heartbeat
+// that many minutes ago. The refresh before a parent-task run sets the task keys,
+// so the task's start time is the heartbeat time. Without it the lease is the
+// two-key form an acquire writes, the form every lease took before heartbeats
+// existed.
+const lease = (session, minutesAgo, heartbeatMinutesAgo) => {
+  const head = `session: ${session}\nacquired: ${minutesAgoIso(minutesAgo)}\n`;
+  if (heartbeatMinutesAgo === undefined) return head;
+  const beat = minutesAgoIso(heartbeatMinutesAgo);
+  return `${head}heartbeat: ${beat}\nstage: execute-tasks\nartefact: TL-1-abcdef\ntask: 1\ntask_title: Fixture task\ntask_started: ${beat}\nnote: parent task 1 of 2\n`;
+};
 
 // The header a registry carried before the script owned the text: the
 // read-and-write-back method, which --claim replaced.
@@ -2268,6 +2272,51 @@ testCase('a lease whose heartbeat is past sixty minutes old warns with its sessi
 testCase('clean: a lease acquired long ago with a fresh heartbeat warns about nothing', () => {
   withFixture(baseTree({ [LEASE1]: lease('sess-live', 120, 5) }), (dir) => {
     expectWarns(dir, []);
+  });
+});
+
+// The refresh command lives only in SKILL.md, so this case runs the copy a run
+// follows: the script of the one inline code span that holds it, passed to
+// node -e unchanged. Bash leaves \n and \s as typed inside the span's double
+// quotes, so the shell passes node the same text. The first run is the refresh
+// before a parent-task run, the second a refresh at a stage change.
+const SKILL_MD = path.resolve(HERE, '..', '..', 'SKILL.md');
+const REFRESH_SPAN_RE = /`node -e "(const fs=require\('fs'\),\[p,t,[^`]*?)" '<path>\/\.lease'[^`]*`/g;
+
+testCase('the lease refresh command in SKILL.md writes the three task keys, set and empty', () => {
+  const spans = [...fs.readFileSync(SKILL_MD, 'utf8').matchAll(REFRESH_SPAN_RE)];
+  assert.strictEqual(spans.length, 1, `expected one refresh command in SKILL.md, found ${spans.length}`);
+  const script = spans[0][1];
+  const acquired = minutesAgoIso(5);
+  withFixture(baseTree({ [LEASE1]: `session: sess-live\nacquired: ${acquired}\n` }), (dir) => {
+    const leasePath = path.join(dir, LEASE1);
+    const refreshAndRead = (values, expected) => {
+      const res = spawnSync(process.execPath, ['-e', script, leasePath, 'sess-live', ...values], { encoding: 'utf8' });
+      assert.strictEqual(res.status, 0, `the refresh exited ${res.status}\n${res.stderr}`);
+      const lines = fs.readFileSync(leasePath, 'utf8').split('\n');
+      assert.strictEqual(lines.pop(), '', 'the lease does not end in a newline');
+      assert.match(lines[2] || '', /^heartbeat: \d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/, 'the heartbeat line is not an ISO 8601 UTC time');
+      assert.deepStrictEqual(
+        [lines[0], lines[1], ...lines.slice(3)],
+        ['session: sess-live', `acquired: ${acquired}`, ...expected],
+        'the lease lines or their order differ',
+      );
+      assert.deepStrictEqual(
+        fs.readdirSync(path.dirname(leasePath)).filter((f) => f.endsWith('.tmp')),
+        [],
+        'the refresh left a temporary file behind',
+      );
+      expectWarns(dir, []);
+    };
+    refreshAndRead(
+      ['execute-tasks', 'TL-1-abcdef', '3', "Pin the\n  lease's   format", '2026-10-16T01:02:03.004Z', 'parent task 3 of 5'],
+      ['stage: execute-tasks', 'artefact: TL-1-abcdef', 'task: 3', "task_title: Pin the lease's format",
+        'task_started: 2026-10-16T01:02:03.004Z', 'note: parent task 3 of 5'],
+    );
+    refreshAndRead(
+      ['upkeep', 'TL-1-abcdef', '', '', '', ''],
+      ['stage: upkeep', 'artefact: TL-1-abcdef', 'task: ', 'task_title: ', 'task_started: ', 'note: '],
+    );
   });
 });
 

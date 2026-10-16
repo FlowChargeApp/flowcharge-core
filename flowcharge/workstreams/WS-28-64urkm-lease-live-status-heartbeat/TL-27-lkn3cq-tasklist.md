@@ -104,7 +104,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
       failures: []
     ```
 
-- [ ] 2. Test-update task: bring the tests in line with this change
+- [x] 2. Test-update task: bring the tests in line with this change
   ```yaml
   description: "Update every test the other tasks make wrong or out of date; add only the tests the source asks for"
   test_update: true
@@ -117,8 +117,17 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "grep -c 'adds the seven keys every refresh writes' skills/flowcharge/scripts/test/run-tests.mjs  # expect 1; 0 at base_commit"
     - "grep -cF \"testCase('the lease refresh command in SKILL.md writes the three task keys, set and empty'\" skills/flowcharge/scripts/test/run-tests.mjs  # expect 1; 0 at base_commit"
   self_eval:
-    passed: false
-    evidence: []
+    passed: true
+    evidence:
+      - item: "verify 1"
+        result: YES
+        measured: "source: grep -cF of the fixture's artefact, task, task_title and task_started lines returned 1"
+      - item: "verify 2"
+        result: YES
+        measured: "source: grep -c of the seven-keys comment returned 1"
+      - item: "verify 3"
+        result: YES
+        measured: "source: grep -cF of the new case's name returned 1"
   ```
 
 - [ ] 3. Test-run task: run the project's test suites
