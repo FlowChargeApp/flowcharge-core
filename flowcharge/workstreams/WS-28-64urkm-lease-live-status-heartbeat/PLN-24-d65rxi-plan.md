@@ -4,7 +4,7 @@ type: plan
 workstream: WS-28-64urkm
 slug: lease-live-status-heartbeat
 title: "Leaf-task refresh of the workstream lease"
-status: ready
+status: done
 created: 2026-10-17
 updated: 2026-10-17
 author: Anthony Koukoullis
