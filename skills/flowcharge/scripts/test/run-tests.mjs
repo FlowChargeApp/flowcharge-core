@@ -1853,14 +1853,29 @@ testCase('--init --no-board writes index.md only and leaves kanban.md untouched'
   });
 });
 
-testCase('--init appends the standard three lines to a project with no .gitignore yet', () => {
+testCase('--init appends the standard four lines to a project with no .gitignore yet', () => {
   withNoWorkstreamsFixture({}, (dir) => {
     const res = runGenerator(dir, ['--init']);
     assert.strictEqual(res.status, 0, `--init exited ${res.status}\n${res.stderr}`);
     const gi = readRel(dir, '.gitignore');
-    for (const line of ['flowcharge/index.md', 'flowcharge/kanban.md', 'flowcharge/ids/']) {
+    for (const line of ['flowcharge/index.md', 'flowcharge/kanban.md', 'flowcharge/ids/', 'flowcharge/workstreams/*/.lease']) {
       assert.ok(gi.includes(line), `--init did not add "${line}" to .gitignore:\n${gi}`);
     }
+  });
+});
+
+// The upgrade path: a project whose .gitignore already holds the three earlier
+// lines gains the lease line, after the managed comment it lacks, and nothing
+// else changes.
+testCase('a writing run appends only the lease line to a .gitignore holding the other three', () => {
+  const before = 'flowcharge/index.md\nflowcharge/kanban.md\nflowcharge/ids/\n';
+  withFixture(baseTree({ '.gitignore': before }), (dir) => {
+    const res = runGenerator(dir, []);
+    assert.strictEqual(res.status, 0, `the default mode exited ${res.status}\n${res.stderr}`);
+    assert.strictEqual(
+      readRel(dir, '.gitignore'),
+      `${before}# FlowCharge-managed: do not hand-edit (see fc-index.mjs)\nflowcharge/workstreams/*/.lease\n`,
+    );
   });
 });
 

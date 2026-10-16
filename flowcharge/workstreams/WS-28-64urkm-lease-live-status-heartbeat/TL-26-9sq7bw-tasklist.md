@@ -241,13 +241,13 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
       failures: []
     ```
 
-- [ ] 3. Generator-managed .gitignore covers the lease
+- [x] 3. Generator-managed .gitignore covers the lease
 
   ```yaml
   description: "Every writing mode of fc-index.mjs keeps flowcharge/workstreams/*/.lease in the project's .gitignore, named in the HELP text and the comments, pinned by two .gitignore cases. Realises PLN-22-6khzm8 stage 3 (criteria 9 and 10)."
   ```
 
-  - [ ] 3.1 Add the lease pattern to the managed .gitignore targets
+  - [x] 3.1 Add the lease pattern to the managed .gitignore targets
     ```yaml
     description: "GITIGNORE_TARGETS gains flowcharge/workstreams/*/.lease, GITIGNORE_COVERS gains its covering forms, and the HELP paragraph and the two comments above them name the fourth path"
     author: Anthony Koukoullis
@@ -272,12 +272,24 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
       - "source: the HELP .gitignore paragraph names flowcharge/workstreams/*/.lease"
       - "source: ensureGitignore() is byte-identical to base_commit"
     self_eval:
-      passed: false
-      evidence: []
+      passed: true
+      evidence:
+        - item: "checklist 1"
+          result: YES
+          measured: "GITIGNORE_TARGETS reads ['flowcharge/index.md', 'flowcharge/kanban.md', 'flowcharge/ids/', 'flowcharge/workstreams/*/.lease']; verify 1 returned 2 lines"
+        - item: "checklist 2"
+          result: YES
+          measured: "the GITIGNORE_COVERS lease entry lists flowcharge/workstreams/*/.lease, .lease, flowcharge/workstreams/, flowcharge/workstreams, flowcharge/, flowcharge"
+        - item: "checklist 3"
+          result: YES
+          measured: "verify 2 (tr then grep -cF on the HELP list) returned 1; verify 3 'covers all three' returned 0; verify 4 'The three flowcharge/ paths' returned 0"
+        - item: "checklist 4"
+          result: YES
+          measured: "diff of the ensureGitignore() body against 0967f71 is empty"
       unverified: []
       failures: []
     ```
-  - [ ] 3.2 Pin the lease line in the .gitignore cases
+  - [x] 3.2 Pin the lease line in the .gitignore cases
     ```yaml
     description: "The --init .gitignore case asserts four lines, the lease pattern included, and a new case proves a default-mode run appends only the lease line to a .gitignore holding the other three"
     author: Anthony Koukoullis
@@ -299,8 +311,20 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
       - "source: the new case asserts the whole resulting file with strictEqual, comment line and lease line included"
       - "source: no other case changes"
     self_eval:
-      passed: false
-      evidence: []
+      passed: true
+      evidence:
+        - item: "checklist 1"
+          result: YES
+          measured: "the case is named '--init appends the standard four lines ...' (verify 1 returned 1) and its array holds the four lines, the lease pattern included"
+        - item: "checklist 2"
+          result: YES
+          measured: "the new case's fixture .gitignore is 'flowcharge/index.md\\nflowcharge/kanban.md\\nflowcharge/ids/\\n' (verify 3 returned 1)"
+        - item: "checklist 3"
+          result: YES
+          measured: "the new case asserts strictEqual on the whole file: the three lines, the managed comment line, then flowcharge/workstreams/*/.lease"
+        - item: "checklist 4"
+          result: YES
+          measured: "git diff of run-tests.mjs for this task touches 3 testCase lines: the renamed --init case (old and new name) and the added case"
       unverified: []
       failures: []
     ```

@@ -124,9 +124,9 @@ Exit codes:
 
 .gitignore: every writing mode (the default, --no-board, --sync,
 --claim, --new-ws and --init) also appends to the project root's
-.gitignore whichever of flowcharge/index.md, flowcharge/kanban.md and
-flowcharge/ids/ it does not already cover. Existing lines are never
-rewritten or reordered. A failed write is a warning only. --list,
+.gitignore whichever of flowcharge/index.md, flowcharge/kanban.md,
+flowcharge/ids/ and flowcharge/workstreams/*/.lease it does not already
+cover. Existing lines are never rewritten or reordered. A failed write is a warning only. --list,
 --check, --whoami and --help touch .gitignore no more than they touch
 anything else.
 `;
@@ -155,18 +155,21 @@ function randomSuffix() {
   return s;
 }
 
-// The three flowcharge/ paths this script regenerates or owns outright. They are
-// disposable views and ephemeral claim markers, so they are never worth
-// tracking and always worth keeping out of a merge.
+// The four flowcharge/ paths kept out of git: the three this script
+// regenerates or owns outright, plus the workstream lease files a run holds.
+// They are disposable views, ephemeral claim markers and session-bound locks,
+// so they are never worth tracking and always worth keeping out of a merge.
 const GITIGNORE_COMMENT = '# FlowCharge-managed: do not hand-edit (see fc-index.mjs)';
-const GITIGNORE_TARGETS = ['flowcharge/index.md', 'flowcharge/kanban.md', 'flowcharge/ids/'];
+const GITIGNORE_TARGETS = ['flowcharge/index.md', 'flowcharge/kanban.md', 'flowcharge/ids/', 'flowcharge/workstreams/*/.lease'];
 // A target needs no line of its own when a broader pattern already covers it:
-// a bare flowcharge/ (or flowcharge) covers all three, and a bare flowcharge/ids/ (or
-// flowcharge/ids) covers the marker directory alone.
+// a bare flowcharge/ (or flowcharge) covers all four, a bare flowcharge/ids/ (or
+// flowcharge/ids) covers the marker directory alone, and a bare .lease or
+// flowcharge/workstreams/ (or flowcharge/workstreams) covers the lease files.
 const GITIGNORE_COVERS = {
   'flowcharge/index.md': ['flowcharge/index.md', 'flowcharge/', 'flowcharge'],
   'flowcharge/kanban.md': ['flowcharge/kanban.md', 'flowcharge/', 'flowcharge'],
   'flowcharge/ids/': ['flowcharge/ids/', 'flowcharge/ids', 'flowcharge/', 'flowcharge'],
+  'flowcharge/workstreams/*/.lease': ['flowcharge/workstreams/*/.lease', '.lease', 'flowcharge/workstreams/', 'flowcharge/workstreams', 'flowcharge/', 'flowcharge'],
 };
 
 // Append-only: every pre-existing line is copied through unchanged and in its
