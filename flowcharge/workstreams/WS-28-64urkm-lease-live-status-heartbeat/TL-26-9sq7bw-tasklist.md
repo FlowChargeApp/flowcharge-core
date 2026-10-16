@@ -4,7 +4,7 @@ type: tasklist
 workstream: WS-28-64urkm
 slug: lease-live-status-heartbeat
 title: "Lease live-status heartbeat"
-status: ready
+status: done
 created: 2026-10-16
 updated: 2026-10-16
 author: Anthony Koukoullis
@@ -341,7 +341,7 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     evidence: []
   ```
 
-- [ ] 5. Test-run task: run the project's test suites
+- [x] 5. Test-run task: run the project's test suites
   ```yaml
   description: "Run every command in the frontmatter test_commands after every other task"
   test_run: full
@@ -350,8 +350,8 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
   verify:
     - "Every command in the frontmatter test_commands, in order, from the project root"
   self_eval:
-    passed: false
-    test_run_result: pending
+    passed: true
+    test_run_result: passed
     test_run_baseline: []
     test_run_failures: []
   ```

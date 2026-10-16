@@ -4,7 +4,7 @@ type: plan
 workstream: WS-28-64urkm
 slug: lease-live-status-heartbeat
 title: "Lease live-status heartbeat"
-status: ready
+status: done
 created: 2026-10-16
 updated: 2026-10-16
 author: Anthony Koukoullis
