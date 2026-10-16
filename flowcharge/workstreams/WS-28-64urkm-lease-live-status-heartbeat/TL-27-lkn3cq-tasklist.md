@@ -4,7 +4,7 @@ type: tasklist
 workstream: WS-28-64urkm
 slug: lease-live-status-heartbeat
 title: "Structured task fields in the workstream lease"
-status: ready
+status: done
 created: 2026-10-16
 updated: 2026-10-16
 author: Anthony Koukoullis
@@ -130,7 +130,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         measured: "source: grep -cF of the new case's name returned 1"
   ```
 
-- [ ] 3. Test-run task: run the project's test suites
+- [x] 3. Test-run task: run the project's test suites
   ```yaml
   description: "Run every command in the frontmatter test_commands after every other task"
   test_run: full
@@ -139,8 +139,8 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
   verify:
     - "Every command in the frontmatter test_commands, in order, from the project root"
   self_eval:
-    passed: false
-    test_run_result: pending
+    passed: true
+    test_run_result: passed
     test_run_baseline: []
     test_run_failures: []
   ```

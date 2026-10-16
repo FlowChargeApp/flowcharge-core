@@ -4,7 +4,7 @@ type: plan
 workstream: WS-28-64urkm
 slug: lease-live-status-heartbeat
 title: "Structured task fields in the workstream lease"
-status: ready
+status: done
 created: 2026-10-16
 updated: 2026-10-16
 author: Anthony Koukoullis
