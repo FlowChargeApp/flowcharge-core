@@ -329,7 +329,7 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
       failures: []
     ```
 
-- [ ] 4. Test-update task: bring the tests in line with this change
+- [x] 4. Test-update task: bring the tests in line with this change
   ```yaml
   description: "Update every test the other tasks make wrong or out of date; add only the tests the source asks for"
   test_update: true
@@ -337,7 +337,7 @@ Each parent task carries the `run-tests.mjs` edits that pin its own change, so t
     - "No edit: tasks 2.2 and 3.2 already update and add every case PLN-22-6khzm8's Testing strategy asks for, inside the parent task whose change each pins (PLN-22-6khzm8, Design, Tests), so no test is left wrong or out of date"
   verify: []
   self_eval:
-    passed: false
+    passed: true
     evidence: []
   ```
 
