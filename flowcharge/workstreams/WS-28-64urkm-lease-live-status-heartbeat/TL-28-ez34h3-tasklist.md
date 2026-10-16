@@ -133,7 +133,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
       failures: []
     ```
 
-- [ ] 2. Test-update task: bring the tests in line with this change
+- [x] 2. Test-update task: bring the tests in line with this change
   ```yaml
   description: "Update every test the other tasks make wrong or out of date; add only the tests the source asks for"
   test_update: true
@@ -150,8 +150,26 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "grep -cF \"'note: parent task 5 of 5, baseline run'\" skills/flowcharge/scripts/test/run-tests.mjs  # expect 1, the baseline note pinned; 0 at base_commit"
     - "grep -cF \"'task: 1.1'\" skills/flowcharge/scripts/test/run-tests.mjs  # expect 1, the dotted task pinned; 0 at base_commit"
   self_eval:
-    passed: false
-    evidence: []
+    passed: true
+    evidence:
+      - item: "verify 1"
+        result: YES
+        measured: "source: grep -cF of the fixture's artefact, task, task_title, task_started and note lines returned 1"
+      - item: "verify 2"
+        result: YES
+        measured: "source: grep -c parent-task run returned 0; the shared comment above SKILL_MD now covers both refresh-command cases, and the first-run sentence sits above its own case"
+      - item: "verify 3"
+        result: YES
+        measured: "source: grep -c of the module-scope refreshAndRead returned 1"
+      - item: "verify 4"
+        result: YES
+        measured: "source: grep -cF of the new case's name returned 1"
+      - item: "verify 5"
+        result: YES
+        measured: "source: grep -cF of the baseline note expectation returned 1"
+      - item: "verify 6"
+        result: YES
+        measured: "source: grep -cF of the dotted task expectation returned 1"
   ```
 
 - [ ] 3. Test-run task: run the project's test suites
