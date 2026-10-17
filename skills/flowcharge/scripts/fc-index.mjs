@@ -124,9 +124,9 @@ Exit codes:
 
 .gitignore: every writing mode (the default, --no-board, --sync,
 --claim, --new-ws and --init) also appends to the project root's
-.gitignore whichever of flowcharge/index.md, flowcharge/kanban.md and
-flowcharge/ids/ it does not already cover. Existing lines are never
-rewritten or reordered. A failed write is a warning only. --list,
+.gitignore whichever of flowcharge/index.md, flowcharge/kanban.md,
+flowcharge/ids/ and flowcharge/workstreams/*/.lease it does not already
+cover. Existing lines are never rewritten or reordered. A failed write is a warning only. --list,
 --check, --whoami and --help touch .gitignore no more than they touch
 anything else.
 `;
@@ -155,18 +155,21 @@ function randomSuffix() {
   return s;
 }
 
-// The three flowcharge/ paths this script regenerates or owns outright. They are
-// disposable views and ephemeral claim markers, so they are never worth
-// tracking and always worth keeping out of a merge.
+// The four flowcharge/ paths kept out of git: the three this script
+// regenerates or owns outright, plus the workstream lease files a run holds.
+// They are disposable views, ephemeral claim markers and session-bound locks,
+// so they are never worth tracking and always worth keeping out of a merge.
 const GITIGNORE_COMMENT = '# FlowCharge-managed: do not hand-edit (see fc-index.mjs)';
-const GITIGNORE_TARGETS = ['flowcharge/index.md', 'flowcharge/kanban.md', 'flowcharge/ids/'];
+const GITIGNORE_TARGETS = ['flowcharge/index.md', 'flowcharge/kanban.md', 'flowcharge/ids/', 'flowcharge/workstreams/*/.lease'];
 // A target needs no line of its own when a broader pattern already covers it:
-// a bare flowcharge/ (or flowcharge) covers all three, and a bare flowcharge/ids/ (or
-// flowcharge/ids) covers the marker directory alone.
+// a bare flowcharge/ (or flowcharge) covers all four, a bare flowcharge/ids/ (or
+// flowcharge/ids) covers the marker directory alone, and a bare .lease or
+// flowcharge/workstreams/ (or flowcharge/workstreams) covers the lease files.
 const GITIGNORE_COVERS = {
   'flowcharge/index.md': ['flowcharge/index.md', 'flowcharge/', 'flowcharge'],
   'flowcharge/kanban.md': ['flowcharge/kanban.md', 'flowcharge/', 'flowcharge'],
   'flowcharge/ids/': ['flowcharge/ids/', 'flowcharge/ids', 'flowcharge/', 'flowcharge'],
+  'flowcharge/workstreams/*/.lease': ['flowcharge/workstreams/*/.lease', '.lease', 'flowcharge/workstreams/', 'flowcharge/workstreams', 'flowcharge/', 'flowcharge'],
 };
 
 // Append-only: every pre-existing line is copied through unchanged and in its
@@ -309,8 +312,9 @@ const ORPHAN_GRACE_DAYS = 1;
 // The board truncates a workstream's card description at this width, so a
 // longer first body line loses its tail on the board.
 const CARD_DESC_MAX = 200;
-// A workstream lease held past this many minutes is reported as stale. The
-// value SKILL.md publishes as LEASE_STALE_MINUTES; the two must not drift.
+// A workstream lease whose last heartbeat, or its acquisition when it carries
+// none, is older than this many minutes is reported as stale. The value
+// SKILL.md publishes as LEASE_STALE_MINUTES; the two must not drift.
 const LEASE_STALE_MINUTES = 60;
 // An undefined tag names a pool entry as its likely intent only when it sits
 // this close to one. The check is deliberately literal: a typo backstop, not
@@ -882,7 +886,9 @@ function checkIds(artefacts, byId, idsDir, registry) {
 // else: not the ID graph, not the registry, not the artefact records. It
 // reports and never deletes. Acquiring and releasing a lease stays in
 // SKILL.md, and a lease the generator removed would be a lock removed by a
-// process that never held it.
+// process that never held it. A lease's age runs from its heartbeat, the last
+// write its holder made, and from acquired for a lease written before
+// heartbeats existed.
 const ageInMinutes = (ms) => {
   const n = Math.floor(ms / 60000);
   return `${n} minute${n === 1 ? '' : 's'}`;
@@ -897,14 +903,18 @@ function checkLeases(wsDirs) {
     const text = fs.readFileSync(leasePath, 'utf8');
     const session = (text.match(/^session:[ \t]*(.*)$/m) || ['', ''])[1].trim();
     const acquired = (text.match(/^acquired:[ \t]*(.*)$/m) || ['', ''])[1].trim();
-    const at = Date.parse(acquired);
+    const heartbeat = (text.match(/^heartbeat:[ \t]*(.*)$/m) || ['', ''])[1].trim();
     // A lease the running session holds is fresh and correct, so it is the age
-    // that fires, never the presence. An unparseable timestamp yields no age at
-    // all: it is reported by neither branch rather than crashing the run.
+    // that fires, never the presence. The age runs from the last heartbeat, or
+    // from acquired for a lease that carries none. A lease where neither
+    // timestamp parses yields no age at all: it is reported by neither branch
+    // rather than crashing the run.
+    const beat = Date.parse(heartbeat);
+    const at = Number.isNaN(beat) ? Date.parse(acquired) : beat;
     if (Number.isNaN(at)) continue;
     const age = now - at;
     if (age > LEASE_STALE_MINUTES * 60000) {
-      out.push(`flowcharge/workstreams/${dir}/.lease: held by session ${session} for ${ageInMinutes(age)}, stale`);
+      out.push(`flowcharge/workstreams/${dir}/.lease: held by session ${session}, silent for ${ageInMinutes(age)}, stale`);
     }
   }
   return out;
@@ -1535,7 +1545,7 @@ if (fs.existsSync(registryPath)) {
 // links: and issues: cross-references.
 for (const w of checkIds(artefacts, byId, idsDir, reg)) warnings.push(w);
 
-// Workstream leases held past LEASE_STALE_MINUTES. Reported only: no mode of
+// Workstream leases silent past LEASE_STALE_MINUTES. Reported only: no mode of
 // this script ever deletes a lease.
 const leaseDirs = fs.readdirSync(wsRoot, { withFileTypes: true })
   .filter((d) => d.isDirectory()).map((d) => d.name).sort();

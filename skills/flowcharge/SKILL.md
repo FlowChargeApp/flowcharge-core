@@ -403,7 +403,19 @@ Notes:
   point its trigger names.
 - **execute-tasks**: first Read the task list and enumerate its parent
   tasks. Then loop in file order: run the stage file for one parent task, with
-  `{parent_task}` as its number, evaluate its result, and only then begin the next. If a
+  `{parent_task}` as its number, evaluate its result, and only then begin the next.
+  Refresh the lease (see FlowCharge Core upkeep, The lease file) before each task
+  that has no children, the baseline run included, and before each child task,
+  never for a parent task that has children. A parent's children run inside one run
+  of the stage file, so write each child's refresh yourself before you start that
+  child's steps: it is lease upkeep, not a step of the stage file (see Sanctioned
+  deviations). Each refresh passes `stage` `execute-tasks`, the task list's ID as
+  `artefact`, the task's number as `task` (`<N>`, or `<N>.<K>` for a child), its
+  title (the text after `<N>. `, or after `<N>.<K> ` for a child, on its task-list
+  line) as `task_title`, as `task_started` the time that task begins, read once with
+  `node -e "console.log(new Date().toISOString())"` and passed unchanged to every
+  refresh within it, and the note `parent task <N> of <M>`, with `, subtask <N>.<K>`
+  appended for a child and `, baseline run` for the baseline run. If a
   result reports an abort or a checklist item that stays failed, halt per rule 7. A NOT
   CHECKED item is no failure: lift every one, with its reason, from each parent task's
   result into the run's final report, at every tier. Apply hard rule 13 once, before the
@@ -506,6 +518,9 @@ These, and nothing else:
   many there are.
 - In execute-parent-task, the loop mechanics live in this skill, not the stage file;
   the stage file covers one parent task only.
+- In execute-parent-task, you write the lease refresh before each child task (see
+  Operations, execute-tasks) inside the stage run, before that child's steps; the
+  stage file's limit on changing other files does not cover the `.lease`.
 
 ## Chaining
 
@@ -686,6 +701,38 @@ hand-editing the board. The regeneration command:
 node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root>
 ```
 
+- **The lease file**: `<workstream folder>/.lease` marks a run working in that
+  workstream now. It holds one `key: value` line per key, in this order: `session`,
+  the token the acquire command prints, and `acquired`, the acquire time, both
+  written at Start of run and never changed; then `heartbeat`, the time of the
+  latest refresh, `stage`, the Operations table name of the stage the run begins
+  next (`upkeep` once only the end-of-run bookkeeping remains), `artefact`, the ID
+  of the artefact that stage works on, `task`, the number of the task now running,
+  a task number such as `3` or a dotted child number such as `3.1`, `task_title`,
+  that task's title, copied from its task-list line, `task_started`, the time that
+  task began, the same on every refresh within it, and `note`, one line on progress
+  inside the stage, such as `parent task 3 of 7, subtask 3.1`, all seven written by
+  every refresh. Times are ISO 8601 UTC. Only the refresh before a child task or a
+  task with no children (see Operations, execute-tasks) sets `task`, `task_title`
+  and `task_started`; every other refresh writes them empty, so a finished task
+  stops showing as current once its stage ends. `artefact` and `note` are left
+  empty when there is nothing to name. An empty value is written as the key, a
+  colon and a space, with nothing after them. A reader finds each value by key
+  name, reads a missing key as no value, and reads `task` as text. The refresh
+  collapses every whitespace run in `task_title` and `note`, line breaks included,
+  to one space.
+  A refresh replaces the whole file through a temporary file in the same folder and
+  a rename, so a reader never sees a half-written lease, e.g.
+  `node -e "const fs=require('fs'),[p,t,s='',a='',i='',u='',b='',n='']=process.argv.slice(1),x=p+'.'+require('crypto').randomUUID()+'.tmp';try{const k=fs.readFileSync(p,'utf8').split('\n').filter(l=>/^(session|acquired):/.test(l));if(k.indexOf('session: '+t)<0)process.exit(1);fs.writeFileSync(x,[...k,'heartbeat: '+new Date().toISOString(),'stage: '+s,'artefact: '+a,'task: '+i,'task_title: '+u.replace(/\s+/g,' '),'task_started: '+b,'note: '+n.replace(/\s+/g,' ')].join('\n')+'\n');fs.renameSync(x,p)}catch(e){try{fs.unlinkSync(x)}catch{}process.exit(2)}" '<path>/.lease' '<token>' '<stage>' '<artefact>' '<task>' '<task_title>' '<task_started>' '<note>'`.
+  It exits 1 when no line of the file reads `session: <token>`, and 2 when the file
+  is missing or the write fails. On either exit this run no longer holds the
+  workstream's lease: halt per hard rule 7 and say so in the report. Each value
+  reaches the command as one single-quoted argument: write a single quote inside a
+  value, such as an apostrophe in a task title, with the shell's escape for it
+  (`'\''` in a POSIX shell).
+  **No script can check** that a run refreshes the lease at every write point,
+  because no script reads a run; `fc-index.mjs` reports only a lease whose age
+  passes `LEASE_STALE_MINUTES`.
 - **Start of run**: this bullet does not run for a `backlog-add` operation. That
   operation's workstreams are its output, and `templates/kanban-add.md` steps 1 to 4
   create each one inside that stage. A run whose only operation is `backlog-add`
@@ -712,16 +759,22 @@ node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root>
   which fails with `EEXIST` (exit 1) only if a lease already exists. On success, it
   prints the random session token it wrote. Keep that token for the rest of the run:
   it is how this run recognizes its own lease, and it depends on no agent or host
-  environment. Then proceed. On `EEXIST`, read the existing file's `acquired` timestamp and compute
-  its age: if under 60 minutes (`LEASE_STALE_MINUTES = 60`), halt per hard rule 7.
+  environment. Then proceed. On `EEXIST`, read the existing file's `heartbeat` timestamp,
+  or its `acquired` timestamp when it carries no `heartbeat`, and compute its age from
+  that: if under 60 minutes (`LEASE_STALE_MINUTES = 60`), halt per hard rule 7.
   Report the holding `session` value and the lease's age instead of proceeding, and
   do not wait or retry; the report may also note that the user can delete the
   `.lease` file by hand if they are certain the holding session is dead. If 60
   minutes or older, the lease is stale: delete it and retry the exclusive create
-  once, then proceed. Then regenerate.
+  once, then proceed. Once this run holds the lease, acquired or reclaimed, refresh
+  it (see The lease file) with the first stage of the announced pipeline as `stage`,
+  and that stage's input artefact as `artefact` when it already exists. Then
+  regenerate.
 - **When execution starts**: once the execute prompt is approved, and before the
   execute-tasks stage begins, set the workstream's `workstream.md` status to
-  `in-progress`, bump `updated`, and regenerate with the command above. Execution is
+  `in-progress`, bump `updated`, refresh the lease (see The lease file) with `stage`
+  `execute-tasks`, the task list's ID as `artefact` and an empty `note`, and
+  regenerate with the command above. Execution is
   the first stage that changes project code, so this is the point at which the board
   must say the work is running. This step is the one and only place `in-progress` is
   ever set, for a fresh workstream and a resumed one alike.
@@ -736,7 +789,9 @@ node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root>
   `^- \[( |x)\] ISS-\d+-[0-9a-z]{6}\.`, and `feature` when a file matching
   `PLN-*-plan.md` exists in that folder (appending to the end of the array without reordering it, never
   writing a tag the array already holds and never duplicating an entry, and doing
-  so whichever tag mode produced the workstream's other tags) and regenerate.
+  so whichever tag mode produced the workstream's other tags). After any stage,
+  refresh the lease (see The lease file) with the stage that begins next as `stage`,
+  or `upkeep` when only the end-of-run bookkeeping remains, then regenerate.
   Relay any WARN lines the script prints into your stage report.
 - **Successful end of run**: this bookkeeping runs once the run's last work stage
   has finished (execute-tasks, or whichever authoring stage the run ended on) and,

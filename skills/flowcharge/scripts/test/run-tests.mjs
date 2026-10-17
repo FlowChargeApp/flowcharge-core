@@ -1853,14 +1853,29 @@ testCase('--init --no-board writes index.md only and leaves kanban.md untouched'
   });
 });
 
-testCase('--init appends the standard three lines to a project with no .gitignore yet', () => {
+testCase('--init appends the standard four lines to a project with no .gitignore yet', () => {
   withNoWorkstreamsFixture({}, (dir) => {
     const res = runGenerator(dir, ['--init']);
     assert.strictEqual(res.status, 0, `--init exited ${res.status}\n${res.stderr}`);
     const gi = readRel(dir, '.gitignore');
-    for (const line of ['flowcharge/index.md', 'flowcharge/kanban.md', 'flowcharge/ids/']) {
+    for (const line of ['flowcharge/index.md', 'flowcharge/kanban.md', 'flowcharge/ids/', 'flowcharge/workstreams/*/.lease']) {
       assert.ok(gi.includes(line), `--init did not add "${line}" to .gitignore:\n${gi}`);
     }
+  });
+});
+
+// The upgrade path: a project whose .gitignore already holds the three earlier
+// lines gains the lease line, after the managed comment it lacks, and nothing
+// else changes.
+testCase('a writing run appends only the lease line to a .gitignore holding the other three', () => {
+  const before = 'flowcharge/index.md\nflowcharge/kanban.md\nflowcharge/ids/\n';
+  withFixture(baseTree({ '.gitignore': before }), (dir) => {
+    const res = runGenerator(dir, []);
+    assert.strictEqual(res.status, 0, `the default mode exited ${res.status}\n${res.stderr}`);
+    assert.strictEqual(
+      readRel(dir, '.gitignore'),
+      `${before}# FlowCharge-managed: do not hand-edit (see fc-index.mjs)\nflowcharge/workstreams/*/.lease\n`,
+    );
   });
 });
 
@@ -2200,14 +2215,26 @@ testCase('clean: an empty issues array on a task line is not a reference', () =>
 });
 
 // ---- cases: leases and the registry header ---------------------------------
-// The lease cases fix the acquired timestamp in the fixture rather than letting
-// the clock decide it, because the age the WARN reports is derived from it. The
-// two ages sit clearly on each side of the sixty-minute boundary.
+// The lease cases fix the acquired timestamp, and the heartbeat timestamp where
+// one is given, in the fixture rather than letting the clock decide them,
+// because the age the WARN reports is derived from them. The ages sit clearly
+// on each side of the sixty-minute boundary.
 
 const LEASE1 = 'flowcharge/workstreams/WS-1-abcdef-alpha/.lease';
 
-const lease = (session, minutesAgo) =>
-  `session: ${session}\nacquired: ${new Date(Date.now() - minutesAgo * 60000).toISOString()}\n`;
+const minutesAgoIso = (minutes) => new Date(Date.now() - minutes * 60000).toISOString();
+
+// A third argument adds the seven keys every refresh writes, with the heartbeat
+// that many minutes ago. The refresh before child task 1.1 set the task keys, so
+// the task's start time is the heartbeat time. Without it the lease is the
+// two-key form an acquire writes, the form every lease took before heartbeats
+// existed.
+const lease = (session, minutesAgo, heartbeatMinutesAgo) => {
+  const head = `session: ${session}\nacquired: ${minutesAgoIso(minutesAgo)}\n`;
+  if (heartbeatMinutesAgo === undefined) return head;
+  const beat = minutesAgoIso(heartbeatMinutesAgo);
+  return `${head}heartbeat: ${beat}\nstage: execute-tasks\nartefact: TL-1-abcdef\ntask: 1.1\ntask_title: Fixture subtask\ntask_started: ${beat}\nnote: parent task 1 of 2, subtask 1.1\n`;
+};
 
 // The header a registry carried before the script owned the text: the
 // read-and-write-back method, which --claim replaced.
@@ -2223,11 +2250,101 @@ testCase('clean: a lease acquired five minutes ago warns about nothing', () => {
   });
 });
 
-testCase('a lease held past sixty minutes warns with its session and its age', () => {
+testCase('a lease with no heartbeat, acquired past sixty minutes ago, warns from its acquire time', () => {
   withFixture(baseTree({ [LEASE1]: lease('sess-stale', 90.5) }), (dir) => {
     expectWarns(dir, [
-      'flowcharge/workstreams/WS-1-abcdef-alpha/.lease: held by session sess-stale for 90 minutes, stale',
+      'flowcharge/workstreams/WS-1-abcdef-alpha/.lease: held by session sess-stale, silent for 90 minutes, stale',
     ]);
+  });
+});
+
+// Acquired at 120 minutes and silent for 90.5: a generator still measuring from
+// acquired would report 120, so the expected line also proves the age source.
+testCase('a lease whose heartbeat is past sixty minutes old warns with its session and its silence', () => {
+  withFixture(baseTree({ [LEASE1]: lease('sess-silent', 120, 90.5) }), (dir) => {
+    expectWarns(dir, [
+      'flowcharge/workstreams/WS-1-abcdef-alpha/.lease: held by session sess-silent, silent for 90 minutes, stale',
+    ]);
+  });
+});
+
+// A run longer than sixty minutes keeps its lease fresh by refreshing it.
+testCase('clean: a lease acquired long ago with a fresh heartbeat warns about nothing', () => {
+  withFixture(baseTree({ [LEASE1]: lease('sess-live', 120, 5) }), (dir) => {
+    expectWarns(dir, []);
+  });
+});
+
+// The refresh command lives only in SKILL.md, so these cases run the copy a run
+// follows: the script of the one inline code span that holds it, passed to
+// node -e unchanged. Bash leaves \n and \s as typed inside the span's double
+// quotes, so the shell passes node the same text.
+const SKILL_MD = path.resolve(HERE, '..', '..', 'SKILL.md');
+const REFRESH_SPAN_RE = /`node -e "(const fs=require\('fs'\),\[p,t,[^`]*?)" '<path>\/\.lease'[^`]*`/g;
+
+// Runs the refresh with the given values against the fixture lease held by
+// sess-live, then checks its lines in key order (the heartbeat by its shape),
+// that no temporary file is left, and that --check warns about nothing.
+const refreshAndRead = (dir, script, acquired, values, expected) => {
+  const leasePath = path.join(dir, LEASE1);
+  const res = spawnSync(process.execPath, ['-e', script, leasePath, 'sess-live', ...values], { encoding: 'utf8' });
+  assert.strictEqual(res.status, 0, `the refresh exited ${res.status}\n${res.stderr}`);
+  const lines = fs.readFileSync(leasePath, 'utf8').split('\n');
+  assert.strictEqual(lines.pop(), '', 'the lease does not end in a newline');
+  assert.match(lines[2] || '', /^heartbeat: \d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/, 'the heartbeat line is not an ISO 8601 UTC time');
+  assert.deepStrictEqual(
+    [lines[0], lines[1], ...lines.slice(3)],
+    ['session: sess-live', `acquired: ${acquired}`, ...expected],
+    'the lease lines or their order differ',
+  );
+  assert.deepStrictEqual(
+    fs.readdirSync(path.dirname(leasePath)).filter((f) => f.endsWith('.tmp')),
+    [],
+    'the refresh left a temporary file behind',
+  );
+  expectWarns(dir, []);
+};
+
+// The first run is the refresh before a task with no children, the second a
+// refresh at a stage change.
+testCase('the lease refresh command in SKILL.md writes the three task keys, set and empty', () => {
+  const spans = [...fs.readFileSync(SKILL_MD, 'utf8').matchAll(REFRESH_SPAN_RE)];
+  assert.strictEqual(spans.length, 1, `expected one refresh command in SKILL.md, found ${spans.length}`);
+  const script = spans[0][1];
+  const acquired = minutesAgoIso(5);
+  withFixture(baseTree({ [LEASE1]: `session: sess-live\nacquired: ${acquired}\n` }), (dir) => {
+    refreshAndRead(dir, script, acquired,
+      ['execute-tasks', 'TL-1-abcdef', '3', "Pin the\n  lease's   format", '2026-10-16T01:02:03.004Z', 'parent task 3 of 5'],
+      ['stage: execute-tasks', 'artefact: TL-1-abcdef', 'task: 3', "task_title: Pin the lease's format",
+        'task_started: 2026-10-16T01:02:03.004Z', 'note: parent task 3 of 5'],
+    );
+    refreshAndRead(dir, script, acquired,
+      ['upkeep', 'TL-1-abcdef', '', '', '', ''],
+      ['stage: upkeep', 'artefact: TL-1-abcdef', 'task: ', 'task_title: ', 'task_started: ', 'note: '],
+    );
+  });
+});
+
+// The runs follow an execute-tasks stage in order: the baseline run of the
+// test-run task, then the refresh before child task 1.1. A dotted task number
+// is text, and the baseline note keeps its suffix, so both reach the lease
+// exactly as given.
+testCase('the lease refresh command in SKILL.md writes a dotted subtask number and the baseline note as given', () => {
+  const spans = [...fs.readFileSync(SKILL_MD, 'utf8').matchAll(REFRESH_SPAN_RE)];
+  assert.strictEqual(spans.length, 1, `expected one refresh command in SKILL.md, found ${spans.length}`);
+  const script = spans[0][1];
+  const acquired = minutesAgoIso(5);
+  withFixture(baseTree({ [LEASE1]: `session: sess-live\nacquired: ${acquired}\n` }), (dir) => {
+    refreshAndRead(dir, script, acquired,
+      ['execute-tasks', 'TL-1-abcdef', '5', "Test-run task: run the project's test suites", '2026-10-17T01:02:03.004Z', 'parent task 5 of 5, baseline run'],
+      ['stage: execute-tasks', 'artefact: TL-1-abcdef', 'task: 5', "task_title: Test-run task: run the project's test suites",
+        'task_started: 2026-10-17T01:02:03.004Z', 'note: parent task 5 of 5, baseline run'],
+    );
+    refreshAndRead(dir, script, acquired,
+      ['execute-tasks', 'TL-1-abcdef', '1.1', 'Refresh the lease before each leaf task', '2026-10-17T01:05:06.007Z', 'parent task 1 of 5, subtask 1.1'],
+      ['stage: execute-tasks', 'artefact: TL-1-abcdef', 'task: 1.1', 'task_title: Refresh the lease before each leaf task',
+        'task_started: 2026-10-17T01:05:06.007Z', 'note: parent task 1 of 5, subtask 1.1'],
+    );
   });
 });
 
