@@ -4,7 +4,7 @@ type: plan
 workstream: WS-29-w3jbov
 slug: count-only-executable-tasks
 title: "Count only executable tasks in task-list progress"
-status: ready
+status: done
 created: 2026-10-24
 updated: 2026-10-24
 author: Anthony Koukoullis

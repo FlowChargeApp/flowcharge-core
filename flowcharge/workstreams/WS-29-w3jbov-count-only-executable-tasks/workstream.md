@@ -4,7 +4,7 @@ type: workstream
 workstream: WS-29-w3jbov
 slug: count-only-executable-tasks
 title: "Count only executable tasks in task-list progress totals"
-status: in-progress
+status: done
 tags: [correctness, generator, board, feature]
 created: 2026-10-17
 updated: 2026-10-24
