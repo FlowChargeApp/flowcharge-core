@@ -1042,6 +1042,51 @@ testCase('a second --sync run changes no file and prints no SYNC line', () => {
   });
 });
 
+// A parent task that has children only groups them and never runs, so the
+// progress figure counts child tasks and tasks with no children, and a parent's
+// own tick changes nothing. The list below holds five task lines and four
+// steps, two of them ticked, so the old all-lines figure would read 3/5.
+testCase('task-list progress counts executable tasks only, in --list, the index table and the workstream row', () => {
+  const TL2 = 'flowcharge/workstreams/WS-1-abcdef-alpha/TL-2-abcdef-tasklist.md';
+  const grouped = tasklist({
+    id: 'TL-1-abcdef',
+    tasks: [
+      taskLine(1, true, 'Parent group'),
+      '  - [x] 1.1. Child one\n',
+      '  - [ ] 1.2. Child two\n',
+      taskLine(2, false, 'Adult open'),
+      taskLine(3, true, 'Adult done'),
+    ],
+  });
+  const flat = tasklist({ id: 'TL-2-abcdef', tasks: [taskLine(1, true), taskLine(2, false)] });
+  withFixture(baseTree({ [TL1]: grouped, [TL2]: flat }, { TL: 2 }), (dir) => {
+    const listed = runGenerator(dir, ['--list', 'tasklists']);
+    assert.strictEqual(listed.status, 0, `--list exited ${listed.status}\n${listed.stderr}`);
+    assert.ok(listed.stdout.includes('| 2/4 |'), `--list tasklists does not show 2/4 for the grouped list:\n${listed.stdout}`);
+    const gen = runGenerator(dir, []);
+    assert.strictEqual(gen.status, 0, `default mode exited ${gen.status}\n${gen.stderr}`);
+    const taskRows = indexSection(dir, 'Task lists');
+    assert.ok(taskRows.some((l) => l.includes('| 2/4 |')), `the Task lists table does not show 2/4:\n${taskRows.join('\n')}`);
+    assert.ok(!taskRows.some((l) => l.includes('| 3/5 |')), `the Task lists table still counts the parent task:\n${taskRows.join('\n')}`);
+    assert.ok(taskRows.some((l) => l.includes('| 1/2 |')), `the Task lists table changed the figure of a list without parents:\n${taskRows.join('\n')}`);
+    const wsRows = indexSection(dir, 'Workstreams');
+    assert.ok(wsRows.some((l) => l.includes('TL-1-abcdef (ready 2/4)')), `the Workstreams table does not show 2/4:\n${wsRows.join('\n')}`);
+  });
+});
+
+// The rule that closes a list reads every task line, so a parent left unticked
+// keeps the list open even when each child is ticked.
+testCase('a list whose children are ticked but whose parent is not stays open', () => {
+  const open = tasklist({
+    id: 'TL-1-abcdef',
+    tasks: [taskLine(1, false, 'Parent group'), '  - [x] 1.1. Child one\n', '  - [x] 1.2. Child two\n'],
+  });
+  withFixture(baseTree({ [TL1]: open }, { TL: 1 }), (dir) => {
+    expectSync(dir, []);
+    expectWarns(dir, []);
+  });
+});
+
 testCase('--sync never closes a workstream owning no artefact', () => {
   const wsText = workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', status: 'ready' });
   withFixture(baseTree({ [WS1]: wsText }), (dir) => {
