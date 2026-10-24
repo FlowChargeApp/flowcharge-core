@@ -92,7 +92,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
       unverified: []
       failures: []
 
-- [ ] 2. Test-update task: bring the tests in line with this change
+- [x] 2. Test-update task: bring the tests in line with this change
   ```yaml
   description: "Update every test the other tasks make wrong or out of date; add only the tests the source asks for"
   test_update: true
@@ -109,8 +109,26 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "grep -cF '| 1/2 |' skills/flowcharge/scripts/test/run-tests.mjs  # expect 1, the flat list's unchanged figure; 0 at base_commit"
     - "grep -cF 'TL-2-abcdef-tasklist.md' skills/flowcharge/scripts/test/run-tests.mjs  # expect 1; 0 at base_commit"
   self_eval:
-    passed: false
-    evidence: []
+    passed: true
+    evidence:
+      - item: "verify 1"
+        result: YES
+        measured: "source: grep -cF of the progress case name returned 1"
+      - item: "verify 2"
+        result: YES
+        measured: "source: grep -cF of the close-rule case name returned 1"
+      - item: "verify 3"
+        result: YES
+        measured: "source: grep -cF of | 2/4 | returned 2"
+      - item: "verify 4"
+        result: YES
+        measured: "source: grep -cF of TL-1-abcdef (ready 2/4) returned 1"
+      - item: "verify 5"
+        result: YES
+        measured: "source: grep -cF of | 1/2 | returned 1"
+      - item: "verify 6"
+        result: YES
+        measured: "source: grep -cF of TL-2-abcdef-tasklist.md returned 1"
 
 - [ ] 3. Test-run task: run the project's test suites
   ```yaml
