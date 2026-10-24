@@ -426,8 +426,10 @@ function parseIssues(text, file) {
 }
 
 // Task-tracker lines only: "- [ ] N." (parent/adult), "  - [ ] N.M" (child).
-// Returns the open/total counts the index and --list render, plus one item per
-// task carrying its number as written, the ids of its issues: key, the shape
+// Returns the open/total counts of every task line, which drive the rule that
+// closes a list; the steps/stepsOpen counts of child tasks and top-level tasks
+// with no children, the executable ones, which drive the progress figure; plus
+// one item per task carrying its number as written, the ids of its issues: key, the shape
 // keys the mini audit reads (pattern:, verify:, checklist:), the pattern value,
 // and whether a child line sits beneath it. An indented key belongs to the last
 // task line seen above it, which is how task YAML is written; an empty issues
@@ -442,7 +444,7 @@ function parseTasks(text) {
       list = null;
       total++;
       if (/\[ \]/.test(line.slice(0, 8))) open++;
-      current = { n: t[2], issues: [], keys: new Set(), pattern: '', hasChildren: false };
+      current = { n: t[2], issues: [], keys: new Set(), pattern: '', hasChildren: false, checked: !/\[ \]/.test(line.slice(0, 8)) };
       items.push(current);
       if (t[2].includes('.')) { if (lastTop) lastTop.hasChildren = true; } else lastTop = current;
       continue;
@@ -493,8 +495,12 @@ function parseTasks(text) {
       if (f && e && f[2] === 'blocking') e.blocking = unquoteScalar(f[3].trim()) !== 'false';
     }
   }
-  return { open, total, items };
+  const steps = items.filter((i) => !i.hasChildren);
+  return { open, total, steps: steps.length, stepsOpen: steps.filter((i) => !i.checked).length, items };
 }
+
+// The progress figure counts executable tasks only: ticked steps over steps.
+const progress = (t) => `${t.steps - t.stepsOpen}/${t.steps}`;
 
 // The mini-shape audit fc-task-list's Mini shape names. A mini task carries
 // verify: and no checklist:; a parent carries neither and a full task both. Two
@@ -1094,7 +1100,7 @@ function selectRows(items, opts) {
     cols = [['ID', 'id'], ...wsCol, ['Title', 'title'], ['Status', 'status'], ['Progress', 'progress'], ['Updated', 'updated']];
     recs = live
       .filter((a) => a.type === 'tasklist' && inWs(a))
-      .map((a) => ({ ...a, progress: `${a.tasks.total - a.tasks.open}/${a.tasks.total}` }));
+      .map((a) => ({ ...a, progress: progress(a.tasks) }));
   } else if (scope === 'all') {
     cols = [['ID', 'id'], ['Type', 'type'], ...wsCol, ['Title', 'title'], ['Status', 'status'], ['Updated', 'updated']];
     recs = live.filter(inWs);
@@ -1587,7 +1593,7 @@ const wsArtefacts = (ws) =>
     .filter((a) => a.workstream === ws.id && a.type !== 'workstream')
     .map((a) => {
       let extra = '';
-      if (a.type === 'tasklist') extra = ` ${a.tasks.total - a.tasks.open}/${a.tasks.total}`;
+      if (a.type === 'tasklist') extra = ` ${progress(a.tasks)}`;
       if (a.type === 'issuelist') {
         const open = a.issues.filter((i) => i.status !== 'done' && i.status !== 'dropped').length;
         extra = ` ${a.issues.length - open}/${a.issues.length}`;
@@ -1615,7 +1621,7 @@ idx += `\n## Open issues (${openIssues.length})\n\n| ID | Severity | Status | Au
 for (const i of openIssues) idx += `| ${listCell(i.id)} | ${listCell(i.severity)} | ${listCell(i.status)} | ${listCell(i.author || 'unknown')} | ${listCell(i.title)} | ${listCell(i.file)} |\n`;
 idx += `\n## Task lists\n\n| ID | Workstream | Mode | Done/Total | Status | Author |\n|---|---|---|---|---|---|\n`;
 for (const a of artefacts.filter((x) => x.type === 'tasklist' && !x.archived)) {
-  idx += `| ${listCell(a.id)} | ${listCell(a.workstream)} | ${listCell(a.mode || '?')} | ${listCell(`${a.tasks.total - a.tasks.open}/${a.tasks.total}`)} | ${listCell(a.status)} | ${listCell(a.author || 'unknown')} |\n`;
+  idx += `| ${listCell(a.id)} | ${listCell(a.workstream)} | ${listCell(a.mode || '?')} | ${listCell(progress(a.tasks))} | ${listCell(a.status)} | ${listCell(a.author || 'unknown')} |\n`;
 }
 const archivedWs = workstreams.filter((w) => w.archived).sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
 idx += `\n## Archived (${archivedWs.length})\n\n`;
