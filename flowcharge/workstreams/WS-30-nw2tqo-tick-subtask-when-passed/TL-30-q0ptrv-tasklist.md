@@ -107,7 +107,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
       unverified: []
       failures: []
 
-- [ ] 2. Add the changelog entry
+- [x] 2. Add the changelog entry
   ```yaml
   description: "CHANGELOG.md gains a ## Unreleased section with a Changed entry for the per-subtask tick. Realises PLN-26-4hmfwm stage 2 (criterion 7)."
   pattern: "CHANGELOG.md"
@@ -119,8 +119,17 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "grep -cF 'The executor ticks each subtask in the task list as soon as that subtask' CHANGELOG.md  # expect 1; 0 at base_commit"
     - "grep -n '^## ' CHANGELOG.md | head -2  # expect '## Unreleased' on the first line and '## 0.5.1 - 2026-10-13' on the second; the first line is '## 0.5.1 - 2026-10-13' at base_commit"
   self_eval:
-    passed: false
-    evidence: []
+    passed: true
+    evidence:
+      - item: "verify 1"
+        result: YES
+        measured: "source: grep -c of the Unreleased heading returned 1"
+      - item: "verify 2"
+        result: YES
+        measured: "source: grep -cF of the entry's first line returned 1"
+      - item: "verify 3"
+        result: YES
+        measured: "source: the first two headings are '## Unreleased' and '## 0.5.1 - 2026-10-13'"
     unverified: []
     failures: []
 
