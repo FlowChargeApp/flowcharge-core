@@ -4,7 +4,7 @@ type: workstream
 workstream: WS-30-nw2tqo
 slug: tick-subtask-when-passed
 title: "Tick each subtask checkbox as soon as it passes"
-status: in-progress
+status: done
 tags: [orchestration, prompts, feature]
 created: 2026-10-25
 updated: 2026-10-25
