@@ -155,7 +155,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         result: YES
         measured: "source: grep -cF of the tick-by-tick case name returned 1"
 
-- [ ] 4. Test-run task: run the project's test suites
+- [x] 4. Test-run task: run the project's test suites
   ```yaml
   description: "Run every command in the frontmatter test_commands after every other task"
   test_run: full
@@ -164,8 +164,8 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
   verify:
     - "Every command in the frontmatter test_commands, in order, from the project root"
   self_eval:
-    passed: false
-    test_run_result: pending
+    passed: true
+    test_run_result: passed
     test_run_baseline: []
     test_run_failures: []
   ```
