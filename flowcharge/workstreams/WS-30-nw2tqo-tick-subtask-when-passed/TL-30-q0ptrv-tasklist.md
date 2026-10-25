@@ -133,7 +133,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     unverified: []
     failures: []
 
-- [ ] 3. Test-update task: bring the tests in line with this change
+- [x] 3. Test-update task: bring the tests in line with this change
   ```yaml
   description: "Update every test the other tasks make wrong or out of date; add only the tests the source asks for"
   test_update: true
@@ -146,8 +146,14 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "grep -cF \"testCase('the executor stage file ticks each subtask as it passes'\" skills/flowcharge/scripts/test/run-tests.mjs  # expect 1; 0 at base_commit"
     - "grep -cF \"testCase('a parent with three children shows each tick as it lands, counted by task line and by step'\" skills/flowcharge/scripts/test/run-tests.mjs  # expect 1; 0 at base_commit"
   self_eval:
-    passed: false
-    evidence: []
+    passed: true
+    evidence:
+      - item: "verify 1"
+        result: YES
+        measured: "source: grep -cF of the stage-file case name returned 1"
+      - item: "verify 2"
+        result: YES
+        measured: "source: grep -cF of the tick-by-tick case name returned 1"
 
 - [ ] 4. Test-run task: run the project's test suites
   ```yaml

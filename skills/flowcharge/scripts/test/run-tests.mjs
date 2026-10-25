@@ -1087,6 +1087,30 @@ testCase('a list whose children are ticked but whose parent is not stays open', 
   });
 });
 
+// During a parent task the file shows each child ticked as it passes and the
+// parent unticked until its last child is ticked, so a reader that counts task
+// lines sees progress at every step.
+testCase('a parent with three children shows each tick as it lands, counted by task line and by step', () => {
+  for (let s = 0; s <= 4; s++) {
+    const children = [1, 2, 3].map((i) => `  - [${i <= s ? 'x' : ' '}] 1.${i}. Child\n`);
+    const text = tasklist({ id: 'TL-1-abcdef', tasks: [taskLine(1, s === 4, 'Parent group'), ...children] });
+    withFixture(baseTree({ [TL1]: text }, { TL: 1 }), (dir) => {
+      const onDisk = readRel(dir, TL1);
+      const all = onDisk.match(/^\s*- \[[ x]\] \d+\./gm) || [];
+      const ticked = onDisk.match(/^\s*- \[x\] \d+\./gm) || [];
+      assert.strictEqual(all.length, 4, `step ${s}: found ${all.length} task lines, expected 4`);
+      assert.strictEqual(ticked.length, s, `step ${s}: found ${ticked.length} ticked task lines, expected ${s}`);
+      const listed = runGenerator(dir, ['--list', 'tasklists']);
+      assert.strictEqual(listed.status, 0, `step ${s}: --list exited ${listed.status}\n${listed.stderr}`);
+      const figure = `| ${Math.min(s, 3)}/3 |`;
+      assert.ok(listed.stdout.includes(figure), `step ${s}: --list tasklists does not show ${figure}:\n${listed.stdout}`);
+      expectWarns(dir, s === 4
+        ? [`TL-1-abcdef (${TL1}): all 4 tasks checked but status is "ready". Close it?`]
+        : []);
+    });
+  }
+});
+
 testCase('--sync never closes a workstream owning no artefact', () => {
   const wsText = workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', status: 'ready' });
   withFixture(baseTree({ [WS1]: wsText }), (dir) => {
@@ -5547,6 +5571,20 @@ testCase('fc-validate carries the discipline for validating an artefact its own 
     text.includes('judge the artefact against its cited source only, never against what you recall intending when you wrote it'),
     'fc-validate no longer tells an inline validation to judge against the cited source only',
   );
+});
+
+testCase('the executor stage file ticks each subtask as it passes', () => {
+  const text = fs.readFileSync(path.join(STAGE_FILES_DIR, 'execute-parent-task.md'), 'utf8').replace(/\s+/g, ' ');
+  for (const phrase of [
+    'Write the task list file after each subtask passes, never once at the end of the parent task',
+    'Tick a parent task with children only when every one of its children is ticked',
+    'make one more edit that ticks the parent',
+    'A re-run of a parent task with children reads the task list first',
+    'report it as already applied',
+  ]) {
+    assert.ok(text.includes(phrase), `the executor stage file no longer says: ${phrase}`);
+  }
+  assert.ok(!text.includes('Write the task list file once'), 'the executor stage file still writes the task list at the end of the parent task');
 });
 
 // ---- cases: on-demand skill sections ---------------------------------------
