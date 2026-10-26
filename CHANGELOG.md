@@ -60,6 +60,8 @@ skill mirrors it. See VERSIONING.md.
   files included.
 - `setup-labels.mjs` runs when started from a path that holds a space, through
   a symlinked folder or on Windows, instead of exiting without doing anything.
+- The test suite imports `setup-labels.mjs` through a file URL, so its label
+  table case runs on Windows and from a folder whose name holds `#`.
 
 ## 0.5.1 - 2026-10-13
 

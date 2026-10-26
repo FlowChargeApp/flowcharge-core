@@ -69,7 +69,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         fix: "restored the space; git diff ada3d08 then showed no change to the HELP line"
   ```
 
-- [ ] 2. Import setup-labels.mjs through a file URL in the table case
+- [x] 2. Import setup-labels.mjs through a file URL in the table case
   ```yaml
   description: "The setup-labels table case imports setup-labels.mjs through the file URL of its path, so the import loads on Windows and from a folder whose name holds #"
   issues: [ISS-28-40lzir]
@@ -93,7 +93,16 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "source: no import specifier in run-tests.mjs is built from a plain path"
     - "source: CHANGELOG.md's ### Fixed list under ## Unreleased ends with this fix's bullet"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - result: YES
+        measured: "source: verify 1 returned 1; line 28 imports fileURLToPath and pathToFileURL from node:url"
+      - result: YES
+        measured: "source: verify 2 returned 1 and verify 3 returned 0; git diff touches only the node:url import, the new comment and the specifier of the const script line, so the case's assertions read as at base_commit"
+      - result: YES
+        measured: "source: grep for an interpolated import specifier finds one site, line 4934, built from JSON.stringify(pathToFileURL(SETUP_LABELS).href)"
+      - result: YES
+        measured: "source: verify 4 returned 1, and the two-line bullet, at most 77 columns wide, is the last item of ### Fixed under ## Unreleased"
   ```
 
 - [ ] 3. State the four ignored paths in CONVENTIONS.md

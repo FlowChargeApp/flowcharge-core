@@ -25,7 +25,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { inflateRawSync } from 'node:zlib';
 import { LABELS } from '../../../../.github/scripts/setup-labels.mjs';
 
@@ -4930,7 +4930,8 @@ testCase('setup-labels: refuses when gh reports no authenticated host, and print
 
 testCase('setup-labels: the table holds exactly six entries, the six required names, capped descriptions, no priority label', () => {
   withLabelFixture(AUTHENTICATED_REPO_STATE, (dir, binDir) => {
-    const script = `import { LABELS } from ${JSON.stringify(SETUP_LABELS)}; process.stdout.write(JSON.stringify(LABELS));`;
+    // An import specifier is a URL, so a Windows drive path or a # in a folder name needs pathToFileURL.
+    const script = `import { LABELS } from ${JSON.stringify(pathToFileURL(SETUP_LABELS).href)}; process.stdout.write(JSON.stringify(LABELS));`;
     const res = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
       cwd: dir,
       encoding: 'utf8',
