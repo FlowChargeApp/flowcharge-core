@@ -27,6 +27,9 @@ skill mirrors it. See VERSIONING.md.
   the file from the generator.
 - `fc-index.mjs` no longer counts a checkbox line inside a fenced code block as
   an issue or a task.
+- `fc-index.mjs` reads an unquoted frontmatter value that opens with a bracket,
+  such as `author: [Bot] Alice`, as written. Only the list keys are read as
+  inline arrays.
 
 ## 0.5.1 - 2026-10-13
 

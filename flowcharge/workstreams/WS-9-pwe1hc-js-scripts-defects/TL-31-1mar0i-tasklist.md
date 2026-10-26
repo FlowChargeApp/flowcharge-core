@@ -104,7 +104,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         measured: "source: the import lines are unchanged, and the new code uses only Array.prototype.map and entries and String.prototype.search and match"
   ```
 
-- [ ] 3. Read only the schema's list keys as inline arrays in parseFrontmatter
+- [x] 3. Read only the schema's list keys as inline arrays in parseFrontmatter
   ```yaml
   description: "parseFrontmatter reads an inline array only for the keys the schema declares as lists, so a scalar such as an author name that opens with a bracket is read as written"
   issues: [ISS-12-jp4fx6]
@@ -125,7 +125,16 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "source: the author line --new-ws writes is unchanged"
     - "source: CHANGELOG.md's ### Fixed list under ## Unreleased ends with this fix's bullet"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - result: YES
+        measured: "source: LIST_KEYS holds depends_on, links, tags, e2e_tooling and test_commands, and the array branch tests LIST_KEYS.includes(km[1]) first; verify 1 and verify 2 returned 1"
+      - result: YES
+        measured: "source: the else branch passes every other value to unquoteScalar, unchanged from base_commit"
+      - result: YES
+        measured: "source: the --new-ws record still writes author: ${readGitAuthor(root)} unquoted"
+      - result: YES
+        measured: "source: verify 3 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
 - [ ] 4. Write .gitignore only after the last argument parser

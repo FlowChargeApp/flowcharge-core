@@ -381,6 +381,11 @@ function flowList(v) {
   return quoted ? quoted.map(unquoteScalar) : inner.split(',').map((s) => s.trim()).filter(Boolean);
 }
 
+// The frontmatter keys CONVENTIONS.md declares as inline arrays. Every other
+// key is a scalar, so a value that only opens with a bracket, such as an author
+// named [Bot] Alice, is read as written rather than split into a list.
+const LIST_KEYS = ['depends_on', 'links', 'tags', 'e2e_tooling', 'test_commands'];
+
 function parseFrontmatter(text) {
   const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!m) return null;
@@ -389,7 +394,7 @@ function parseFrontmatter(text) {
     const km = line.match(/^([A-Za-z_][\w-]*):\s*(.*)$/);
     if (!km) continue;
     let v = km[2].trim();
-    if (v.startsWith('[')) {
+    if (LIST_KEYS.includes(km[1]) && v.startsWith('[')) {
       const inner = v.replace(/^\[/, '').replace(/\]$/, '').trim();
       fm[km[1]] = inner
         ? inner.split(',').map((s) => unquoteScalar(s.trim())).filter(Boolean)
