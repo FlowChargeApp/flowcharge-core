@@ -1301,14 +1301,33 @@ function writeRegistryBack(type, highest) {
 // flowcharge/ids/. Exits before any integrity check or file write.
 const claimOpts = parseClaimArgs(args);
 
+// A taken --new-ws slug is refused here, after the last argument parser and
+// before both the .gitignore write and the claim below, so a refused run exits
+// 1 having written nothing and claimed nothing. An id claimed and then
+// abandoned would leave an orphan marker directory behind.
+if (newWsOpts) {
+  const { slug } = newWsOpts;
+  for (const rootSpec of ROOTS) {
+    if (!fs.existsSync(rootSpec.dir)) continue;
+    const dirs = fs.readdirSync(rootSpec.dir, { withFileTypes: true })
+      .filter((d) => d.isDirectory()).map((d) => d.name).sort();
+    for (const dir of dirs) {
+      if (dir.replace(/^WS-\d+-[0-9a-z]{6}-/, '') !== slug) continue;
+      console.error(`fc-index: slug "${slug}" is already taken by ${path.join(...rootSpec.relParts, dir)}/`);
+      process.exit(1);
+    }
+  }
+}
+
 // Self-enforcing: a clone never has to remember to gitignore the generated and
 // ephemeral paths, because every writing invocation ensures them. This is the
-// first write of any mode, placed after the last argument parser, so a run that
-// refuses its own arguments exits 1 having written nothing. --list, --check and
-// --whoami are documented as write-free, so they are excluded on flag presence
-// in argv alone, not on which mode ultimately runs or succeeds. A write failure
-// is a warning only: it must not change the exit code, and must not stop the
-// claimed ids printing or the index and board regenerating.
+// first write of any mode, placed after the last argument parser and the
+// --new-ws slug check, so a run that refuses its own arguments or a taken slug
+// exits 1 having written nothing. --list, --check and --whoami are documented
+// as write-free, so they are excluded on flag presence in argv alone, not on
+// which mode ultimately runs or succeeds. A write failure is a warning only: it
+// must not change the exit code, and must not stop the claimed ids printing or
+// the index and board regenerating.
 if (!args.includes('--list') && !args.includes('--check') && !args.includes('--whoami')) {
   try {
     ensureGitignore(root);
@@ -1333,20 +1352,6 @@ if (claimOpts) {
 // in SKILL.md, which runs after the folder exists either way.
 if (newWsOpts) {
   const { slug, title, tags, status } = newWsOpts;
-
-  // Collision first, claim second: an ID claimed and then abandoned leaves an
-  // orphan marker directory behind, so the common failure is checked before
-  // anything is claimed.
-  for (const rootSpec of ROOTS) {
-    if (!fs.existsSync(rootSpec.dir)) continue;
-    const dirs = fs.readdirSync(rootSpec.dir, { withFileTypes: true })
-      .filter((d) => d.isDirectory()).map((d) => d.name).sort();
-    for (const dir of dirs) {
-      if (dir.replace(/^WS-\d+-[0-9a-z]{6}-/, '') !== slug) continue;
-      console.error(`fc-index: slug "${slug}" is already taken by ${path.join(...rootSpec.relParts, dir)}/`);
-      process.exit(1);
-    }
-  }
 
   const { claimed, next } = allocateIds('WS', 1);
   writeRegistryBack('WS', next - 1);

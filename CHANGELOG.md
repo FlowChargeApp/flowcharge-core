@@ -54,6 +54,8 @@ skill mirrors it. See VERSIONING.md.
   own folder correctly on Windows.
 - The manifest test case accepts the date `manifest.mjs` wrote when a run
   crosses local midnight.
+- An `fc-index.mjs --new-ws` run refused for a taken slug no longer creates or
+  changes `.gitignore`.
 
 ## 0.5.1 - 2026-10-13
 

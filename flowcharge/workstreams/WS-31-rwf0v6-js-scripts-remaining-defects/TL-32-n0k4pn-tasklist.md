@@ -143,7 +143,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         measured: "source: verify 4 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
-- [ ] 3. Refuse a taken --new-ws slug before the .gitignore write
+- [x] 3. Refuse a taken --new-ws slug before the .gitignore write
   ```yaml
   description: "fc-index.mjs checks whether a live or archived folder already carries the --new-ws slug before it writes .gitignore, so that refusal writes nothing, like every other refused run"
   issues: [ISS-25-nzbdds]
@@ -167,7 +167,18 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "source: the comments above the moved check and the .gitignore write state the new order"
     - "source: CHANGELOG.md's ### Fixed list under ## Unreleased ends with this fix's bullet"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - result: YES
+        measured: "source: verify 1 printed before; the check sits at lines 1304-1320, after const claimOpts at 1302 and before ensureGitignore(root) at 1333, and loops over ROOTS, the live and archive roots"
+      - result: YES
+        measured: "source: allocateIds('WS', 1) sits at line 1356, inside the --new-ws block, after the check"
+      - result: YES
+        measured: "source: git diff shows the loop's lines removed from the --new-ws block and added unchanged at the new position; verify 2 returned 1"
+      - result: YES
+        measured: "source: the comment above the check says it runs before the .gitignore write and the claim, and the .gitignore comment names the --new-ws slug check before its write"
+      - result: YES
+        measured: "source: verify 3 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
 - [ ] 4. State the four .gitignore lines in README.md
