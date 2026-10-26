@@ -828,6 +828,28 @@ testCase('a blocked record is left out of the index ready-work section', () => {
   });
 });
 
+// CONVENTIONS.md: a plan or issue-list dependency is met once that artefact is
+// authored, at any status but backlog or dropped; any other must be done.
+testCase('ready work counts an authored plan or issue list as a met dependency', () => {
+  const folder = 'flowcharge/workstreams/WS-1-abcdef-alpha';
+  withFixture(baseTree({
+    [`${folder}/IL-1-abcdef-issuelist.md`]: issuelist({ id: 'IL-1-abcdef', issues: [issueBlock('ISS-1-abcdef')] }),
+    [`${folder}/PLN-1-abcdef-plan.md`]: plan({ id: 'PLN-1-abcdef' }),
+    [`${folder}/PLN-2-abcdef-plan.md`]: plan({ id: 'PLN-2-abcdef', status: 'backlog' }),
+    [`${folder}/TL-1-abcdef-tasklist.md`]: tasklist({ id: 'TL-1-abcdef', depends_on: ['IL-1-abcdef'], tasks: [taskLine(1, false)] }),
+    [`${folder}/TL-2-abcdef-tasklist.md`]: tasklist({ id: 'TL-2-abcdef', depends_on: ['PLN-1-abcdef'], tasks: [taskLine(1, false)] }),
+    [`${folder}/TL-3-abcdef-tasklist.md`]: tasklist({ id: 'TL-3-abcdef', depends_on: ['PLN-2-abcdef'], tasks: [taskLine(1, false)] }),
+  }, { PLN: 2, IL: 1, TL: 3, ISS: 1 }), (dir) => {
+    const { status, stderr } = runGenerator(dir, []);
+    assert.strictEqual(status, 0, `default mode exited ${status}\n${stderr}`);
+    const section = indexSection(dir, 'Ready to start (deps satisfied)').join('\n');
+    for (const id of ['TL-1-abcdef', 'TL-2-abcdef']) {
+      assert.ok(section.includes(id), `${id} is missing from ready work:\n${section}`);
+    }
+    assert.ok(!section.includes('TL-3-abcdef'), `TL-3-abcdef is listed although its plan is backlog:\n${section}`);
+  });
+});
+
 testCase('the index workstream row marks a blocked record in its status cell', () => {
   withFixture(baseTree({
     [WS1]: workstream({
@@ -849,6 +871,21 @@ testCase('the index workstream row marks a blocked record in its status cell', (
   });
 });
 
+// A scalar that only opens with a bracket is no inline array. author is the
+// field --new-ws writes unquoted, straight from git config user.name.
+testCase('an unquoted author that opens with a bracket renders as written in the index and on the board', () => {
+  const wsText = workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha' })
+    .replace(/^---\n/, '---\nauthor: [Ada] Lovelace\n');
+  withFixture(baseTree({ [WS1]: wsText }), (dir) => {
+    const { status, stderr } = runGenerator(dir, []);
+    assert.strictEqual(status, 0, `default mode exited ${status}\n${stderr}`);
+    const rows = indexSection(dir, 'Workstreams');
+    assert.ok(rows.some((l) => l.includes('| [Ada] Lovelace |')), `the Author cell is not [Ada] Lovelace:\n${rows.join('\n')}`);
+    const board = readRel(dir, 'flowcharge/kanban.md');
+    assert.ok(board.includes('\t\tby [Ada] Lovelace\n'), `the card does not read by [Ada] Lovelace:\n${board}`);
+  });
+});
+
 testCase('--list marks a blocked record in its status cell', () => {
   withFixture(baseTree({
     [WS1]: workstream({
@@ -865,6 +902,27 @@ testCase('--list marks a blocked record in its status cell', () => {
       stdout.includes('| backlog (blocked) |'),
       `--list does not mark the blocked flag:\n${stdout}`,
     );
+  });
+});
+
+// HELP promises lifecycle order. An issue ranks by its own six-value enum, so
+// blocked sits after in-progress, and a status outside the enum sorts last.
+testCase('--list issues --sort status ranks blocked in the issue lifecycle and an unknown status last', () => {
+  withFixture(baseTree({
+    [IL1]: issuelist({
+      id: 'IL-1-abcdef',
+      issues: [
+        issueBlock('ISS-1-abcdef', { status: 'backlog' }),
+        issueBlock('ISS-2-abcdef', { status: 'blocked' }),
+        issueBlock('ISS-3-abcdef', { status: 'in-progress' }),
+        issueBlock('ISS-4-abcdef', { status: 'bogus' }),
+      ],
+    }),
+  }, { IL: 1, ISS: 4 }), (dir) => {
+    const { status, stdout, stderr } = runGenerator(dir, ['--list', 'issues', '--sort', 'status']);
+    assert.strictEqual(status, 0, `--list exited ${status}\n${stderr}`);
+    const order = stdout.split(/\r?\n/).filter((l) => l.startsWith('| ISS-')).map((l) => l.split(' | ')[0].slice(2));
+    assert.deepStrictEqual(order, ['ISS-1-abcdef', 'ISS-3-abcdef', 'ISS-2-abcdef', 'ISS-4-abcdef']);
   });
 });
 
@@ -1057,6 +1115,20 @@ testCase('a second --sync run changes no file and prints no SYNC line', () => {
   });
 });
 
+// A case that reads its start day just before local midnight sees the
+// generator write the next day. Starting the window one day early stands in for
+// that straddle, so the close must still match its fixture.
+testCase('a close written on the day after its case began still matches its fixture', () => {
+  const tlText = tasklist({ id: 'TL-1-abcdef', status: 'ready', updated: daysAgo(3), tasks: [taskLine(1, true)] });
+  withFixture(baseTree({
+    [WS1]: workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', status: 'done' }),
+    [TL1]: tlText,
+  }, { TL: 1 }), (dir) => {
+    expectSync(dir, [`SYNC TL-1-abcdef (${TL1}): ready → done (all 1 tasks checked)`]);
+    expectClosedFile(dir, TL1, tlText, daysAgo(1));
+  });
+});
+
 // A parent task that has children only groups them and never runs, so the
 // progress figure counts child tasks and tasks with no children, and a parent's
 // own tick changes nothing. The list below holds five task lines and four
@@ -1124,6 +1196,46 @@ testCase('a parent with three children shows each tick as it lands, counted by t
         : []);
     });
   }
+});
+
+// A checkbox line inside a fenced code block quotes an example. The four-
+// backtick fence holds a three-backtick line, which must not close it. The
+// first issue's and the first task's YAML blocks lack their closing fence line,
+// as some executed lists do, and still end at the next real record.
+testCase('a checkbox line inside a fenced code block is neither an issue nor a task', () => {
+  const ilText = issuelist({
+    id: 'IL-1-abcdef',
+    issues: [
+      '- [ ] ISS-1-abcdef. First real issue\n  ```yaml\n  status: ready\n  severity: low\n',
+      issueBlock('ISS-2-abcdef', { title: 'Second real issue' }),
+      '\n## Notes\n\n```md\n',
+      issueBlock('ISS-9-zzzzzz', { title: 'Example issue', severity: 'critical' }),
+      '```\n',
+    ],
+  });
+  const tlText = tasklist({
+    id: 'TL-1-abcdef',
+    tasks: [
+      taskLine(1, true, 'First real task'),
+      '  ```yaml\n  description: "Its closing fence line is missing"\n',
+      taskLine(2, true, 'Second real task'),
+      '\n````md\n',
+      taskLine(3, false, 'Fenced example'),
+      '```\n',
+      '  - [ ] 3.1 Fenced example child\n',
+      '````\n\n',
+      taskLine(3, true, 'Third real task'),
+    ],
+  });
+  withFixture(baseTree({ [IL1]: ilText, [TL1]: tlText }, { IL: 1, TL: 1, ISS: 2 }), (dir) => {
+    const issues = runGenerator(dir, ['--list', 'issues']);
+    assert.strictEqual(issues.status, 0, `--list issues exited ${issues.status}\n${issues.stderr}`);
+    assert.ok(issues.stdout.startsWith('## Issues (2)'), `the real issues were not counted alone:\n${issues.stdout}`);
+    assert.ok(!issues.stdout.includes('ISS-9-zzzzzz'), `the fenced issue was listed:\n${issues.stdout}`);
+    const lists = runGenerator(dir, ['--list', 'tasklists']);
+    assert.ok(lists.stdout.includes('| 3/3 |'), `the progress figure is not 3/3:\n${lists.stdout}`);
+    expectSync(dir, [`SYNC TL-1-abcdef (${TL1}): ready → done (all 3 tasks checked)`]);
+  });
 });
 
 testCase('--sync never closes a workstream owning no artefact', () => {
@@ -1462,6 +1574,19 @@ testCase('a cross-type id-prefix warns for the filename and for the prefix', () 
       `${rel}: filename not allowed for type "plan" (expected: <PLN-id>-plan.md)`,
       `PLN-1-abcdef (${rel}): filename id-prefix "IL-1-abcdef" disagrees with frontmatter id "PLN-1-abcdef"`,
     ]);
+  });
+});
+
+// A directory whose name passes the artefact filename filter is no artefact.
+// The scan skips it, so no mode crashes on it.
+testCase('a directory named like an artefact is skipped and every mode still runs', () => {
+  withFixture(baseTree(), (dir) => {
+    fs.mkdirSync(path.join(dir, 'flowcharge', 'workstreams', 'WS-1-abcdef-alpha', 'TL-9-zzzzzz-tasklist.md'));
+    expectWarns(dir, []);
+    for (const args of [['--list', 'all'], []]) {
+      const res = runGenerator(dir, args);
+      assert.strictEqual(res.status, 0, `${args.join(' ') || 'default mode'} exited ${res.status}\n${res.stderr}`);
+    }
   });
 });
 
@@ -1856,6 +1981,18 @@ testCase('--new-ws --status blocked is refused and writes nothing', () => {
   });
 });
 
+// A refused run writes nothing, .gitignore included: every argument parser
+// refuses before the .gitignore write.
+for (const refused of [['--new-ws', 'bad slug!', '--title', 'Demo'], ['--new-ws'], ['--sync', '--claim', 'WS'], ['--claim', 'BOGUS']]) {
+  testCase(`a refused ${refused.join(' ')} run creates no .gitignore`, () => {
+    withFixture(EMPTY_TREE, (dir) => {
+      const res = runGenerator(dir, refused);
+      expectRefusal(res, refused.join(' '));
+      assert.ok(!fs.existsSync(path.join(dir, '.gitignore')), `${refused.join(' ')} created .gitignore`);
+    });
+  });
+}
+
 // ---- cases: --init mode ----------------------------------------------------
 // --init creates flowcharge/workstreams/ (and, transitively, flowcharge/) when
 // it does not already exist, then falls through into the same regenerate path
@@ -1953,6 +2090,32 @@ testCase('--init appends the standard four lines to a project with no .gitignore
 // else changes.
 testCase('a writing run appends only the lease line to a .gitignore holding the other three', () => {
   const before = 'flowcharge/index.md\nflowcharge/kanban.md\nflowcharge/ids/\n';
+  withFixture(baseTree({ '.gitignore': before }), (dir) => {
+    const res = runGenerator(dir, []);
+    assert.strictEqual(res.status, 0, `the default mode exited ${res.status}\n${res.stderr}`);
+    assert.strictEqual(
+      readRel(dir, '.gitignore'),
+      `${before}# FlowCharge-managed: do not hand-edit (see fc-index.mjs)\nflowcharge/workstreams/*/.lease\n`,
+    );
+  });
+});
+
+// A leading slash or a trailing glob spells the same coverage: git ignores all
+// four managed paths under each of these lines, so nothing is appended.
+for (const covering of ['/flowcharge/', '/flowcharge', 'flowcharge/**', '/flowcharge/**', 'flowcharge/*']) {
+  testCase(`a .gitignore holding only ${covering} gains no line`, () => {
+    withFixture(baseTree({ '.gitignore': `${covering}\n` }), (dir) => {
+      const res = runGenerator(dir, []);
+      assert.strictEqual(res.status, 0, `the default mode exited ${res.status}\n${res.stderr}`);
+      assert.strictEqual(readRel(dir, '.gitignore'), `${covering}\n`);
+    });
+  });
+}
+
+// The anchored spellings of the three narrow paths count too, but /.lease
+// matches the root entry alone and covers no workstream lease file.
+testCase('root-anchored spellings cover their own paths and /.lease covers no lease file', () => {
+  const before = '/flowcharge/index.md\n/flowcharge/kanban.md\n/flowcharge/ids/\n/.lease\n';
   withFixture(baseTree({ '.gitignore': before }), (dir) => {
     const res = runGenerator(dir, []);
     assert.strictEqual(res.status, 0, `the default mode exited ${res.status}\n${res.stderr}`);
@@ -2327,6 +2490,8 @@ const STALE_HEADER = '# FlowCharge ID Registry\n\n'
   + 'your type, write the incremented counter back IMMEDIATELY, then use them.\n\n';
 
 const HEADER_WARN = 'ids.md: header text is out of date, rewritten';
+// --check writes nothing, so its line states the finding without the action.
+const HEADER_CHECK_WARN = 'ids.md: header text is out of date';
 
 testCase('clean: a lease acquired five minutes ago warns about nothing', () => {
   withFixture(baseTree({ [LEASE1]: lease('sess-fresh', 5) }), (dir) => {
@@ -2462,7 +2627,7 @@ testCase('--check reports the stale registry header and leaves the file byte-ide
   const fixtureText = registry(counters, [], STALE_HEADER);
   withFixture(baseTree({}, counters, [], STALE_HEADER), (dir) => {
     marker(dir, 'TL-3-abcdef', 0.5);
-    expectWarns(dir, [HEADER_WARN]);
+    expectWarns(dir, [HEADER_CHECK_WARN]);
     assert.strictEqual(readRel(dir, 'flowcharge/ids.md'), fixtureText, '--check rewrote ids.md');
   });
 });
@@ -2695,6 +2860,34 @@ testCase('rename: an existing target file is refused rather than overwritten', (
       'plan.md',
       'workstream.md',
     ]);
+  });
+});
+
+// A prefix naming another id is refused: the renamer neither buries it under a
+// second prefix nor strips it silently, and the file keeps a name the generator
+// still reads.
+testCase('rename: a filename prefix that disagrees with the id is refused and the file keeps its name', () => {
+  withFixture(renameTree({
+    [`${RENAME_DIR}/PLN-2-abcdef-plan.md`]: plan({ id: 'PLN-1-abcdef' }),
+  }), (dir) => {
+    const { status, stdout, stderr } = runRenamer(dir, ['--apply']);
+    assert.strictEqual(status, 1, `--apply exited ${status}, expected 1\n${stderr}`);
+    assert.ok(/disagrees with its id PLN-1-abcdef/.test(stderr), `no disagreement was reported:\n${stderr}`);
+    assert.deepStrictEqual(moveLines(stdout), [], `a move was reported:\n${stdout}`);
+    assert.deepStrictEqual(namesIn(dir), ['PLN-2-abcdef-plan.md', 'workstream.md']);
+  });
+});
+
+// A directory whose name passes ARTEFACT_FILE is no artefact, and the real
+// artefacts beside it are still renamed.
+testCase('rename: a directory named like an artefact is skipped and the real artefacts still move', () => {
+  withFixture(renameTree({
+    [`${RENAME_DIR}/plan.md`]: plan({ id: 'PLN-1-abcdef' }),
+  }), (dir) => {
+    fs.mkdirSync(path.join(dir, RENAME_DIR, 'issuelist-notes.md'));
+    const { status, stderr } = runRenamer(dir, ['--apply']);
+    assert.strictEqual(status, 0, `--apply exited ${status}\n${stderr}`);
+    assert.deepStrictEqual(namesIn(dir), ['PLN-1-abcdef-plan.md', 'issuelist-notes.md', 'workstream.md']);
   });
 });
 
@@ -5760,6 +5953,20 @@ testCase("fc-git's operations sections live only in operations.md, which SKILL.m
     },
   ]);
   assert.deepStrictEqual(problems, [], `the fc-git split is broken:\n${problems.map((p) => `  skills/${p}`).join('\n')}`);
+});
+
+// ---- cases: the suite's own paths ------------------------------------------
+// A file URL's pathname keeps a slash in front of a Windows drive letter
+// (/C:/...), so the suite derives its folder through fileURLToPath, which gives
+// C:\... on Windows and the same path as before everywhere else.
+
+testCase('the suite derives its own folder through fileURLToPath', () => {
+  const source = fs.readFileSync(fileURLToPath(import.meta.url), 'utf8');
+  assert.ok(
+    /^const HERE = path\.dirname\(fileURLToPath\(import\.meta\.url\)\);$/m.test(source),
+    'HERE is not derived through fileURLToPath',
+  );
+  assert.ok(!/URL\(import\.meta\.url\)\.pathname/.test(source), 'a path is still derived from a file URL pathname');
 });
 
 // ---- runner ----------------------------------------------------------------

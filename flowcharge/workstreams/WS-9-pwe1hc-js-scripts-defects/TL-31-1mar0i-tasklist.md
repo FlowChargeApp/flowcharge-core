@@ -478,7 +478,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         measured: "source: verify 3 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
-- [ ] 14. Test-update task: bring the tests in line with this change
+- [x] 14. Test-update task: bring the tests in line with this change
   ```yaml
   description: "Update every test the other tasks make wrong or out of date; add only the tests the source asks for"
   test_update: true
@@ -512,7 +512,47 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "grep -cF \"testCase('root-anchored spellings cover their own paths and /.lease covers no lease file'\" skills/flowcharge/scripts/test/run-tests.mjs  # expect 1; 0 at base_commit"
     - "grep -cF \"testCase('the suite derives its own folder through fileURLToPath'\" skills/flowcharge/scripts/test/run-tests.mjs  # expect 1; 0 at base_commit"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - item: "verify 1"
+        result: YES
+        measured: "source: grep -cF of the HEADER_CHECK_WARN expectation returned 1"
+      - item: "verify 2"
+        result: YES
+        measured: "source: grep -cF of the disagreeing-prefix rename case returned 1"
+      - item: "verify 3"
+        result: YES
+        measured: "source: grep -cF of the directory rename case returned 1"
+      - item: "verify 4"
+        result: YES
+        measured: "source: grep -cF of the fenced-code-block case returned 1"
+      - item: "verify 5"
+        result: YES
+        measured: "source: grep -cF of the bracketed-author case returned 1"
+      - item: "verify 6"
+        result: YES
+        measured: "source: grep -cF of the --sort status case returned 1"
+      - item: "verify 7"
+        result: YES
+        measured: "source: grep -cF of the ready-work case returned 1"
+      - item: "verify 8"
+        result: YES
+        measured: "source: grep -cF of the day-after close case returned 1"
+      - item: "verify 9"
+        result: YES
+        measured: "source: grep -cF of the generator directory case returned 1"
+      - item: "verify 10"
+        result: YES
+        measured: "source: grep -cF of the refused-run .gitignore case name returned 1"
+      - item: "verify 11"
+        result: YES
+        measured: "source: grep -cF of the covering-line case name returned 1"
+      - item: "verify 12"
+        result: YES
+        measured: "source: grep -cF of the root-anchored spellings case returned 1"
+      - item: "verify 13"
+        result: YES
+        measured: "source: grep -cF of the fileURLToPath guard case returned 1"
   ```
 
 - [ ] 15. Test-run task: run the project's test suites
