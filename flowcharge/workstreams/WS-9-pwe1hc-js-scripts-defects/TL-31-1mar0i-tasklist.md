@@ -67,7 +67,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         fix: "rewrapped the entry so the phrase sits on one line; the re-run returned 1"
   ```
 
-- [ ] 2. Skip checkbox lines inside fenced code blocks in the issue and task scanners
+- [x] 2. Skip checkbox lines inside fenced code blocks in the issue and task scanners
   ```yaml
   description: "parseIssues and parseTasks skip a checkbox line inside a fenced code block, so a quoted example is neither an issue nor a task"
   issues: [ISS-11-r98dyf]
@@ -90,7 +90,18 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "source: CHANGELOG.md's ### Fixed list under ## Unreleased ends with this fix's bullet"
     - "source: no import is added and no API newer than Node 16 is used"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - result: YES
+        measured: "source: fencedLines opens on ^(\\s*)(`{3,}|~{3,}), closes on the same character at least as long with an empty rest, and drops an open fence at a non-blank line whose indent is below fence.indent; verify 1 returned 1"
+      - result: YES
+        measured: "source: parseIssues tests fenced[i] before its heading match and parseTasks before both task-line matches; verify 2 returned 2"
+      - result: YES
+        measured: "source: every key-reading branch of parseTasks below the task-line match reads as at base_commit and runs for every line, fenced or not"
+      - result: YES
+        measured: "source: verify 3 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
+      - result: YES
+        measured: "source: the import lines are unchanged, and the new code uses only Array.prototype.map and entries and String.prototype.search and match"
   ```
 
 - [ ] 3. Read only the schema's list keys as inline arrays in parseFrontmatter

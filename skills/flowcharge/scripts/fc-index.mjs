@@ -401,12 +401,37 @@ function parseFrontmatter(text) {
   return fm;
 }
 
-// Per-issue records: heading line then indented YAML block.
+// Which lines sit inside a fenced code block, its fence lines included, as
+// CommonMark reads one: a line of three or more backticks or tildes opens it,
+// info string allowed, and a line of at least as many of the same character
+// with nothing after it closes it. A fence indented inside a list item also
+// ends with that item, at the first non-blank line indented less than its
+// opening line, so a task's own YAML block whose closing line is missing still
+// ends at the next task line. A checkbox line inside a fence quotes an example,
+// so neither scanner below counts it.
+function fencedLines(lines) {
+  let fence = null;
+  return lines.map((line) => {
+    const indent = line.search(/\S/);
+    if (fence && indent !== -1 && indent < fence.indent) fence = null;
+    const m = line.match(/^(\s*)(`{3,}|~{3,})(.*)$/);
+    if (!fence) {
+      if (m) fence = { marker: m[2], indent: m[1].length };
+      return Boolean(m);
+    }
+    if (m && m[2][0] === fence.marker[0] && m[2].length >= fence.marker.length && !m[3].trim()) fence = null;
+    return true;
+  });
+}
+
+// Per-issue records: heading line then indented YAML block. A heading line
+// inside a fenced code block is skipped.
 function parseIssues(text, file) {
   const issues = [];
   const lines = text.split(/\r?\n/);
+  const fenced = fencedLines(lines);
   for (let i = 0; i < lines.length; i++) {
-    const h = lines[i].match(/^- \[( |x)\] (ISS-\d+-[0-9a-z]{6})\.\s*(.*)$/);
+    const h = fenced[i] ? null : lines[i].match(/^- \[( |x)\] (ISS-\d+-[0-9a-z]{6})\.\s*(.*)$/);
     if (!h) continue;
     const issue = { id: h[2], checked: h[1] === 'x', title: h[3].trim(), status: '', severity: '', author: '', file };
     for (let j = i + 1; j < lines.length; j++) {
@@ -425,7 +450,8 @@ function parseIssues(text, file) {
   return issues;
 }
 
-// Task-tracker lines only: "- [ ] N." (parent/adult), "  - [ ] N.M" (child).
+// Task-tracker lines only: "- [ ] N." (parent/adult), "  - [ ] N.M" (child),
+// outside every fenced code block.
 // Returns the open/total counts of every task line, which drive the rule that
 // closes a list; the steps/stepsOpen counts of child tasks and top-level tasks
 // with no children, the executable ones, which drive the progress figure; plus
@@ -438,8 +464,10 @@ function parseTasks(text) {
   let open = 0, total = 0;
   const items = [];
   let current = null, lastTop = null, list = null;
-  for (const line of text.split(/\r?\n/)) {
-    const t = line.match(/^- \[( |x)\] (\d+)\./) || line.match(/^\s{2}- \[( |x)\] (\d+\.\d+)/);
+  const lines = text.split(/\r?\n/);
+  const fenced = fencedLines(lines);
+  for (const [i, line] of lines.entries()) {
+    const t = fenced[i] ? null : (line.match(/^- \[( |x)\] (\d+)\./) || line.match(/^\s{2}- \[( |x)\] (\d+\.\d+)/));
     if (t) {
       list = null;
       total++;

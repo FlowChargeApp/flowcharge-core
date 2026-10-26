@@ -25,6 +25,8 @@ skill mirrors it. See VERSIONING.md.
 - `fc-rename-artefacts.mjs` refuses a file whose filename prefix disagrees with
   its frontmatter id and exits 1. It no longer adds a second prefix, which hid
   the file from the generator.
+- `fc-index.mjs` no longer counts a checkbox line inside a fenced code block as
+  an issue or a task.
 
 ## 0.5.1 - 2026-10-13
 
