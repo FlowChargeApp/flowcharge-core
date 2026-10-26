@@ -241,7 +241,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         measured: "source: verify 4 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
-- [ ] 7. Read only files in the generator's per-folder scan
+- [x] 7. Read only files in the generator's per-folder scan
   ```yaml
   description: "The generator's scan lists each workstream folder with file types and reads only files, so a directory named like an artefact no longer crashes any mode"
   issues: [ISS-16-hs27pq]
@@ -261,7 +261,16 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "source: no other directory listing in the file changes"
     - "source: CHANGELOG.md's ### Fixed list under ## Unreleased ends with this fix's bullet"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - result: YES
+        measured: "source: the per-folder listing reads Dirent entries, keeps d.isFile() ones whose d.name passes the filter, maps to names and sorts; verify 1 and verify 2 returned 1"
+      - result: YES
+        measured: "source: the filter regex reads as at base_commit"
+      - result: YES
+        measured: "source: the other withFileTypes listings, for the marker directories, the workstream folders, the --new-ws collision check, the folder-marker check and the lease folders, read as at base_commit"
+      - result: YES
+        measured: "source: verify 3 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
 - [ ] 8. Count an authored plan or issue list as a met dependency in ready work

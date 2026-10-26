@@ -1174,9 +1174,12 @@ for (const rootSpec of ROOTS) {
     .sort();
   for (const dir of dirs) {
     const dirPath = path.join(rootSpec.dir, dir);
+    // Files only: a directory whose name passes the filter is no artefact, and
+    // reading it would crash every mode.
     const files = fs
-      .readdirSync(dirPath)
-      .filter((f) => /^(?:(?:PLN|IL|TL)-\d+-[0-9a-z]{6}-)?(?:workstream|plan|issuelist|tasklist)(?:-[a-z0-9-]+)?\.md$/.test(f))
+      .readdirSync(dirPath, { withFileTypes: true })
+      .filter((d) => d.isFile() && /^(?:(?:PLN|IL|TL)-\d+-[0-9a-z]{6}-)?(?:workstream|plan|issuelist|tasklist)(?:-[a-z0-9-]+)?\.md$/.test(d.name))
+      .map((d) => d.name)
       .sort();
     for (const f of files) {
       const abs = path.join(dirPath, f);

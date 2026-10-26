@@ -37,6 +37,7 @@ skill mirrors it. See VERSIONING.md.
 - `fc-index.mjs --sort status` ranks an issue's `blocked` status in the issue
   lifecycle order and sorts an unrecognised status after every known one,
   instead of first.
+- The generator skips a directory named like an artefact instead of crashing.
 
 ## 0.5.1 - 2026-10-13
 
