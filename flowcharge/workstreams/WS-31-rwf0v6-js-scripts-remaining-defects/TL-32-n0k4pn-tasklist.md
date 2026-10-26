@@ -218,7 +218,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         fix: "re-wrapped the paragraph so the phrase sits on one line; verify 3 then returned 1"
   ```
 
-- [ ] 5. Test-update task: bring the tests in line with this change
+- [x] 5. Test-update task: bring the tests in line with this change
   ```yaml
   description: "Update every test the other tasks make wrong or out of date; add only the tests the source asks for"
   test_update: true
@@ -233,7 +233,17 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "grep -cF \"testCase('manifest: a generated day written just before local midnight passes the generated-day check'\" skills/flowcharge/scripts/test/run-tests.mjs  # expect 1; 0 at base_commit"
     - "grep -cF 'folder carries creates no .gitignore' skills/flowcharge/scripts/test/run-tests.mjs  # expect 1; 0 at base_commit"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - item: "verify 1"
+        result: YES
+        measured: "source: grep -cF of the file-URL pathname scan case returned 1"
+      - item: "verify 2"
+        result: YES
+        measured: "source: grep -cF of the pinned-clock manifest case returned 1"
+      - item: "verify 3"
+        result: YES
+        measured: "source: grep -cF of the taken-slug .gitignore case name returned 1"
   ```
 
 - [ ] 6. Test-run task: run the project's test suites

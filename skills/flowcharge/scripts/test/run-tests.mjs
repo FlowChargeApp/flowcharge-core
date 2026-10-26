@@ -1999,6 +1999,19 @@ for (const refused of [['--new-ws', 'bad slug!', '--title', 'Demo'], ['--new-ws'
   });
 }
 
+// A taken slug is refused before the .gitignore write too, whether a live or an
+// archived folder carries it.
+for (const [where, base] of [['a live', 'workstreams'], ['an archived', 'archive']]) {
+  testCase(`a --new-ws run refused for a slug ${where} folder carries creates no .gitignore`, () => {
+    const rel = `flowcharge/${base}/WS-1-abcdef-alpha/workstream.md`;
+    withFixture({ [rel]: workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', status: 'done' }) }, (dir) => {
+      const res = runGenerator(dir, ['--new-ws', 'alpha', '--title', 'Alpha again']);
+      expectRefusal(res, `--new-ws on a slug ${where} folder carries`);
+      assert.ok(!fs.existsSync(path.join(dir, '.gitignore')), 'the refused run created .gitignore');
+    });
+  });
+}
+
 // ---- cases: --init mode ----------------------------------------------------
 // --init creates flowcharge/workstreams/ (and, transitively, flowcharge/) when
 // it does not already exist, then falls through into the same regenerate path
@@ -4308,6 +4321,27 @@ testCase('manifest: M2 the document has the contracted key order, sorting, versi
   });
 });
 
+// Case M2's generated-day check on a run that crosses local midnight. The copy's
+// clock is pinned to the last second of the day before, the day this case takes
+// as its start day, and the case reads today() afterwards. A check against a
+// today() read after the script ran fails this run.
+testCase('manifest: a generated day written just before local midnight passes the generated-day check', () => {
+  withManifestFixture({ specs: manSpecs() }, (dir) => {
+    const startDay = daysAgo(1);
+    const clock = path.join(dir, 'clock.cjs');
+    fs.writeFileSync(clock, `const T = ${new Date(`${startDay}T23:59:59`).getTime()};\nconst D = Date;\n`
+      + 'global.Date = class extends D { constructor(...a) { if (a.length) super(...a); else super(T); } static now() { return T; } };\n');
+    const copy = path.join(dir, ...MAN_SCRIPT_DIR, 'manifest.mjs');
+    const res = spawnSync(process.execPath, ['--require', clock, copy, MAN_VERSION], { cwd: dir, encoding: 'utf8' });
+    if (res.error) throw res.error;
+    assert.strictEqual(res.status, 0, `manifest exited ${res.status}\n${res.stdout}\n${res.stderr}`);
+    const { generated } = readManifest(dir);
+    assert.strictEqual(generated, startDay, 'the pinned clock did not reach the script');
+    assert.notStrictEqual(generated, today(), 'the pinned day is today, so the run crosses no midnight');
+    acceptDay('generated', generated, startDay);
+  });
+});
+
 // The round trip. manifest.mjs carries its own read of metadata.version, because
 // importing the stamper would execute a writer at module scope. This case is the
 // only thing that keeps the two readers in step: the real stamper writes the
@@ -5975,6 +6009,20 @@ testCase('the suite derives its own folder through fileURLToPath', () => {
     'HERE is not derived through fileURLToPath',
   );
   assert.ok(!/URL\(import\.meta\.url\)\.pathname/.test(source), 'a path is still derived from a file URL pathname');
+});
+
+// Every script the repository ships derives its own folder through
+// fileURLToPath, for the reason above. These three folders hold all of them.
+testCase('no script derives a path from a file URL pathname', () => {
+  const repoRoot = path.resolve(HERE, '..', '..', '..', '..');
+  const offenders = [];
+  for (const dir of ['skills/flowcharge/scripts', 'skills/flowcharge/scripts/test', '.github/scripts']) {
+    for (const name of fs.readdirSync(path.join(repoRoot, dir)).filter((n) => n.endsWith('.mjs')).sort()) {
+      const rel = `${dir}/${name}`;
+      if (/URL\(import\.meta\.url\)\.pathname/.test(fs.readFileSync(path.join(repoRoot, rel), 'utf8'))) offenders.push(rel);
+    }
+  }
+  assert.deepStrictEqual(offenders, [], 'these scripts still derive a path from a file URL pathname');
 });
 
 // ---- runner ----------------------------------------------------------------
