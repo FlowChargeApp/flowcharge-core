@@ -20,6 +20,12 @@ skill mirrors it. See VERSIONING.md.
   counts checkboxes now sees progress during a parent task. A re-run of a
   parent task skips the subtasks already ticked.
 
+### Fixed
+
+- `fc-rename-artefacts.mjs` refuses a file whose filename prefix disagrees with
+  its frontmatter id and exits 1. It no longer adds a second prefix, which hid
+  the file from the generator.
+
 ## 0.5.1 - 2026-10-13
 
 ### Changed

@@ -18,8 +18,9 @@
 //
 // Exit codes:
 //   0  Every file was reported, and every requested move succeeded.
-//   1  Bad root, or at least one refusal: a target name already taken, or a
-//      move that failed.
+//   1  Bad root, or at least one refusal: a target name already taken,
+//      a filename prefix that disagrees with the file's own id, or a move
+//      that failed.
 //
 // Scope: this script knows filenames and the frontmatter id, and nothing else.
 // It never edits a file's contents, so every id, depends_on and links value
@@ -145,10 +146,21 @@ for (const scanRoot of [wsRoot, archiveRoot]) {
       if (!ARTEFACT_ID.test(fm.id)) continue;
       if (fm.type && !PREFIXED_TYPES.has(fm.type)) continue;
 
-      // Only a correct prefix is stripped. Stripping any prefix would let a
-      // file whose prefix disagrees with its id be rewritten silently, and
-      // stripping none would give an already-correct name a second prefix on
-      // the next run, which is what would cost this script its idempotence.
+      // A prefix naming another id is refused, not renamed: prepending the id
+      // would bury the wrong prefix inside a name the generator no longer
+      // reads, and stripping the prefix would rewrite the file silently. A
+      // person decides whether the filename or the id is wrong.
+      const foundPrefix = (f.match(/^((?:PLN|IL|TL)-\d+-[0-9a-z]{6})-/) || [])[1];
+      if (foundPrefix && foundPrefix !== fm.id) {
+        console.error(`fc-rename-artefacts: ${rel(abs)}: filename prefix ${foundPrefix} disagrees with its id ${fm.id}, refusing to rename`);
+        refusals++;
+        continue;
+      }
+
+      // Only a correct prefix is left to strip, because a disagreeing one was
+      // refused above. Stripping none would give an already-correct name a
+      // second prefix on the next run, which is what would cost this script
+      // its idempotence.
       const plain = f.startsWith(`${fm.id}-`) ? f.slice(fm.id.length + 1) : f;
       const target = `${fm.id}-${plain}`;
       if (f === target) {
