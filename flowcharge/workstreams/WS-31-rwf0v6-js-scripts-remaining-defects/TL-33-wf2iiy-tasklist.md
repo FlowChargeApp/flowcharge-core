@@ -105,7 +105,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         measured: "source: verify 4 returned 1, and the two-line bullet, at most 77 columns wide, is the last item of ### Fixed under ## Unreleased"
   ```
 
-- [ ] 3. State the four ignored paths in CONVENTIONS.md
+- [x] 3. State the four ignored paths in CONVENTIONS.md
   ```yaml
   description: "CONVENTIONS.md states the four paths the generator keeps out of git, the workstream lease files included, as GITIGNORE_TARGETS lists them"
   issues: [ISS-29-92o4ay]
@@ -129,7 +129,18 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "source: fc-index.mjs is byte-identical to base_commit"
     - "source: CHANGELOG.md's ### Fixed list under ## Unreleased ends with this fix's bullet"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - result: YES
+        measured: "source: verify 1 returned 1 and verify 2 returned 0; the first sentence names each workstream's .lease file as a lock bound to the run that holds it and says the script keeps all four out of git"
+      - result: YES
+        measured: "source: verify 3 returned 1; the second sentence lists flowcharge/index.md, flowcharge/kanban.md, flowcharge/ids/ and flowcharge/workstreams/*/.lease, the four GITIGNORE_TARGETS entries"
+      - result: YES
+        measured: "source: the list of writing modes and the four later sentences read word for word once the line breaks are joined, and the paragraph's widest line is 86 columns, the width of its widest line at base_commit"
+      - result: YES
+        measured: "source: verify 4 printed unchanged"
+      - result: YES
+        measured: "source: verify 5 returned 1, and the two-line bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
 - [ ] 4. List the automatic tags in this repository's tag pool

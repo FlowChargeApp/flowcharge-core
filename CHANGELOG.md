@@ -62,6 +62,8 @@ skill mirrors it. See VERSIONING.md.
   a symlinked folder or on Windows, instead of exiting without doing anything.
 - The test suite imports `setup-labels.mjs` through a file URL, so its label
   table case runs on Windows and from a folder whose name holds `#`.
+- CONVENTIONS.md states the four paths the generator keeps out of git, the
+  workstream lease files included.
 
 ## 0.5.1 - 2026-10-13
 
