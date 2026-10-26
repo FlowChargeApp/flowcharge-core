@@ -172,6 +172,13 @@ const GITIGNORE_COVERS = {
   'flowcharge/workstreams/*/.lease': ['flowcharge/workstreams/*/.lease', '.lease', 'flowcharge/workstreams/', 'flowcharge/workstreams', 'flowcharge/', 'flowcharge'],
 };
 
+// The covering form a .gitignore line spells. A leading slash anchors a path at
+// the project root, where every form that names flowcharge already sits, so
+// /flowcharge/ spells flowcharge/; /.lease keeps its slash, because it matches
+// the root entry alone. A trailing /** or /* covers everything inside a
+// directory, as the directory itself does, so flowcharge/** spells flowcharge/.
+const coverSpelling = (line) => (line.startsWith('/flowcharge') ? line.slice(1) : line).replace(/\/\*\*?$/, '/');
+
 // Append-only: every pre-existing line is copied through unchanged and in its
 // original order, and an already-compliant file is not touched at all, so its
 // mtime and git status stay where they were.
@@ -180,8 +187,9 @@ function ensureGitignore(gitignoreRoot) {
   const exists = fs.existsSync(gitignorePath);
   const text = exists ? fs.readFileSync(gitignorePath, 'utf8') : '';
   const lines = text.split(/\r?\n/);
+  const spelled = lines.map(coverSpelling);
   const missing = GITIGNORE_TARGETS.filter(
-    (target) => !GITIGNORE_COVERS[target].some((form) => lines.includes(form)),
+    (target) => !GITIGNORE_COVERS[target].some((form) => spelled.includes(form)),
   );
   if (missing.length === 0) return;
   if (!exists) {
@@ -280,22 +288,11 @@ if (initMode) {
   process.exit(1);
 }
 
-// Self-enforcing: a clone never has to remember to gitignore the generated and
-// ephemeral paths, because every writing invocation ensures them. --list,
-// --check and --whoami are documented as write-free, so they are excluded on
-// flag presence in argv alone, not on which mode ultimately runs or succeeds.
-// A write failure is a warning only: it must not change the exit code, and
-// must not stop the claimed ids printing or the index and board regenerating.
-if (!args.includes('--list') && !args.includes('--check') && !args.includes('--whoami')) {
-  try {
-    ensureGitignore(root);
-  } catch (e) {
-    console.error(`fc-index: warning, failed to update .gitignore: ${e.message}`);
-  }
-}
-
 const warnings = [];
 const STATUSES = ['backlog', 'ready', 'in-progress', 'done', 'dropped'];
+// An issue's own enum, in the order skills/fc-issue-list/SKILL.md lists it: the
+// artefact enum plus blocked. --sort status ranks an issue record by it.
+const ISSUE_STATUSES = ['backlog', 'ready', 'in-progress', 'blocked', 'done', 'dropped'];
 const SEV_ORDER = { critical: 0, high: 1, medium: 2, low: 3 };
 const STALE_DAYS = 14;
 // `updated` is bumped on every edit, but a file's mtime also moves for reasons
@@ -381,6 +378,11 @@ function flowList(v) {
   return quoted ? quoted.map(unquoteScalar) : inner.split(',').map((s) => s.trim()).filter(Boolean);
 }
 
+// The frontmatter keys CONVENTIONS.md declares as inline arrays. Every other
+// key is a scalar, so a value that only opens with a bracket, such as an author
+// named [Bot] Alice, is read as written rather than split into a list.
+const LIST_KEYS = ['depends_on', 'links', 'tags', 'e2e_tooling', 'test_commands'];
+
 function parseFrontmatter(text) {
   const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!m) return null;
@@ -389,7 +391,7 @@ function parseFrontmatter(text) {
     const km = line.match(/^([A-Za-z_][\w-]*):\s*(.*)$/);
     if (!km) continue;
     let v = km[2].trim();
-    if (v.startsWith('[')) {
+    if (LIST_KEYS.includes(km[1]) && v.startsWith('[')) {
       const inner = v.replace(/^\[/, '').replace(/\]$/, '').trim();
       fm[km[1]] = inner
         ? inner.split(',').map((s) => unquoteScalar(s.trim())).filter(Boolean)
@@ -401,12 +403,37 @@ function parseFrontmatter(text) {
   return fm;
 }
 
-// Per-issue records: heading line then indented YAML block.
+// Which lines sit inside a fenced code block, its fence lines included, as
+// CommonMark reads one: a line of three or more backticks or tildes opens it,
+// info string allowed, and a line of at least as many of the same character
+// with nothing after it closes it. A fence indented inside a list item also
+// ends with that item, at the first non-blank line indented less than its
+// opening line, so a task's own YAML block whose closing line is missing still
+// ends at the next task line. A checkbox line inside a fence quotes an example,
+// so neither scanner below counts it.
+function fencedLines(lines) {
+  let fence = null;
+  return lines.map((line) => {
+    const indent = line.search(/\S/);
+    if (fence && indent !== -1 && indent < fence.indent) fence = null;
+    const m = line.match(/^(\s*)(`{3,}|~{3,})(.*)$/);
+    if (!fence) {
+      if (m) fence = { marker: m[2], indent: m[1].length };
+      return Boolean(m);
+    }
+    if (m && m[2][0] === fence.marker[0] && m[2].length >= fence.marker.length && !m[3].trim()) fence = null;
+    return true;
+  });
+}
+
+// Per-issue records: heading line then indented YAML block. A heading line
+// inside a fenced code block is skipped.
 function parseIssues(text, file) {
   const issues = [];
   const lines = text.split(/\r?\n/);
+  const fenced = fencedLines(lines);
   for (let i = 0; i < lines.length; i++) {
-    const h = lines[i].match(/^- \[( |x)\] (ISS-\d+-[0-9a-z]{6})\.\s*(.*)$/);
+    const h = fenced[i] ? null : lines[i].match(/^- \[( |x)\] (ISS-\d+-[0-9a-z]{6})\.\s*(.*)$/);
     if (!h) continue;
     const issue = { id: h[2], checked: h[1] === 'x', title: h[3].trim(), status: '', severity: '', author: '', file };
     for (let j = i + 1; j < lines.length; j++) {
@@ -425,7 +452,8 @@ function parseIssues(text, file) {
   return issues;
 }
 
-// Task-tracker lines only: "- [ ] N." (parent/adult), "  - [ ] N.M" (child).
+// Task-tracker lines only: "- [ ] N." (parent/adult), "  - [ ] N.M" (child),
+// outside every fenced code block.
 // Returns the open/total counts of every task line, which drive the rule that
 // closes a list; the steps/stepsOpen counts of child tasks and top-level tasks
 // with no children, the executable ones, which drive the progress figure; plus
@@ -438,8 +466,10 @@ function parseTasks(text) {
   let open = 0, total = 0;
   const items = [];
   let current = null, lastTop = null, list = null;
-  for (const line of text.split(/\r?\n/)) {
-    const t = line.match(/^- \[( |x)\] (\d+)\./) || line.match(/^\s{2}- \[( |x)\] (\d+\.\d+)/);
+  const lines = text.split(/\r?\n/);
+  const fenced = fencedLines(lines);
+  for (const [i, line] of lines.entries()) {
+    const t = fenced[i] ? null : (line.match(/^- \[( |x)\] (\d+)\./) || line.match(/^\s{2}- \[( |x)\] (\d+\.\d+)/));
     if (t) {
       list = null;
       total++;
@@ -1066,7 +1096,10 @@ function applySync() {
 
 const cmpListId = (a, b) => String(a.id).localeCompare(String(b.id), undefined, { numeric: true });
 
-function compareRecs(key, desc) {
+// statuses is the lifecycle order --sort status ranks by. A value outside it
+// ranks after every listed one, as an unknown severity does.
+function compareRecs(key, desc, statuses) {
+  const rank = (v) => (statuses.includes(v) ? statuses.indexOf(v) : statuses.length);
   return (a, b) => {
     const av = a[key], bv = b[key];
     const aMissing = av === undefined || av === null || av === '';
@@ -1074,7 +1107,7 @@ function compareRecs(key, desc) {
     if (aMissing || bMissing) return aMissing && bMissing ? cmpListId(a, b) : aMissing ? 1 : -1;
     let d;
     if (key === 'id') d = cmpListId(a, b);
-    else if (key === 'status') d = STATUSES.indexOf(av) - STATUSES.indexOf(bv);
+    else if (key === 'status') d = rank(av) - rank(bv);
     else if (key === 'severity') d = (SEV_ORDER[av] ?? 9) - (SEV_ORDER[bv] ?? 9);
     else d = String(av).localeCompare(String(bv));
     if (desc) d = -d;
@@ -1109,7 +1142,7 @@ function selectRows(items, opts) {
     recs = live.filter((a) => a.type === SCOPE_TYPE[scope] && inWs(a));
   }
   if (sortKey === 'created' && !cols.some((c) => c[1] === 'created')) cols.push(['Created', 'created']);
-  recs.sort(compareRecs(sortKey, desc));
+  recs.sort(compareRecs(sortKey, desc, scope === 'issues' ? ISSUE_STATUSES : STATUSES));
   const val = (r, k) => {
     if (k === 'tags') return (r.tags || []).join(', ');
     if (k === 'status') return `${r.status}${r.archived ? ' (archived)' : ''}${r.blocked ? ' (blocked)' : ''}`;
@@ -1149,9 +1182,12 @@ for (const rootSpec of ROOTS) {
     .sort();
   for (const dir of dirs) {
     const dirPath = path.join(rootSpec.dir, dir);
+    // Files only: a directory whose name passes the filter is no artefact, and
+    // reading it would crash every mode.
     const files = fs
-      .readdirSync(dirPath)
-      .filter((f) => /^(?:(?:PLN|IL|TL)-\d+-[0-9a-z]{6}-)?(?:workstream|plan|issuelist|tasklist)(?:-[a-z0-9-]+)?\.md$/.test(f))
+      .readdirSync(dirPath, { withFileTypes: true })
+      .filter((d) => d.isFile() && /^(?:(?:PLN|IL|TL)-\d+-[0-9a-z]{6}-)?(?:workstream|plan|issuelist|tasklist)(?:-[a-z0-9-]+)?\.md$/.test(d.name))
+      .map((d) => d.name)
       .sort();
     for (const f of files) {
       const abs = path.join(dirPath, f);
@@ -1261,6 +1297,23 @@ function writeRegistryBack(type, highest) {
 // ---- --claim mode: atomic ID allocation via marker directories under
 // flowcharge/ids/. Exits before any integrity check or file write.
 const claimOpts = parseClaimArgs(args);
+
+// Self-enforcing: a clone never has to remember to gitignore the generated and
+// ephemeral paths, because every writing invocation ensures them. This is the
+// first write of any mode, placed after the last argument parser, so a run that
+// refuses its own arguments exits 1 having written nothing. --list, --check and
+// --whoami are documented as write-free, so they are excluded on flag presence
+// in argv alone, not on which mode ultimately runs or succeeds. A write failure
+// is a warning only: it must not change the exit code, and must not stop the
+// claimed ids printing or the index and board regenerating.
+if (!args.includes('--list') && !args.includes('--check') && !args.includes('--whoami')) {
+  try {
+    ensureGitignore(root);
+  } catch (e) {
+    console.error(`fc-index: warning, failed to update .gitignore: ${e.message}`);
+  }
+}
+
 if (claimOpts) {
   const { type, count } = claimOpts;
   const { claimed, next } = allocateIds(type, count);
@@ -1354,9 +1407,14 @@ if (newWsOpts) {
 if (syncOpts) applySync();
 
 // ---- integrity checks ------------------------------------------------------
-const isDone = (id) => {
+// A depends_on target is met once it is done, except a plan or an issue list,
+// which is met once authored: at any status but backlog or dropped
+// (CONVENTIONS.md, Frontmatter). Ready work below applies it.
+const depMet = (id) => {
   const t = byId.get(id);
-  return t ? t.status === 'done' : false;
+  if (!t) return false;
+  if (t.type === 'plan' || t.type === 'issuelist') return t.status !== 'backlog' && t.status !== 'dropped';
+  return t.status === 'done';
 };
 for (const a of artefacts) {
   for (const dep of a.depends_on) {
@@ -1539,12 +1597,13 @@ if (fs.existsSync(registryPath)) {
 }
 
 // The registry header. The mismatch is reported here, with the other integrity
-// checks, and the rewrite it announces happens below with the index and board
-// writes, so --check's early exit prevents the write without a mode test.
+// checks, and the rewrite happens below with the index and board writes, so
+// --check's early exit prevents the write without a mode test. Only the wording
+// reads the mode: --check writes nothing, so its line states the finding alone.
 let registryRewrite = null;
 if (fs.existsSync(registryPath)) {
   registryRewrite = registryHeaderRewrite(fs.readFileSync(registryPath, 'utf8'));
-  if (registryRewrite) warnings.push('ids.md: header text is out of date, rewritten');
+  if (registryRewrite) warnings.push(checkOnly ? 'ids.md: header text is out of date' : 'ids.md: header text is out of date, rewritten');
 }
 
 // The ID graph: orphan markers, counters ahead of every source, and the
@@ -1603,7 +1662,7 @@ const wsArtefacts = (ws) =>
     .join(', ') || '-';
 
 const readyWork = artefacts.filter(
-  (a) => !a.archived && (a.status === 'ready' || a.status === 'backlog') && !a.blocked && a.depends_on.every(isDone)
+  (a) => !a.archived && (a.status === 'ready' || a.status === 'backlog') && !a.blocked && a.depends_on.every(depMet)
 );
 
 const openIssues = artefacts

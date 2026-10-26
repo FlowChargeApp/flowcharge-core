@@ -20,6 +20,37 @@ skill mirrors it. See VERSIONING.md.
   counts checkboxes now sees progress during a parent task. A re-run of a
   parent task skips the subtasks already ticked.
 
+### Fixed
+
+- `fc-rename-artefacts.mjs` refuses a file whose filename prefix disagrees with
+  its frontmatter id and exits 1. It no longer adds a second prefix, which hid
+  the file from the generator.
+- `fc-index.mjs` no longer counts a checkbox line inside a fenced code block as
+  an issue or a task.
+- `fc-index.mjs` reads an unquoted frontmatter value that opens with a bracket,
+  such as `author: [Bot] Alice`, as written. Only the list keys are read as
+  inline arrays.
+- An `fc-index.mjs` run that refuses its own arguments no longer creates or
+  changes `.gitignore`.
+- `fc-index.mjs --check` reports a stale `ids.md` header without claiming that
+  it rewrote it.
+- `fc-index.mjs --sort status` ranks an issue's `blocked` status in the issue
+  lifecycle order and sorts an unrecognised status after every known one,
+  instead of first.
+- The generator skips a directory named like an artefact instead of crashing.
+- The index's ready-to-start section counts a plan or issue-list dependency as
+  met once that artefact is authored, so a task list built from one is listed.
+  The README states the same rule.
+- `fc-index.mjs` treats a leading-slash or trailing-glob `.gitignore` entry,
+  such as `/flowcharge/` or `flowcharge/**`, as covering the paths it manages,
+  and appends nothing for them.
+- The second `--sync` test case checks each closed file against its own
+  fixture.
+- The `--sync` and `--new-ws` test cases accept the date the generator wrote
+  when a run crosses local midnight.
+- The test suite resolves its own folder correctly on Windows.
+- The renamer skips a directory named like an artefact instead of crashing.
+
 ## 0.5.1 - 2026-10-13
 
 ### Changed
