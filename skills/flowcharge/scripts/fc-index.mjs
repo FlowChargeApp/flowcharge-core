@@ -280,20 +280,6 @@ if (initMode) {
   process.exit(1);
 }
 
-// Self-enforcing: a clone never has to remember to gitignore the generated and
-// ephemeral paths, because every writing invocation ensures them. --list,
-// --check and --whoami are documented as write-free, so they are excluded on
-// flag presence in argv alone, not on which mode ultimately runs or succeeds.
-// A write failure is a warning only: it must not change the exit code, and
-// must not stop the claimed ids printing or the index and board regenerating.
-if (!args.includes('--list') && !args.includes('--check') && !args.includes('--whoami')) {
-  try {
-    ensureGitignore(root);
-  } catch (e) {
-    console.error(`fc-index: warning, failed to update .gitignore: ${e.message}`);
-  }
-}
-
 const warnings = [];
 const STATUSES = ['backlog', 'ready', 'in-progress', 'done', 'dropped'];
 const SEV_ORDER = { critical: 0, high: 1, medium: 2, low: 3 };
@@ -1294,6 +1280,23 @@ function writeRegistryBack(type, highest) {
 // ---- --claim mode: atomic ID allocation via marker directories under
 // flowcharge/ids/. Exits before any integrity check or file write.
 const claimOpts = parseClaimArgs(args);
+
+// Self-enforcing: a clone never has to remember to gitignore the generated and
+// ephemeral paths, because every writing invocation ensures them. This is the
+// first write of any mode, placed after the last argument parser, so a run that
+// refuses its own arguments exits 1 having written nothing. --list, --check and
+// --whoami are documented as write-free, so they are excluded on flag presence
+// in argv alone, not on which mode ultimately runs or succeeds. A write failure
+// is a warning only: it must not change the exit code, and must not stop the
+// claimed ids printing or the index and board regenerating.
+if (!args.includes('--list') && !args.includes('--check') && !args.includes('--whoami')) {
+  try {
+    ensureGitignore(root);
+  } catch (e) {
+    console.error(`fc-index: warning, failed to update .gitignore: ${e.message}`);
+  }
+}
+
 if (claimOpts) {
   const { type, count } = claimOpts;
   const { claimed, next } = allocateIds(type, count);

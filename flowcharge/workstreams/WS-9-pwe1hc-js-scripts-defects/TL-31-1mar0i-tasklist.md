@@ -137,7 +137,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         measured: "source: verify 3 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
-- [ ] 4. Write .gitignore only after the last argument parser
+- [x] 4. Write .gitignore only after the last argument parser
   ```yaml
   description: "The .gitignore write runs after the last argument parser, so a run that refuses its own arguments exits 1 having written nothing"
   issues: [ISS-13-nqpgsn]
@@ -158,7 +158,16 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "source: the parsers run in their old order"
     - "source: CHANGELOG.md's ### Fixed list under ## Unreleased ends with this fix's bullet"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - result: YES
+        measured: "source: verify 1 printed after; the call sits on the line after const claimOpts and before if (claimOpts), if (newWsOpts) and if (syncOpts) applySync()"
+      - result: YES
+        measured: "source: verify 2 returned 1; the block keeps its --list, --check and --whoami test and its warning-only catch"
+      - result: YES
+        measured: "source: the parse calls read sync, new-ws, whoami, list, claim in file order, as at base_commit"
+      - result: YES
+        measured: "source: verify 3 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
 - [ ] 5. State the stale ids.md header as a finding under --check

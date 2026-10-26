@@ -30,6 +30,8 @@ skill mirrors it. See VERSIONING.md.
 - `fc-index.mjs` reads an unquoted frontmatter value that opens with a bracket,
   such as `author: [Bot] Alice`, as written. Only the list keys are read as
   inline arrays.
+- An `fc-index.mjs` run that refuses its own arguments no longer creates or
+  changes `.gitignore`.
 
 ## 0.5.1 - 2026-10-13
 
