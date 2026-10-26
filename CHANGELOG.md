@@ -50,6 +50,8 @@ skill mirrors it. See VERSIONING.md.
   when a run crosses local midnight.
 - The test suite resolves its own folder correctly on Windows.
 - The renamer skips a directory named like an artefact instead of crashing.
+- `fc-index.mjs` and the release scripts under `.github/scripts/` resolve their
+  own folder correctly on Windows.
 
 ## 0.5.1 - 2026-10-13
 

@@ -10,6 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 // The status --new-ws writes when the caller passes no --status. A record
 // created a moment ago is recorded, not yet worked, per CONVENTIONS.md's
@@ -262,9 +263,11 @@ const idsDir = path.join(workRoot, 'ids');
 // This script's own repository root, derived from its own file location
 // rather than from --root: the suite-version check below must always read
 // this repository's tag and CHANGELOG.md, never a consumer project's, no
-// matter what --root points at.
+// matter what --root points at. The folder comes from fileURLToPath rather
+// than from the URL's pathname, which keeps a slash in front of a Windows
+// drive letter (/C:/...) that no path API resolves.
 const SELF_ROOT = path.resolve(
-  path.dirname(decodeURIComponent(new URL(import.meta.url).pathname)),
+  path.dirname(fileURLToPath(import.meta.url)),
   '..', '..', '..',
 );
 

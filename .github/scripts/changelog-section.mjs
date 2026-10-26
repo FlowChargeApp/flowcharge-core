@@ -20,6 +20,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const HELP = `changelog-section.mjs: prints the CHANGELOG.md release section for one given version on stdout.
 
@@ -56,9 +57,11 @@ Exit codes:
 // script sits at .github/scripts/changelog-section.mjs, two directories below
 // the repository root. Never from the directory the caller runs in, so a copy
 // placed inside a fixture at <fixture>/.github/scripts/ reads that fixture's
-// own CHANGELOG.md, and nothing else.
+// own CHANGELOG.md, and nothing else. The folder comes from fileURLToPath
+// rather than from the URL's pathname, which keeps a slash in front of a
+// Windows drive letter (/C:/...) that no path API resolves.
 const SELF_ROOT = path.resolve(
-  path.dirname(decodeURIComponent(new URL(import.meta.url).pathname)),
+  path.dirname(fileURLToPath(import.meta.url)),
   '..', '..',
 );
 

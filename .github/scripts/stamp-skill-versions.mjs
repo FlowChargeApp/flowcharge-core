@@ -9,6 +9,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const HELP = `stamp-skill-versions.mjs: writes a given release version into every skills/*/SKILL.md's metadata.version.
 
@@ -44,9 +45,12 @@ Exit codes:
 // other project's skills/ tree by mistake. It lives under .github/ so
 // that neither documented install method can copy it onto a user's
 // machine, where the old three-parent walk resolved to the whole skills
-// directory and would have rewritten unrelated skills.
+// directory and would have rewritten unrelated skills. The folder comes
+// from fileURLToPath rather than from the URL's pathname, which keeps a
+// slash in front of a Windows drive letter (/C:/...) that no path API
+// resolves.
 const SELF_ROOT = path.resolve(
-  path.dirname(decodeURIComponent(new URL(import.meta.url).pathname)),
+  path.dirname(fileURLToPath(import.meta.url)),
   '..', '..',
 );
 
