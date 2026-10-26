@@ -203,7 +203,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         measured: "source: verify 3 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
-- [ ] 6. Rank issue statuses in the issue lifecycle for --sort status
+- [x] 6. Rank issue statuses in the issue lifecycle for --sort status
   ```yaml
   description: "--sort status ranks an issue by the six-value issue enum and sorts a status outside the order in use after every listed one"
   issues: [ISS-15-9egxn3]
@@ -227,7 +227,18 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "source: a missing status still sorts last in both directions, and ties still break on id ascending"
     - "source: CHANGELOG.md's ### Fixed list under ## Unreleased ends with this fix's bullet"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - result: YES
+        measured: "source: ISSUE_STATUSES lists backlog, ready, in-progress, blocked, done, dropped (verify 1 returned 1), and selectRows passes it when scope is issues (verify 2 returned 1)"
+      - result: YES
+        measured: "source: selectRows passes STATUSES for every scope other than issues"
+      - result: YES
+        measured: "source: rank returns statuses.length for a value statuses does not include; verify 3 returned 0 for the old indexOf subtraction"
+      - result: YES
+        measured: "source: the missing-value return before the comparison and the d || cmpListId(a, b) tie-break read as at base_commit"
+      - result: YES
+        measured: "source: verify 4 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
 - [ ] 7. Read only files in the generator's per-folder scan

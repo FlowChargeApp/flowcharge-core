@@ -34,6 +34,9 @@ skill mirrors it. See VERSIONING.md.
   changes `.gitignore`.
 - `fc-index.mjs --check` reports a stale `ids.md` header without claiming that
   it rewrote it.
+- `fc-index.mjs --sort status` ranks an issue's `blocked` status in the issue
+  lifecycle order and sorts an unrecognised status after every known one,
+  instead of first.
 
 ## 0.5.1 - 2026-10-13
 

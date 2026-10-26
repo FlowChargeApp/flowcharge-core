@@ -282,6 +282,9 @@ if (initMode) {
 
 const warnings = [];
 const STATUSES = ['backlog', 'ready', 'in-progress', 'done', 'dropped'];
+// An issue's own enum, in the order skills/fc-issue-list/SKILL.md lists it: the
+// artefact enum plus blocked. --sort status ranks an issue record by it.
+const ISSUE_STATUSES = ['backlog', 'ready', 'in-progress', 'blocked', 'done', 'dropped'];
 const SEV_ORDER = { critical: 0, high: 1, medium: 2, low: 3 };
 const STALE_DAYS = 14;
 // `updated` is bumped on every edit, but a file's mtime also moves for reasons
@@ -1085,7 +1088,10 @@ function applySync() {
 
 const cmpListId = (a, b) => String(a.id).localeCompare(String(b.id), undefined, { numeric: true });
 
-function compareRecs(key, desc) {
+// statuses is the lifecycle order --sort status ranks by. A value outside it
+// ranks after every listed one, as an unknown severity does.
+function compareRecs(key, desc, statuses) {
+  const rank = (v) => (statuses.includes(v) ? statuses.indexOf(v) : statuses.length);
   return (a, b) => {
     const av = a[key], bv = b[key];
     const aMissing = av === undefined || av === null || av === '';
@@ -1093,7 +1099,7 @@ function compareRecs(key, desc) {
     if (aMissing || bMissing) return aMissing && bMissing ? cmpListId(a, b) : aMissing ? 1 : -1;
     let d;
     if (key === 'id') d = cmpListId(a, b);
-    else if (key === 'status') d = STATUSES.indexOf(av) - STATUSES.indexOf(bv);
+    else if (key === 'status') d = rank(av) - rank(bv);
     else if (key === 'severity') d = (SEV_ORDER[av] ?? 9) - (SEV_ORDER[bv] ?? 9);
     else d = String(av).localeCompare(String(bv));
     if (desc) d = -d;
@@ -1128,7 +1134,7 @@ function selectRows(items, opts) {
     recs = live.filter((a) => a.type === SCOPE_TYPE[scope] && inWs(a));
   }
   if (sortKey === 'created' && !cols.some((c) => c[1] === 'created')) cols.push(['Created', 'created']);
-  recs.sort(compareRecs(sortKey, desc));
+  recs.sort(compareRecs(sortKey, desc, scope === 'issues' ? ISSUE_STATUSES : STATUSES));
   const val = (r, k) => {
     if (k === 'tags') return (r.tags || []).join(', ');
     if (k === 'status') return `${r.status}${r.archived ? ' (archived)' : ''}${r.blocked ? ' (blocked)' : ''}`;
