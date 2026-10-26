@@ -1796,6 +1796,16 @@ testCase('--check reports a missing tag pool and does not create it', () => {
   });
 });
 
+// Unlike the cases around it, this one reads the repository's own pool rather
+// than a fixture: the orchestrator adds the automatic tags issue and feature
+// itself, so a pool without them draws a WARN on every workstream that carries
+// one. The entries are read with the pattern the generator reads a pool with.
+testCase('the tag pool of this repository lists both automatic tags', () => {
+  const pool = fs.readFileSync(path.resolve(HERE, '..', '..', '..', '..', 'flowcharge', 'tags.md'), 'utf8');
+  const listed = [...pool.matchAll(/^- ([a-z0-9-]+)$/gm)].map((m) => m[1]);
+  assert.deepStrictEqual(['feature', 'issue'].filter((t) => !listed.includes(t)), [], 'flowcharge/tags.md does not list these automatic tags');
+});
+
 // ---- cases: --new-ws scaffold mode -----------------------------------------
 // Write-mode cases. They re-read the record the generator wrote rather than
 // trusting its exit code, and they count the marker directories under
@@ -4951,6 +4961,34 @@ testCase('setup-labels: the table holds exactly six entries, the six required na
   });
 });
 
+// The entry guard must recognise its own entry point however the path to the
+// script is spelled: through a folder whose name holds a space, which a file
+// URL percent-encodes, and through a symbolic link, which node resolves to the
+// real file before it loads the module. Imported where process.argv[1] names
+// no file, the module must still run nothing and throw nothing. No run here
+// reaches gh, so the case needs no stub.
+testCase('setup-labels: runs from a path holding a space or through a symlinked folder, and runs nothing when imported', () => {
+  withFixture({}, (dir) => {
+    const spaced = path.join(dir, 'with space');
+    fs.mkdirSync(spaced);
+    fs.copyFileSync(SETUP_LABELS, path.join(spaced, 'setup-labels.mjs'));
+    fs.symlinkSync(spaced, path.join(dir, 'link'));
+    for (const folder of [spaced, path.join(dir, 'link')]) {
+      const copy = path.join(folder, 'setup-labels.mjs');
+      const help = spawnSync(process.execPath, [copy, '--help'], { cwd: dir, encoding: 'utf8' });
+      assert.strictEqual(help.status, 0, `--help through ${folder} exited ${help.status}`);
+      assert.ok(help.stdout.startsWith('setup-labels.mjs: reconciles'), `--help through ${folder} printed no usage`);
+      const bogus = spawnSync(process.execPath, [copy, '--bogus'], { cwd: dir, encoding: 'utf8' });
+      assert.strictEqual(bogus.status, 1, `--bogus through ${folder} was not refused`);
+      assert.match(bogus.stderr, /unknown argument "--bogus"/, `--bogus through ${folder} printed no refusal`);
+    }
+    const script = `import { LABELS } from ${JSON.stringify(pathToFileURL(path.join(spaced, 'setup-labels.mjs')).href)}; process.stdout.write(String(LABELS.length));`;
+    const imported = spawnSync(process.execPath, ['--input-type=module', '-e', script, 'stray'], { cwd: dir, encoding: 'utf8' });
+    assert.strictEqual(imported.status, 0, `importing the copy with a stray argument failed: ${imported.stderr}`);
+    assert.strictEqual(imported.stdout, '6', 'importing the copy ran its entry point');
+  });
+});
+
 // ---- cases: skill-file docs consistency (skills/**/*.md) -------------------
 // Every case above builds a temp tree. Every case below reads the repository's
 // own skills/ tree instead, and greps its Markdown prose for the shapes listed
@@ -6024,6 +6062,26 @@ testCase('no script derives a path from a file URL pathname', () => {
     }
   }
   assert.deepStrictEqual(offenders, [], 'these scripts still derive a path from a file URL pathname');
+});
+
+// A file URL comes from pathToFileURL and a path from fileURLToPath, because a
+// URL spelled by hand from a path is wrong on Windows and for a path holding a
+// character a URL encodes. Three hand-built forms are flagged: a template
+// literal that runs a file URL prefix straight into an interpolation, a quoted
+// file URL prefix joined to a value with +, and an import specifier
+// interpolated from JSON.stringify of anything but pathToFileURL(...).
+testCase('no script builds a file URL or an import specifier from a path by hand', () => {
+  const repoRoot = path.resolve(HERE, '..', '..', '..', '..');
+  const handBuilt = [/`file:\/\/\$\{/, /['"]file:\/\/['"]\s*\+/, /from \$\{JSON\.stringify\((?!pathToFileURL\()/];
+  const offenders = [];
+  for (const dir of ['skills/flowcharge/scripts', 'skills/flowcharge/scripts/test', '.github/scripts']) {
+    for (const name of fs.readdirSync(path.join(repoRoot, dir)).filter((n) => n.endsWith('.mjs')).sort()) {
+      const rel = `${dir}/${name}`;
+      const text = fs.readFileSync(path.join(repoRoot, rel), 'utf8');
+      if (handBuilt.some((re) => re.test(text))) offenders.push(rel);
+    }
+  }
+  assert.deepStrictEqual(offenders, [], 'these scripts still build a file URL or an import specifier from a path by hand');
 });
 
 // ---- runner ----------------------------------------------------------------

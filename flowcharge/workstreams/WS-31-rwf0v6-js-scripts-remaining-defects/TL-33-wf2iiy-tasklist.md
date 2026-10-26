@@ -162,7 +162,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         measured: "source: verify 2 printed sorted"
   ```
 
-- [ ] 5. Test-update task: bring the tests in line with this change
+- [x] 5. Test-update task: bring the tests in line with this change
   ```yaml
   description: "Update every test the other tasks make wrong or out of date; add only the tests the source asks for"
   test_update: true
@@ -177,7 +177,17 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "grep -cF \"testCase('no script builds a file URL or an import specifier from a path by hand'\" skills/flowcharge/scripts/test/run-tests.mjs  # expect 1; 0 at base_commit"
     - "grep -cF \"testCase('the tag pool of this repository lists both automatic tags'\" skills/flowcharge/scripts/test/run-tests.mjs  # expect 1; 0 at base_commit"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - item: "verify 1"
+        result: YES
+        measured: "source: grep -cF of the entry-point case returned 1; the case sits directly after the setup-labels table case"
+      - item: "verify 2"
+        result: YES
+        measured: "source: grep -cF of the hand-built file URL scan case returned 1; the case sits directly after the file URL pathname scan case"
+      - item: "verify 3"
+        result: YES
+        measured: "source: grep -cF of the tag pool case returned 1; the case sits directly after the missing-pool --check case, and node --check of run-tests.mjs passes"
   ```
 
 - [ ] 6. Test-run task: run the project's test suites
