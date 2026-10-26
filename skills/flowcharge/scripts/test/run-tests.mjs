@@ -1032,12 +1032,12 @@ testCase('a second --sync run changes no file and prints no SYNC line', () => {
       `SYNC TL-1-abcdef (${TL1}): ready → done (all 1 tasks checked)`,
       `SYNC WS-1-abcdef (${WS1}): ready → done (all 1 artefacts closed)`,
     ]);
-    const after = [WS1, TL1].map((rel) => ({ rel, text: readRel(dir, rel), mtime: mtimeOf(dir, rel) }));
+    const after = [[WS1, wsText], [TL1, tlText]].map(([rel, fixtureText]) => ({ rel, fixtureText, text: readRel(dir, rel), mtime: mtimeOf(dir, rel) }));
     expectSync(dir, []);
     for (const f of after) {
       assert.strictEqual(readRel(dir, f.rel), f.text, `${f.rel} was rewritten by the second --sync run`);
       assert.strictEqual(mtimeOf(dir, f.rel), f.mtime, `${f.rel} was touched by the second --sync run`);
-      expectClosedFile(dir, TL1, tlText, day);
+      expectClosedFile(dir, f.rel, f.fixtureText, day);
     }
   });
 });

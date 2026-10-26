@@ -342,7 +342,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         measured: "source: verify 3 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
-- [ ] 10. Check each file against its own fixture in the second --sync case
+- [x] 10. Check each file against its own fixture in the second --sync case
   ```yaml
   description: "The case 'a second --sync run changes no file and prints no SYNC line' checks each file in its loop against that file's own path and fixture text"
   issues: [ISS-19-451hci]
@@ -362,7 +362,16 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "source: no other case changes"
     - "source: CHANGELOG.md's ### Fixed list under ## Unreleased ends with this fix's bullet"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - result: YES
+        measured: "source: after is built from [WS1, wsText] and [TL1, tlText], and the loop calls expectClosedFile(dir, f.rel, f.fixtureText, day); verify 1 returned 1"
+      - result: YES
+        measured: "source: the loop's text and mtime assertions read as at base_commit"
+      - result: YES
+        measured: "source: git diff of run-tests.mjs shows two changed lines, both in this case; verify 2 returned 2, the calls in the other two cases that close the task list"
+      - result: YES
+        measured: "source: verify 3 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
 - [ ] 11. Accept the day the generator wrote across local midnight in the date assertions

@@ -44,6 +44,8 @@ skill mirrors it. See VERSIONING.md.
 - `fc-index.mjs` treats a leading-slash or trailing-glob `.gitignore` entry,
   such as `/flowcharge/` or `flowcharge/**`, as covering the paths it manages,
   and appends nothing for them.
+- The second `--sync` test case checks each closed file against its own
+  fixture.
 
 ## 0.5.1 - 2026-10-13
 
