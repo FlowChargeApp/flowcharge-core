@@ -58,6 +58,8 @@ skill mirrors it. See VERSIONING.md.
   changes `.gitignore`.
 - README.md states the four `.gitignore` lines Core adds, the workstream lease
   files included.
+- `setup-labels.mjs` runs when started from a path that holds a space, through
+  a symlinked folder or on Windows, instead of exiting without doing anything.
 
 ## 0.5.1 - 2026-10-13
 

@@ -13,7 +13,9 @@
 // The HELP constant below is this file's usage documentation and the text
 // --help prints, so the interface is recorded in one place, not two.
 
+import fs from 'node:fs';
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 const HELP = `setup-labels.mjs: reconciles the public repository's issue-triage labels.
 
@@ -211,7 +213,21 @@ function main() {
 }
 
 // Guard the entry point so importing this module (the test harness's case
-// L6 imports LABELS directly) runs no gh call and does no work.
-if (import.meta.url === `file://${process.argv[1]}`) {
+// L6 imports LABELS directly) runs no gh call and does no work. main() runs
+// only when node was asked to run this file, which is when the module's own
+// file and process.argv[1] are the same real file. Comparing real paths
+// holds on Windows, for a path holding a space and through a symlinked
+// folder. A process.argv[1] that names no file, as under node -e or for a
+// script read from stdin, throws in realpathSync and means the module was
+// imported.
+function isEntryPoint() {
+  try {
+    return fs.realpathSync(fileURLToPath(import.meta.url)) === fs.realpathSync(process.argv[1]);
+  } catch {
+    return false;
+  }
+}
+
+if (isEntryPoint()) {
   main();
 }

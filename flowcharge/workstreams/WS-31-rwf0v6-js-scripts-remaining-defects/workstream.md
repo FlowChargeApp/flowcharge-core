@@ -4,7 +4,7 @@ type: workstream
 workstream: WS-31-rwf0v6
 slug: js-scripts-remaining-defects
 title: "Windows script paths, a manifest test midnight race, a refused --new-ws .gitignore write and the README .gitignore count"
-status: done
+status: in-progress
 tags: [correctness, generator, issue]
 created: 2026-10-26
 updated: 2026-10-26
@@ -54,3 +54,34 @@ The suite runs with `node skills/flowcharge/scripts/test/run-tests.mjs`.
    `.gitignore` lines, and the generator writes four. Decide from the generator's own
    code which side is right, then correct README.md, or the generator only if its code
    is clearly the wrong side.
+5. **setup-labels.mjs's entry guard misses its own entry point.**
+   `.github/scripts/setup-labels.mjs` decides whether it was run directly by comparing
+   `import.meta.url` with a `file://` string built by hand from `process.argv[1]`. On
+   Windows, or from a path that holds a space, the two never match, so the script
+   exits 0 and does nothing. Fix it with the `fileURLToPath` form the other scripts
+   already use, and pin it in the suite next to the case that scans the scripts for
+   file-URL pathname derivations.
+6. **CONVENTIONS.md miscounts the paths the generator keeps out of git.**
+   `skills/flowcharge/CONVENTIONS.md` says the generator keeps three paths out of
+   git, and the generator writes four: `flowcharge/index.md`, `flowcharge/kanban.md`,
+   `flowcharge/ids/` and `flowcharge/workstreams/*/.lease`. Correct the document,
+   with the generator's own list as the truth.
+7. **The tag pool lacks the automatic tags.** `flowcharge/tags.md` does not list
+   `issue` and `feature`, so every workstream that carries one draws a "not in the
+   tag pool" warning. Decide from CONVENTIONS.md and the generator which side is
+   wrong, the pool file or a generator that should exempt the automatic tags, and fix
+   that side with a test case, so that `--check` and the default run print no such
+   warning for this repository's own `flowcharge/` folder.
+
+## Sweep
+
+Search the whole repository for every other instance of the three defect families in
+items 5 to 7, and fix or report each one:
+
+- script entry guards, and file-URL or path derivations, under `skills/` and
+  `.github/`;
+- documents and code comments that state which paths the generator keeps out of
+  git, or how many `.gitignore` lines it writes;
+- the tag pool against the automatic tags.
+
+Nothing outside these three families is in scope.
