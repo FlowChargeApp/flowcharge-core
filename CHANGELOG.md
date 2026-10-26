@@ -56,6 +56,8 @@ skill mirrors it. See VERSIONING.md.
   crosses local midnight.
 - An `fc-index.mjs --new-ws` run refused for a taken slug no longer creates or
   changes `.gitignore`.
+- README.md states the four `.gitignore` lines Core adds, the workstream lease
+  files included.
 
 ## 0.5.1 - 2026-10-13
 

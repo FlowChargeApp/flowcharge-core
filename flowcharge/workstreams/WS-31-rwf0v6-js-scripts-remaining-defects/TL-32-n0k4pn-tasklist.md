@@ -181,7 +181,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         measured: "source: verify 3 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
-- [ ] 4. State the four .gitignore lines in README.md
+- [x] 4. State the four .gitignore lines in README.md
   ```yaml
   description: "README.md's Layout in a target project section states the four .gitignore lines the generator writes, the workstream lease files included"
   issues: [ISS-26-v95vp1]
@@ -202,7 +202,20 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "source: the paragraph's other two sentences read as at base_commit, wrapped at about 85 columns"
     - "source: CHANGELOG.md's ### Fixed list under ## Unreleased ends with this fix's bullet"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - result: YES
+        measured: "source: verify 1 returned 1, verify 2 returned 0 and verify 3 returned 1 after the re-wrap; the sentence names four .gitignore lines under one comment line, for the two generated views, the temporary ID-claim markers and the workstream lease files"
+      - result: YES
+        measured: "source: GITIGNORE_TARGETS holds four paths, and git diff 5e725c0 of fc-index.mjs touches neither GITIGNORE_TARGETS nor GITIGNORE_COMMENT"
+      - result: YES
+        measured: "source: git diff of README.md changes only this paragraph; its other two sentences keep their words, and its five lines are at most 84 columns wide"
+      - result: YES
+        measured: "source: verify 4 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
+    failures:
+      - item: "checklist 1"
+        reason: "verify 3 returned 0 at first: the wrap split 'workstream lease files' across two lines"
+        fix: "re-wrapped the paragraph so the phrase sits on one line; verify 3 then returned 1"
   ```
 
 - [ ] 5. Test-update task: bring the tests in line with this change

@@ -160,10 +160,11 @@ token-efficient choice.
 
 ## Layout in a target project
 
-Core adds one folder, `flowcharge/`, plus three `.gitignore` lines for the two
-generated views and the temporary ID-claim markers. Each workstream, the unit of work
-the board tracks, gets one folder under `flowcharge/workstreams/`. Dates live in
-frontmatter, never in folder names.
+Core adds one folder, `flowcharge/`, plus four `.gitignore` lines, under one comment
+line, for the two generated views, the temporary ID-claim markers and the
+workstream lease files. Each workstream, the unit of work the board tracks, gets one
+folder under `flowcharge/workstreams/`. Dates live in frontmatter, never in folder
+names.
 
 ```
 flowcharge/
