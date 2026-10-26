@@ -25,10 +25,13 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { inflateRawSync } from 'node:zlib';
 import { LABELS } from '../../../../.github/scripts/setup-labels.mjs';
 
-const HERE = path.dirname(decodeURIComponent(new URL(import.meta.url).pathname));
+// fileURLToPath rather than the URL's pathname, which keeps a slash in front of
+// a Windows drive letter (/C:/...) that no path API resolves.
+const HERE = path.dirname(fileURLToPath(import.meta.url));
 const GENERATOR = path.resolve(HERE, '..', 'fc-index.mjs');
 const FIXTURE_PREFIX = 'fc-harness-';
 

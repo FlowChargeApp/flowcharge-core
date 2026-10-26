@@ -413,7 +413,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         measured: "source: verify 5 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
-- [ ] 12. Derive the test suite's own folder through fileURLToPath
+- [x] 12. Derive the test suite's own folder through fileURLToPath
   ```yaml
   description: "run-tests.mjs derives HERE through fileURLToPath, which strips the slash a Windows drive path carries in a file URL"
   issues: [ISS-21-uqa78u]
@@ -434,7 +434,16 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "source: no constant derived from HERE changes its own expression"
     - "source: CHANGELOG.md's ### Fixed list under ## Unreleased ends with this fix's bullet"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - result: YES
+        measured: "source: verify 1 and verify 2 returned 1: fileURLToPath is imported from node:url and HERE is path.dirname(fileURLToPath(import.meta.url))"
+      - result: YES
+        measured: "source: verify 3 returned 0, and the comment above HERE does not quote the old expression"
+      - result: YES
+        measured: "source: GENERATOR, SKILL_MD, RENAMER, STAMPER and the other path.resolve(HERE, ...) constants read as at base_commit"
+      - result: YES
+        measured: "source: verify 4 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
 - [ ] 13. Read only files in the renamer's per-folder scan

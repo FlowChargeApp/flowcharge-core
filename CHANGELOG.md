@@ -48,6 +48,7 @@ skill mirrors it. See VERSIONING.md.
   fixture.
 - The `--sync` and `--new-ws` test cases accept the date the generator wrote
   when a run crosses local midnight.
+- The test suite resolves its own folder correctly on Windows.
 
 ## 0.5.1 - 2026-10-13
 
