@@ -49,6 +49,7 @@ skill mirrors it. See VERSIONING.md.
 - The `--sync` and `--new-ws` test cases accept the date the generator wrote
   when a run crosses local midnight.
 - The test suite resolves its own folder correctly on Windows.
+- The renamer skips a directory named like an artefact instead of crashing.
 
 ## 0.5.1 - 2026-10-13
 

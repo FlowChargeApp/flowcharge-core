@@ -131,7 +131,13 @@ for (const scanRoot of [wsRoot, archiveRoot]) {
     .sort();
   for (const folder of folders) {
     const folderPath = path.join(scanRoot, folder);
-    const files = fs.readdirSync(folderPath).filter((f) => ARTEFACT_FILE.test(f)).sort();
+    // Files only: a directory whose name passes ARTEFACT_FILE is no artefact,
+    // and reading it would crash the scan before any file is reported.
+    const files = fs
+      .readdirSync(folderPath, { withFileTypes: true })
+      .filter((d) => d.isFile() && ARTEFACT_FILE.test(d.name))
+      .map((d) => d.name)
+      .sort();
     for (const f of files) {
       if (f === WORKSTREAM_FILE) continue;
       const abs = path.join(folderPath, f);

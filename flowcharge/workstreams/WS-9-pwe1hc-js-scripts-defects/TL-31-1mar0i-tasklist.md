@@ -446,7 +446,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         measured: "source: verify 4 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
-- [ ] 13. Read only files in the renamer's per-folder scan
+- [x] 13. Read only files in the renamer's per-folder scan
   ```yaml
   description: "The renamer lists each workstream folder with file types and reads only files, so a directory named like an artefact is skipped instead of crashing the scan"
   issues: [ISS-22-j2m4g3]
@@ -466,7 +466,16 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "source: no import is added"
     - "source: CHANGELOG.md's ### Fixed list under ## Unreleased ends with this fix's bullet"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - result: YES
+        measured: "source: the listing reads Dirent entries, keeps d.isFile() && ARTEFACT_FILE.test(d.name), maps to names and sorts; verify 1 and verify 2 returned 1"
+      - result: YES
+        measured: "source: git diff of the renamer for this task touches only the listing and its comment"
+      - result: YES
+        measured: "source: the import lines are node:fs, node:path and node:child_process only"
+      - result: YES
+        measured: "source: verify 3 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
 - [ ] 14. Test-update task: bring the tests in line with this change
