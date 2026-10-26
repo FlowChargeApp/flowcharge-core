@@ -1399,9 +1399,14 @@ if (newWsOpts) {
 if (syncOpts) applySync();
 
 // ---- integrity checks ------------------------------------------------------
-const isDone = (id) => {
+// A depends_on target is met once it is done, except a plan or an issue list,
+// which is met once authored: at any status but backlog or dropped
+// (CONVENTIONS.md, Frontmatter). Ready work below applies it.
+const depMet = (id) => {
   const t = byId.get(id);
-  return t ? t.status === 'done' : false;
+  if (!t) return false;
+  if (t.type === 'plan' || t.type === 'issuelist') return t.status !== 'backlog' && t.status !== 'dropped';
+  return t.status === 'done';
 };
 for (const a of artefacts) {
   for (const dep of a.depends_on) {
@@ -1649,7 +1654,7 @@ const wsArtefacts = (ws) =>
     .join(', ') || '-';
 
 const readyWork = artefacts.filter(
-  (a) => !a.archived && (a.status === 'ready' || a.status === 'backlog') && !a.blocked && a.depends_on.every(isDone)
+  (a) => !a.archived && (a.status === 'ready' || a.status === 'backlog') && !a.blocked && a.depends_on.every(depMet)
 );
 
 const openIssues = artefacts

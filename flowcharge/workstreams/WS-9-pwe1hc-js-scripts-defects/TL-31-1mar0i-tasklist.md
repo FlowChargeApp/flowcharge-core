@@ -273,7 +273,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         measured: "source: verify 3 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
-- [ ] 8. Count an authored plan or issue list as a met dependency in ready work
+- [x] 8. Count an authored plan or issue list as a met dependency in ready work
   ```yaml
   description: "The index's ready-to-start section counts a plan or issue-list dependency as met once it is authored, and README.md states the same rule"
   issues: [ISS-17-jvj96o]
@@ -297,7 +297,16 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "source: README.md's Dependencies are data paragraph states the same rule as CONVENTIONS.md"
     - "source: CHANGELOG.md's ### Fixed list under ## Unreleased ends with this fix's bullet"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - result: YES
+        measured: "source: depMet returns false for an id byId lacks, status other than backlog and dropped for a plan or issuelist target, and status done otherwise; verify 1 returned 0 for isDone"
+      - result: YES
+        measured: "source: readyWork reads a.depends_on.every(depMet) beside its unchanged archived, status and blocked tests; verify 2 returned 1"
+      - result: YES
+        measured: "source: README.md now says a plan or issue-list dependency is met once that artifact is authored, at any status but backlog or dropped, and any other dependency once it is done, the README's own spelling of artifact kept; verify 3 returned 0 and verify 4 returned 1"
+      - result: YES
+        measured: "source: verify 5 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
 - [ ] 9. Recognise leading-slash and trailing-glob .gitignore spellings as covering

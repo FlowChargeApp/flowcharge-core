@@ -38,6 +38,9 @@ skill mirrors it. See VERSIONING.md.
   lifecycle order and sorts an unrecognised status after every known one,
   instead of first.
 - The generator skips a directory named like an artefact instead of crashing.
+- The index's ready-to-start section counts a plan or issue-list dependency as
+  met once that artefact is authored, so a task list built from one is listed.
+  The README states the same rule.
 
 ## 0.5.1 - 2026-10-13
 

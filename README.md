@@ -29,7 +29,9 @@ context the agent needs: the exact anchor, the imports, the trap to avoid, the v
 command and the acceptance checklist.
 
 Dependencies are data. A task list authored from an issue list carries
-`depends_on: [IL-3-k9d2s5]` and runs only once IL-3-k9d2s5 is `done`.
+`depends_on: [IL-3-k9d2s5]`. A plan or issue-list dependency is met once that
+artifact is authored, at any status but `backlog` or `dropped`, and any other
+dependency once it is `done`.
 
 Every artifact is a markdown file with YAML frontmatter, and **that frontmatter is
 the single source of truth**: statuses, dependencies and IDs live there. The index
