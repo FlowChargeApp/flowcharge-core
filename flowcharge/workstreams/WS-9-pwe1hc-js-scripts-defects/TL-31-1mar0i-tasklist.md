@@ -170,7 +170,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         measured: "source: verify 3 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
-- [ ] 5. State the stale ids.md header as a finding under --check
+- [x] 5. State the stale ids.md header as a finding under --check
   ```yaml
   description: "--check reports a stale ids.md header without the word rewritten, while a writing run keeps its wording"
   issues: [ISS-14-18ydcb]
@@ -191,7 +191,16 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "source: the comment above the check says why the wording reads the mode"
     - "source: CHANGELOG.md's ### Fixed list under ## Unreleased ends with this fix's bullet"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - result: YES
+        measured: "source: the check pushes checkOnly ? 'ids.md: header text is out of date' : the writing-run string; verify 1 returned 1"
+      - result: YES
+        measured: "source: verify 2 returned 1 for the writing-run string, and the registry rewrite at writeAtomic(registryPath, ...) still sits after the if (checkOnly) early exit"
+      - result: YES
+        measured: "source: the comment reads: only the wording reads the mode, because --check writes nothing and its line states the finding alone"
+      - result: YES
+        measured: "source: verify 3 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
 - [ ] 6. Rank issue statuses in the issue lifecycle for --sort status

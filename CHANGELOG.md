@@ -32,6 +32,8 @@ skill mirrors it. See VERSIONING.md.
   inline arrays.
 - An `fc-index.mjs` run that refuses its own arguments no longer creates or
   changes `.gitignore`.
+- `fc-index.mjs --check` reports a stale `ids.md` header without claiming that
+  it rewrote it.
 
 ## 0.5.1 - 2026-10-13
 

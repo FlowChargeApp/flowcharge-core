@@ -1575,12 +1575,13 @@ if (fs.existsSync(registryPath)) {
 }
 
 // The registry header. The mismatch is reported here, with the other integrity
-// checks, and the rewrite it announces happens below with the index and board
-// writes, so --check's early exit prevents the write without a mode test.
+// checks, and the rewrite happens below with the index and board writes, so
+// --check's early exit prevents the write without a mode test. Only the wording
+// reads the mode: --check writes nothing, so its line states the finding alone.
 let registryRewrite = null;
 if (fs.existsSync(registryPath)) {
   registryRewrite = registryHeaderRewrite(fs.readFileSync(registryPath, 'utf8'));
-  if (registryRewrite) warnings.push('ids.md: header text is out of date, rewritten');
+  if (registryRewrite) warnings.push(checkOnly ? 'ids.md: header text is out of date' : 'ids.md: header text is out of date, rewritten');
 }
 
 // The ID graph: orphan markers, counters ahead of every source, and the
