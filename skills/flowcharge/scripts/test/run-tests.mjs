@@ -959,12 +959,24 @@ function expectSync(dir, expectedLines, extraArgs = ['--no-board']) {
   return stdout;
 }
 
+// The day the generator wrote on rel's key: line. The generator reads its own
+// clock, so a case that read its start day just before local midnight sees the
+// next day written. The day is accepted only when it is the case's start day or
+// the day it reads now, so a wrong date still fails.
+function writtenDay(dir, rel, key, startDay) {
+  const day = (readRel(dir, rel).match(new RegExp(`^${key}: (.*)$`, 'm')) || [])[1];
+  const days = [startDay, today()];
+  assert.ok(days.includes(day), `${rel}: ${key} ${day} is neither ${days.join(' nor ')}`);
+  return day;
+}
+
 // Asserts rel is byte-for-byte the fixture text with only those two lines
-// substituted, rather than spot-checking the two lines themselves.
-function expectClosedFile(dir, rel, fixtureText, day) {
+// substituted, rather than spot-checking the two lines themselves. startDay is
+// the day the case read before the generator ran.
+function expectClosedFile(dir, rel, fixtureText, startDay) {
   assert.strictEqual(
     readRel(dir, rel),
-    closedText(fixtureText, day),
+    closedText(fixtureText, writtenDay(dir, rel, 'updated', startDay)),
     `${rel} differs from the fixture by more than its status: and updated: lines`,
   );
 }
@@ -1722,7 +1734,7 @@ testCase('--new-ws writes a complete record and prints the claimed id and its pa
     // Byte comparison, so an added, missing, misordered or misvalued key fails.
     // Defaults are asserted here: no --tags gives tags: [], no --status gives
     // status: backlog.
-    assert.strictEqual(readRel(dir, rel), newWsRecord(id, 'demo', 'Demo workstream', { day }));
+    assert.strictEqual(readRel(dir, rel), newWsRecord(id, 'demo', 'Demo workstream', { day: writtenDay(dir, rel, 'created', day) }));
     assert.strictEqual(readRel(dir, rel).replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, ''), '', 'the body is not empty');
     assert.deepStrictEqual(idsEntries(dir), [id], 'the marker directory for the claimed id is missing');
   });
@@ -1740,7 +1752,7 @@ testCase('--new-ws honours --tags and --status', () => {
     const rel = `flowcharge/workstreams/${id}-demo/workstream.md`;
     assert.strictEqual(
       readRel(dir, rel),
-      newWsRecord(id, 'demo', 'Demo workstream', { day, tags: ['generator', 'skill-files'], status: 'ready' }),
+      newWsRecord(id, 'demo', 'Demo workstream', { day: writtenDay(dir, rel, 'created', day), tags: ['generator', 'skill-files'], status: 'ready' }),
     );
   });
 });

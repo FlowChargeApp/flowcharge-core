@@ -374,7 +374,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         measured: "source: verify 3 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
-- [ ] 11. Accept the day the generator wrote across local midnight in the date assertions
+- [x] 11. Accept the day the generator wrote across local midnight in the date assertions
   ```yaml
   description: "The --sync and --new-ws cases accept the day the generator wrote when it is the day the case started or the day it ended, so a run across local midnight no longer fails"
   issues: [ISS-20-2ms98u]
@@ -399,7 +399,18 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "source: the two mtime-pinned date cases are unchanged"
     - "source: CHANGELOG.md's ### Fixed list under ## Unreleased ends with this fix's bullet"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - result: YES
+        measured: "source: writtenDay reads the column-0 key line with a multiline match, asserts the value is startDay or today() and returns it; verify 1 returned 1"
+      - result: YES
+        measured: "source: expectClosedFile builds its expected text from closedText(fixtureText, writtenDay(dir, rel, 'updated', startDay)); verify 2 returned 1"
+      - result: YES
+        measured: "source: both --new-ws cases pass day: writtenDay(dir, rel, 'created', day) to newWsRecord; verify 3 returned 2 and verify 4 returned 0"
+      - result: YES
+        measured: "source: the cases at lines 1337 and 1582 read as at base_commit; git diff of run-tests.mjs touches only the helper and the two --new-ws assertions"
+      - result: YES
+        measured: "source: verify 5 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
 - [ ] 12. Derive the test suite's own folder through fileURLToPath

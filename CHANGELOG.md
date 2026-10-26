@@ -46,6 +46,8 @@ skill mirrors it. See VERSIONING.md.
   and appends nothing for them.
 - The second `--sync` test case checks each closed file against its own
   fixture.
+- The `--sync` and `--new-ws` test cases accept the date the generator wrote
+  when a run crosses local midnight.
 
 ## 0.5.1 - 2026-10-13
 
