@@ -4,7 +4,7 @@ type: workstream
 workstream: WS-9-pwe1hc
 slug: js-scripts-defects
 title: "Defects in this repository's own JavaScript generator scripts"
-status: in-progress
+status: done
 tags: [correctness, generator, issue]
 created: 2026-09-13
 updated: 2026-10-26
