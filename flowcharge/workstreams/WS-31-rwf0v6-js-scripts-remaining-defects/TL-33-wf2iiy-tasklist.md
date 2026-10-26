@@ -143,7 +143,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         measured: "source: verify 5 returned 1, and the two-line bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
-- [ ] 4. List the automatic tags in this repository's tag pool
+- [x] 4. List the automatic tags in this repository's tag pool
   ```yaml
   description: "flowcharge/tags.md lists the automatic tags feature and issue, in its alphabetical order"
   issues: [ISS-30-fi8uta]
@@ -154,7 +154,12 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "grep -cE '^- (feature|issue)$' flowcharge/tags.md  # expect 2; 0 at base_commit"
     - "grep '^- ' flowcharge/tags.md | LC_ALL=C sort -c && echo sorted  # expect sorted; sorted at base_commit too, since it guards the order the two lines join rather than detecting them"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - result: YES
+        measured: "source: verify 1 returned 2; git diff adds - feature after - data-integrity and - issue after - git, and nothing else"
+      - result: YES
+        measured: "source: verify 2 printed sorted"
   ```
 
 - [ ] 5. Test-update task: bring the tests in line with this change
