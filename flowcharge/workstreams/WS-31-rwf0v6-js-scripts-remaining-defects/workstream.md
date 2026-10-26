@@ -4,7 +4,7 @@ type: workstream
 workstream: WS-31-rwf0v6
 slug: js-scripts-remaining-defects
 title: "Windows script paths, a manifest test midnight race, a refused --new-ws .gitignore write and the README .gitignore count"
-status: in-progress
+status: done
 tags: [correctness, generator, issue]
 created: 2026-10-26
 updated: 2026-10-26
