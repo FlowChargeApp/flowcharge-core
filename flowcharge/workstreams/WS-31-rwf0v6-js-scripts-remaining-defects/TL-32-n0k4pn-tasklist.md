@@ -4,7 +4,7 @@ type: tasklist
 workstream: WS-31-rwf0v6
 slug: js-scripts-remaining-defects
 title: "Fix the Windows script paths, the manifest test date race, the refused --new-ws .gitignore write and the README .gitignore count"
-status: ready
+status: done
 created: 2026-10-26
 updated: 2026-10-26
 author: Anthony Koukoullis
@@ -246,7 +246,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         measured: "source: grep -cF of the taken-slug .gitignore case name returned 1"
   ```
 
-- [ ] 6. Test-run task: run the project's test suites
+- [x] 6. Test-run task: run the project's test suites
   ```yaml
   description: "Run every command in the frontmatter test_commands after every other task"
   test_run: full
@@ -255,8 +255,10 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
   verify:
     - "Every command in the frontmatter test_commands, in order, from the project root"
   self_eval:
-    passed: false
-    test_run_result: pending
+    passed: true
+    test_run_result: passed
     test_run_baseline: []
     test_run_failures: []
+    test_run_counts:
+      - "node skills/flowcharge/scripts/test/run-tests.mjs: 320 passed, 0 failed"
   ```

@@ -4,7 +4,7 @@ type: issuelist
 workstream: WS-31-rwf0v6
 slug: js-scripts-remaining-defects
 title: "Windows script paths, a manifest test date race, a refused --new-ws .gitignore write and the README .gitignore count"
-status: ready
+status: done
 created: 2026-10-26
 updated: 2026-10-26
 author: Anthony Koukoullis
@@ -14,11 +14,11 @@ links: []
 
 # FlowCharge Issue List
 
-- [ ] ISS-23-jp7g43. fc-index.mjs and six release scripts derive their own folder from a file URL pathname, which breaks on Windows
+- [x] ISS-23-jp7g43. fc-index.mjs and six release scripts derive their own folder from a file URL pathname, which breaks on Windows
 
   ```yaml
   id: ISS-23-jp7g43
-  status: in-progress
+  status: done
   severity: low
   author: Anthony Koukoullis
   description: "Seven scripts compute their own folder as path.dirname of the decoded pathname of new URL(import.meta.url) rather than through fileURLToPath. A file URL's pathname keeps a slash in front of a Windows drive letter, so every folder and root derived from it is invalid on Windows. run-tests.mjs already derives its own folder through fileURLToPath, and its case 'the suite derives its own folder through fileURLToPath' pins that form for the suite alone."
@@ -30,14 +30,14 @@ links: []
   affected: "skills/flowcharge/scripts/fc-index.mjs:266-269 (SELF_ROOT, read at :1573 and :1576); .github/scripts/build-release-zip.mjs:64-67; .github/scripts/changelog-section.mjs:60-63; .github/scripts/check-release.mjs:56-59; .github/scripts/manifest.mjs:74-77; .github/scripts/release.mjs:72-73 (SELF_DIR and SELF_ROOT; STAMPER and MANIFEST at :75-76 are built from SELF_DIR); .github/scripts/stamp-skill-versions.mjs:48-51"
   environment: "Node >= 16 on Windows."
   tasks: [TL-32-n0k4pn task 1.1, TL-32-n0k4pn task 1.2]
-  notes: "Reproduced by evaluating each site's own expression text, read from its file, under Windows path semantics with a Windows file URL: all seven gave a /C:/... folder, while fileURLToPath gave C:\\... for the same URL. No site is provably safe: each derived folder is used as a filesystem path, and run-tests.mjs copies every one of these scripts into a fixture and runs it, so a suite run on Windows exercises all seven. The search covered every tracked script. fc-rename-artefacts.mjs does not use import.meta.url. In setup-labels.mjs, import.meta.url appears only in the entry guard at :215, which derives no path, and :162 reads the host of an https URL. Fix direction: import fileURLToPath from node:url in each of the seven files and derive the folder as path.dirname(fileURLToPath(import.meta.url))."
+  notes: "Reproduced by evaluating each site's own expression text, read from its file, under Windows path semantics with a Windows file URL: all seven gave a /C:/... folder, while fileURLToPath gave C:\\... for the same URL. No site is provably safe: each derived folder is used as a filesystem path, and run-tests.mjs copies every one of these scripts into a fixture and runs it, so a suite run on Windows exercises all seven. The search covered every tracked script. fc-rename-artefacts.mjs does not use import.meta.url. In setup-labels.mjs, import.meta.url appears only in the entry guard at :215, which derives no path, and :162 reads the host of an https URL. Fix direction: import fileURLToPath from node:url in each of the seven files and derive the folder as path.dirname(fileURLToPath(import.meta.url)). Resolved by TL-32-n0k4pn tasks 1.1 and 1.2: fc-index.mjs and the six release scripts derive their own folder as path.dirname(fileURLToPath(import.meta.url))."
   ```
 
-- [ ] ISS-24-fahe4r. The manifest test case's generated-day check races manifest.mjs's clock across local midnight
+- [x] ISS-24-fahe4r. The manifest test case's generated-day check races manifest.mjs's clock across local midnight
 
   ```yaml
   id: ISS-24-fahe4r
-  status: in-progress
+  status: done
   severity: low
   author: Anthony Koukoullis
   description: "Case 'manifest: M2 the document has the contracted key order, sorting, version invariant and generated day' asserts that parsed.generated equals today() read after manifest.mjs has run. The script reads its own clock through localDay(), so a run in which the script reads its day just before local midnight and the case reads today() just after it fails. The --sync and --new-ws cases read their start day before the run and accept the day written when it is that start day or the day read afterwards, through writtenDay()."
@@ -49,14 +49,14 @@ links: []
   affected: "skills/flowcharge/scripts/test/run-tests.mjs:4290-4293 (the generated-day assertion of case M2, :4264-4301), :1023-1032 (writtenDay, the accepting form the --sync and --new-ws cases use); .github/scripts/manifest.mjs:96-97 (localDay) and :238 (generated: localDay())"
   environment: "Node >= 16. Fires only on a run that crosses local midnight."
   tasks: [TL-32-n0k4pn task 2]
-  notes: "Reproduced against the current code by running the full suite with only the manifest.mjs child's clock set to one second before the most recent local midnight: case M2 failed on generated 2026-10-25 against today() 2026-10-26, and the other 315 cases passed. M2 is the only case that reads the generated key. Fix direction: read the start day before the run and accept the generated day when it is the start day or the day read afterwards, sharing writtenDay()'s accepting check rather than repeating it."
+  notes: "Reproduced against the current code by running the full suite with only the manifest.mjs child's clock set to one second before the most recent local midnight: case M2 failed on generated 2026-10-25 against today() 2026-10-26, and the other 315 cases passed. M2 is the only case that reads the generated key. Fix direction: read the start day before the run and accept the generated day when it is the start day or the day read afterwards, sharing writtenDay()'s accepting check rather than repeating it. Resolved by TL-32-n0k4pn task 2: case M2 reads its start day before manifest.mjs runs and accepts the generated day through acceptDay, the check writtenDay now shares."
   ```
 
-- [ ] ISS-25-nzbdds. A --new-ws run refused for a taken slug still creates or appends to .gitignore
+- [x] ISS-25-nzbdds. A --new-ws run refused for a taken slug still creates or appends to .gitignore
 
   ```yaml
   id: ISS-25-nzbdds
-  status: in-progress
+  status: done
   severity: low
   author: Anthony Koukoullis
   description: "fc-index.mjs writes .gitignore once its last argument parser has run, and only afterwards does the --new-ws block check whether a live or archived workstream folder already carries the slug. A run refused for a taken slug therefore exits 1 after it has created or appended to the project's .gitignore. Every other refused run exits before that write."
@@ -70,14 +70,14 @@ links: []
   affected: "skills/flowcharge/scripts/fc-index.mjs:1301-1315 (the ensureGitignore call block), :1334-1346 (the slug-collision check inside the --new-ws block, which runs after it)"
   environment: "Node >= 16"
   tasks: [TL-32-n0k4pn task 3]
-  notes: "Reproduced against the current code for a live folder, an archived folder and an existing .gitignore. In the same fixture, --new-ws 'bad slug!' and --claim BOGUS exit 1 and write nothing. The refused run claims no id, because the collision check already runs before the claim. Fix direction: run the slug-collision check before the .gitignore write, which also keeps it before the claim."
+  notes: "Reproduced against the current code for a live folder, an archived folder and an existing .gitignore. In the same fixture, --new-ws 'bad slug!' and --claim BOGUS exit 1 and write nothing. The refused run claims no id, because the collision check already runs before the claim. Fix direction: run the slug-collision check before the .gitignore write, which also keeps it before the claim. Resolved by TL-32-n0k4pn task 3: the slug-collision check runs before the .gitignore write and before the claim."
   ```
 
-- [ ] ISS-26-v95vp1. README.md says Core adds three .gitignore lines, but the generator writes four
+- [x] ISS-26-v95vp1. README.md says Core adds three .gitignore lines, but the generator writes four
 
   ```yaml
   id: ISS-26-v95vp1
-  status: in-progress
+  status: done
   severity: low
   author: Anthony Koukoullis
   description: "README.md's 'Layout in a target project' section says Core adds three .gitignore lines, for the two generated views and the temporary ID-claim markers. fc-index.mjs manages four lines, flowcharge/index.md, flowcharge/kanban.md, flowcharge/ids/ and flowcharge/workstreams/*/.lease, and writes them under one comment line."
@@ -89,5 +89,5 @@ links: []
   affected: "README.md:163-164; skills/flowcharge/scripts/fc-index.mjs:158-163 (GITIGNORE_COMMENT and GITIGNORE_TARGETS), :125-131 (the --help text, which names the four paths)"
   environment: ""
   tasks: [TL-32-n0k4pn task 4]
-  notes: "Reproduced against the current code: one default-mode run in a fixture with no .gitignore wrote the comment line and the four lines. The generator is the right side. The comment above GITIGNORE_TARGETS names four paths, the --help text names all four, and run-tests.mjs pins the lease line in the case 'a writing run appends only the lease line to a .gitignore holding the other three'. Fix direction: correct the README.md sentence and leave the generator unchanged."
+  notes: "Reproduced against the current code: one default-mode run in a fixture with no .gitignore wrote the comment line and the four lines. The generator is the right side. The comment above GITIGNORE_TARGETS names four paths, the --help text names all four, and run-tests.mjs pins the lease line in the case 'a writing run appends only the lease line to a .gitignore holding the other three'. Fix direction: correct the README.md sentence and leave the generator unchanged. Resolved by TL-32-n0k4pn task 4: README.md states four .gitignore lines under one comment line, the workstream lease files included."
   ```
