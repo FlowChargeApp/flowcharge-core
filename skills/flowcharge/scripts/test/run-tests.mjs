@@ -1020,15 +1020,21 @@ function expectSync(dir, expectedLines, extraArgs = ['--no-board']) {
   return stdout;
 }
 
-// The day the generator wrote on rel's key: line. The generator reads its own
-// clock, so a case that read its start day just before local midnight sees the
-// next day written. The day is accepted only when it is the case's start day or
-// the day it reads now, so a wrong date still fails.
+// A day a script under test wrote from its own clock. The script reads its
+// clock apart from the case, so a case that read its start day just before
+// local midnight sees the next day written. The day is accepted only when it is
+// the case's start day or the day it reads now, so a wrong date still fails.
+// what names the value in the failure message.
+function acceptDay(what, day, startDay) {
+  const days = [startDay, today()];
+  assert.ok(days.includes(day), `${what} ${day} is neither ${days.join(' nor ')}`);
+  return day;
+}
+
+// The day the generator wrote on rel's key: line, accepted by acceptDay().
 function writtenDay(dir, rel, key, startDay) {
   const day = (readRel(dir, rel).match(new RegExp(`^${key}: (.*)$`, 'm')) || [])[1];
-  const days = [startDay, today()];
-  assert.ok(days.includes(day), `${rel}: ${key} ${day} is neither ${days.join(' nor ')}`);
-  return day;
+  return acceptDay(`${rel}: ${key}`, day, startDay);
 }
 
 // Asserts rel is byte-for-byte the fixture text with only those two lines
@@ -4262,6 +4268,7 @@ testCase('manifest: M1 a clean run writes skills/manifest.json with one entry pe
 // unrelated content change. Indentation and the trailing newline are the only
 // two properties read off the raw text, because JSON.parse discards both.
 testCase('manifest: M2 the document has the contracted key order, sorting, version invariant and generated day', () => {
+  const startDay = today();
   const specs = [
     { name: 'gamma', version: MAN_VERSION },
     { name: 'alpha', version: MAN_VERSION },
@@ -4287,10 +4294,11 @@ testCase('manifest: M2 the document has the contracted key order, sorting, versi
       assert.strictEqual(entry.version, parsed.suite_version, `${entry.name}: version does not mirror suite_version`);
     }
 
-    // today() is this file's own local-calendar day, the same rule the script's
-    // localDay() applies. A toISOString() day would be UTC and would disagree
-    // with the script for anyone running the suite near midnight.
-    assert.strictEqual(parsed.generated, today(), 'generated is not the local calendar day');
+    // The script writes its own local-calendar day, the rule today() follows. A
+    // toISOString() day would be UTC and would disagree with the script for
+    // anyone running the suite near midnight. The script also reads its own
+    // clock, so acceptDay() takes the day this case started as well as today().
+    acceptDay('generated', parsed.generated, startDay);
 
     const text = manifestText(dir);
     assert.ok(text.endsWith('\n'), 'the file does not end with a newline');

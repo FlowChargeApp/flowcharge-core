@@ -105,7 +105,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
           measured: "source: verify 5 returned 1, and the two-line bullet, 79 columns wide, is the last item of ### Fixed under ## Unreleased"
     ```
 
-- [ ] 2. Accept the day manifest.mjs wrote across local midnight in the manifest case
+- [x] 2. Accept the day manifest.mjs wrote across local midnight in the manifest case
   ```yaml
   description: "Case M2 reads its start day before manifest.mjs runs and accepts the generated day when it is that day or the day it reads afterwards, through the accepting check writtenDay already applies"
   issues: [ISS-24-fahe4r]
@@ -129,7 +129,18 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "source: no assertion compares parsed.generated with a today() read after the run, and M2's other assertions read as at base_commit"
     - "source: CHANGELOG.md's ### Fixed list under ## Unreleased ends with this fix's bullet"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - result: YES
+        measured: "source: verify 1 returned 1; acceptDay builds days from startDay and today(), asserts the day is one of them and returns it"
+      - result: YES
+        measured: "source: writtenDay keeps its key-line read and returns acceptDay(`${rel}: ${key}`, day, startDay), so its message still reads `${rel}: ${key} ${day} is neither ...`; its three call sites, in expectClosedFile and the two --new-ws cases, are unchanged"
+      - result: YES
+        measured: "source: const startDay = today(); is the first statement of case M2, before withManifestFixture, and verify 2 returned 1"
+      - result: YES
+        measured: "source: verify 3 returned 0; git diff of run-tests.mjs touches only the two helpers, M2's first line and M2's generated-day check with its comment"
+      - result: YES
+        measured: "source: verify 4 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
 - [ ] 3. Refuse a taken --new-ws slug before the .gitignore write
