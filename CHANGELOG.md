@@ -41,6 +41,9 @@ skill mirrors it. See VERSIONING.md.
 - The index's ready-to-start section counts a plan or issue-list dependency as
   met once that artefact is authored, so a task list built from one is listed.
   The README states the same rule.
+- `fc-index.mjs` treats a leading-slash or trailing-glob `.gitignore` entry,
+  such as `/flowcharge/` or `flowcharge/**`, as covering the paths it manages,
+  and appends nothing for them.
 
 ## 0.5.1 - 2026-10-13
 

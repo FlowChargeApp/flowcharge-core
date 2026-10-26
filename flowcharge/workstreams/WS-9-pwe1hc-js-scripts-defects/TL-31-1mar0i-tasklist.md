@@ -309,7 +309,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         measured: "source: verify 5 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
-- [ ] 9. Recognise leading-slash and trailing-glob .gitignore spellings as covering
+- [x] 9. Recognise leading-slash and trailing-glob .gitignore spellings as covering
   ```yaml
   description: "ensureGitignore counts a leading-slash or trailing-glob spelling of a covering entry, so a .gitignore holding /flowcharge/ or flowcharge/** gains no line"
   issues: [ISS-18-gffohk]
@@ -330,7 +330,16 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "source: the managed-comment test and the append-only write are unchanged"
     - "source: CHANGELOG.md's ### Fixed list under ## Unreleased ends with this fix's bullet"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - result: YES
+        measured: "source: coverSpelling drops the slash of a /flowcharge line and turns a trailing /** or /* into /, so each of the five lines spells flowcharge/ or flowcharge, which GITIGNORE_COVERS lists for all four targets; verify 1 returned 2"
+      - result: YES
+        measured: "source: /flowcharge/index.md, /flowcharge/kanban.md and /flowcharge/ids/ spell their own targets' forms, and /.lease does not start with /flowcharge, so it stays /.lease, which no target lists"
+      - result: YES
+        measured: "source: the comment test still reads lines.includes(GITIGNORE_COMMENT), and the head, comment and missing write reads as at base_commit; verify 2 returned 0 for the raw-line comparison"
+      - result: YES
+        measured: "source: verify 3 returned 1, and the bullet is the last item of ### Fixed under ## Unreleased"
   ```
 
 - [ ] 10. Check each file against its own fixture in the second --sync case

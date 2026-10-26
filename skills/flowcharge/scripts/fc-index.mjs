@@ -172,6 +172,13 @@ const GITIGNORE_COVERS = {
   'flowcharge/workstreams/*/.lease': ['flowcharge/workstreams/*/.lease', '.lease', 'flowcharge/workstreams/', 'flowcharge/workstreams', 'flowcharge/', 'flowcharge'],
 };
 
+// The covering form a .gitignore line spells. A leading slash anchors a path at
+// the project root, where every form that names flowcharge already sits, so
+// /flowcharge/ spells flowcharge/; /.lease keeps its slash, because it matches
+// the root entry alone. A trailing /** or /* covers everything inside a
+// directory, as the directory itself does, so flowcharge/** spells flowcharge/.
+const coverSpelling = (line) => (line.startsWith('/flowcharge') ? line.slice(1) : line).replace(/\/\*\*?$/, '/');
+
 // Append-only: every pre-existing line is copied through unchanged and in its
 // original order, and an already-compliant file is not touched at all, so its
 // mtime and git status stay where they were.
@@ -180,8 +187,9 @@ function ensureGitignore(gitignoreRoot) {
   const exists = fs.existsSync(gitignorePath);
   const text = exists ? fs.readFileSync(gitignorePath, 'utf8') : '';
   const lines = text.split(/\r?\n/);
+  const spelled = lines.map(coverSpelling);
   const missing = GITIGNORE_TARGETS.filter(
-    (target) => !GITIGNORE_COVERS[target].some((form) => lines.includes(form)),
+    (target) => !GITIGNORE_COVERS[target].some((form) => spelled.includes(form)),
   );
   if (missing.length === 0) return;
   if (!exists) {
