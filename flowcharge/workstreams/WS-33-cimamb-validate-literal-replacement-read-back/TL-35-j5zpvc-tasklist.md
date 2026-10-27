@@ -90,7 +90,7 @@ Every command `verify` step was run at `base_commit`: the value after "at base_c
         measured: "source: git diff --quiet against 4e44975 exited 0 for templates/validate.md and its grep -cF returned 1; git diff -U0 of SKILL.md against task 1's commit shows the description line as the only change, and the frontmatter still parses as YAML"
   ```
 
-- [ ] 3. Add the changelog entry
+- [x] 3. Add the changelog entry
   ```yaml
   description: "CHANGELOG.md gains an Added section under ## Unreleased holding the read-back entry. Realises PLN-27-73ktx3 stage 3 (criterion 8)."
   pattern: "CHANGELOG.md"
@@ -100,7 +100,14 @@ Every command `verify` step was run at `base_commit`: the value after "at base_c
     - "awk '/^## /{n++} n==1' CHANGELOG.md | grep '^### '  # expect '### Added', '### Changed' and '### Fixed' in that order; '### Changed' and '### Fixed' at base_commit"
     - "paste -sd ' ' CHANGELOG.md | tr -s ' ' | grep -oF -e '- fc-validate reads a replacement text back in place.' -e 'It reports such a finding and never applies it.' | wc -l  # expect 2; 0 at base_commit"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - item: "verify 1"
+        result: YES
+        measured: "source: the headings under ## Unreleased read ### Added, ### Changed and ### Fixed, in that order"
+      - item: "verify 2"
+        result: YES
+        measured: "source: the count was 2; the bullet's five lines are 76, 75, 75, 76 and 65 columns wide, and git diff -U0 shows one hunk of 8 added lines with no release heading changed"
   ```
 
 - [ ] 4. Test-update task: bring the tests in line with this change
