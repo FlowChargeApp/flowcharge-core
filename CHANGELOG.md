@@ -64,6 +64,9 @@ skill mirrors it. See VERSIONING.md.
   table case runs on Windows and from a folder whose name holds `#`.
 - CONVENTIONS.md states the four paths the generator keeps out of git, the
   workstream lease files included.
+- The orchestrator and fc-validate no longer say that `git status` lists, or a
+  commit captures, the generated index and board, the ID-claim markers or the
+  workstream lease files, which the generator keeps out of git.
 
 ## 0.5.1 - 2026-10-13
 

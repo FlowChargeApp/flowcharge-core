@@ -142,11 +142,10 @@ Before you run any command at all, both of these conditions must hold.
    would never match. Compare the short value against the front of the full one.
 2. No tracked file outside `flowcharge/` is modified.
 
-The precondition is never "the working tree is clean". At validation time the generated
-index, the board and the workstream record are routinely modified by the upkeep that
-runs between stages, and the lease file plus the artefact under validation are
-untracked. A clean-tree precondition would therefore fail on every in-pipeline run, and
-the whole of this part would silently never execute.
+The precondition is never "the working tree is clean". At validation time the workstream
+record is routinely modified by the upkeep that runs between stages, and the artefact
+under validation is untracked. A clean-tree precondition would therefore fail on every
+in-pipeline run, and the whole of this part would silently never execute.
 
 Where the precondition fails you run nothing. Report the drift and name which half
 failed: the `base_commit` prefix, or a modified tracked file outside `flowcharge/`.

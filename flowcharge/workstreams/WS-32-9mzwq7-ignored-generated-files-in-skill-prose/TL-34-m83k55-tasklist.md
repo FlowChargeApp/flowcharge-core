@@ -86,7 +86,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         measured: "source: verify 2 returned 1; the edit changes that one line only, and the item's line breaks stay where they were"
   ```
 
-- [ ] 4. Name only what git status shows in fc-validate's precondition, and record the fix in CHANGELOG.md
+- [x] 4. Name only what git status shows in fc-validate's precondition, and record the fix in CHANGELOG.md
   ```yaml
   description: "fc-validate's baseline precondition names only the files git status can show at validation time, the workstream record and the artefact under validation, and CHANGELOG.md records the whole fix in one bullet"
   issues: [ISS-34-9ml9x4]
@@ -107,7 +107,16 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "source: CHANGELOG.md's ### Fixed list under ## Unreleased ends with the three-line bullet, and no line of it is wider than 80 columns"
     - "source: no version line, release heading or other file changes in this task"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - result: YES
+        measured: "source: verify 1 and verify 2 returned 0 and verify 3 returned 1; the second sentence now reads: At validation time the workstream record is routinely modified by the upkeep that runs between stages, and the artefact under validation is untracked."
+      - result: YES
+        measured: "source: the diff of skills/fc-validate/SKILL.md changes only that paragraph; its first and last sentences read word for word once the line breaks are joined, and the two numbered conditions and the drift report are untouched; the paragraph's widest line is 88 columns"
+      - result: YES
+        measured: "source: verify 4 returned 1; the three-line bullet follows the CONVENTIONS.md bullet as the last item of ### Fixed under ## Unreleased, at 78, 77 and 63 columns"
+      - result: YES
+        measured: "source: this task's edits are the fc-validate paragraph and the CHANGELOG.md bullet only; no SKILL.md version line and no release heading changed"
   ```
 
 - [ ] 5. Test-update task: bring the tests in line with this change
