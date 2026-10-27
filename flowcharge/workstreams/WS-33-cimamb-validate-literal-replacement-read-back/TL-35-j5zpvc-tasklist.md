@@ -110,7 +110,7 @@ Every command `verify` step was run at `base_commit`: the value after "at base_c
         measured: "source: the count was 2; the bullet's five lines are 76, 75, 75, 76 and 65 columns wide, and git diff -U0 shows one hunk of 8 added lines with no release heading changed"
   ```
 
-- [ ] 4. Test-update task: bring the tests in line with this change
+- [x] 4. Test-update task: bring the tests in line with this change
   ```yaml
   description: "Update every test the other tasks make wrong or out of date; add only the tests the source asks for"
   test_update: true
@@ -121,7 +121,11 @@ Every command `verify` step was run at `base_commit`: the value after "at base_c
   verify:
     - "grep -cF \"testCase('fc-validate carries the bounded read-back and reports its findings under Undetermined'\" skills/flowcharge/scripts/test/run-tests.mjs  # expect 1; 0 at base_commit"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - item: "verify 1"
+        result: YES
+        measured: "source: grep -cF of the case returned 1; the case and its READ_BACK_ constants sit directly after the git-ignored files pin, node --check of run-tests.mjs passes, and its constants match the edited SKILL.md while the bullet, the report-only sentence, the Undetermined sentence and the description item are absent from the SKILL.md at 4e44975"
   ```
 
 - [ ] 5. Test-run task: run the project's test suites
