@@ -62,7 +62,7 @@ Every command `verify` step was run at `base_commit`: the value after "at base_c
         measured: "source: the sha256 of notes.md (787d4acf), PLN-1-aaaaaa-plan.md (8136d61b) and TL-1-aaaaaa-tasklist.md (d32e9b58) and git status --porcelain (the two untracked fixture artefacts) were identical before and after the validation; the fixture commit ran with -c commit.gpgsign=false added, because the global git settings sign every commit"
   ```
 
-- [ ] 2. Name the read-back in the description's Accuracy item
+- [x] 2. Name the read-back in the description's Accuracy item
   ```yaml
   description: "The description's four-class parenthetical names the read-back in its Accuracy item, and templates/validate.md, which names the classes only by count, stays unedited. Realises PLN-27-73ktx3 stage 2 (criterion 6)."
   pattern: "skills/fc-validate/SKILL.md"
@@ -74,7 +74,20 @@ Every command `verify` step was run at `base_commit`: the value after "at base_c
     - "grep -cF 'Checks four classes (coverage of the source, content with no source behind it, accuracy of' skills/fc-validate/SKILL.md  # expect 1; 1 at base_commit, so this step guards the class count in the description and cannot fail there"
     - "git diff --quiet 4e44975 -- skills/flowcharge/templates/validate.md && grep -cF \"check all four of the skill's classes\" skills/flowcharge/templates/validate.md  # expect exit 0 and 1; the same at base_commit, because the plan's Design leaves the stage file unedited, so this step cannot fail there"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - item: "verify 1"
+        result: YES
+        measured: "source: grep -cF of the new Accuracy item and the words after it returned 1"
+      - item: "verify 2"
+        result: YES
+        measured: "source: grep -cF of the old Accuracy item returned 0"
+      - item: "verify 3"
+        result: YES
+        measured: "source: grep -cF of the opening of the four-class parenthetical returned 1"
+      - item: "verify 4"
+        result: YES
+        measured: "source: git diff --quiet against 4e44975 exited 0 for templates/validate.md and its grep -cF returned 1; git diff -U0 of SKILL.md against task 1's commit shows the description line as the only change, and the frontmatter still parses as YAML"
   ```
 
 - [ ] 3. Add the changelog entry
