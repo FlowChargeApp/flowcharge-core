@@ -353,7 +353,7 @@ Each operation names its stage file, its slots, what it consumes, and what it re
 | issues-and-tasks | `templates/issues-and-tasks.md` | `{stages}`, `{mode}`, `{issuelist}`, `{ws_dir}`, `{ws_id}`, `{slug}` | findings the user supplies; an issue list path in `{issuelist}` when `{stages}` is `tasks-only` | issue list path, ISS IDs, task list path, ISS→task map |
 | validate | `templates/validate.md` | `{stages}`, `{role}`, `{upstream}`, `{upstream_path}`, `{tasklist}`, `{ws_dir}` | both artefacts the authoring stage produced, plus the source material it authored from | one summary line per comparison, plus any open finding; correction detail withheld |
 | execute-tasks | `templates/execute-parent-task.md` (once per parent task) | `{tasklist}`, `{parent_task}` | task list path, **PROMPTED**, deps checked per rule 5 | per-task applied/aborted status, self_eval |
-| commit | inline via the **fc-git** skill | - | completed work, plus the end-of-run upkeep writes that have already landed (issue closures, `--sync` status flips, regenerated index/board, released lease), **PROMPTED** | commit SHA |
+| commit | inline via the **fc-git** skill | - | completed work, plus the end-of-run upkeep writes that have already landed (issue closures, `--sync` status flips), **PROMPTED** | commit SHA |
 | backlog-add | `templates/kanban-add.md` | `{item1}`, `{item2}`, … | backlog items from the request | WS IDs, slugs, card text |
 | upkeep | inline (see FlowCharge Core upkeep) | - | every stage boundary | fresh index + board |
 | list | inline (see Listing artefacts) | - | scope / workstream / sort from the request | Markdown table (in chat) |
