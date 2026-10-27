@@ -44,7 +44,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         measured: "source: verify 2 returned 1; the edit changes only the commit row's Consumes cell, which still ends with `, **PROMPTED**`"
   ```
 
-- [ ] 2. Correct what the Before commit prompt expects git status to list
+- [x] 2. Correct what the Before commit prompt expects git status to list
   ```yaml
   description: "The Before commit prompt expects the status to list the issue-status closures and the --sync status flips, and says it never lists the regenerated index and board, the claim markers or the lease, which the generator keeps out of git"
   issues: [ISS-32-xsbd4p]
@@ -57,7 +57,14 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "grep -cF 'It never lists the regenerated' skills/flowcharge/SKILL.md  # expect 1; 0 at base_commit"
     - "grep -cF '(CONVENTIONS.md, The index and the board are generated)' skills/flowcharge/SKILL.md  # expect 1; 0 at base_commit"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - result: YES
+        measured: "source: verify 1 returned 0; the parenthesis reads (the issue-status closures and `--sync`'s task-list, issue-list and workstream status flips)"
+      - result: YES
+        measured: "source: verify 2 returned 1; the new sentence follows the one that ends `alongside the run's authored and executed artefacts.`, and the item's other sentences keep their words"
+      - result: YES
+        measured: "source: verify 3 returned 1; the pointer sits whole on one line, and the re-wrapped lines are 76 to 85 columns wide"
   ```
 
 - [ ] 3. Say the commit captures the status writes the end-of-run upkeep lists

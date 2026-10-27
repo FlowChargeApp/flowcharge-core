@@ -678,10 +678,11 @@ then ask "proceed?" as a numbered question with a recommendation, and wait.
 - **Before commit**: `git status --short` of what would be committed, and the
   branch. The end-of-run bookkeeping has already run by this point (see "FlowCharge Core
   upkeep"), so that status is expected to list FlowCharge Core's own edits (the issue-status
-  closures, `--sync`'s task-list, issue-list and workstream status flips, the
-  regenerated `index.md` and `kanban.md`, and the released `.lease`)
-  alongside the run's authored and executed artefacts. The prompt still checks the
-  same two things: that `git status --short` output, and the branch.
+  closures and `--sync`'s task-list, issue-list and workstream status flips)
+  alongside the run's authored and executed artefacts. It never lists the regenerated
+  `index.md` and `kanban.md`, the claim markers or the `.lease`: the generator keeps
+  them out of git (CONVENTIONS.md, The index and the board are generated). The prompt
+  still checks the same two things: that `git status --short` output, and the branch.
 
 A "no" or a revision request at a prompt is a normal outcome, not a failure. Apply
 the revision (which may mean re-running an authoring stage) or stop cleanly.
