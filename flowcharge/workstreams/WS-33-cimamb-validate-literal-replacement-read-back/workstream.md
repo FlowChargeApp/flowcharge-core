@@ -4,7 +4,7 @@ type: workstream
 workstream: WS-33-cimamb
 slug: validate-literal-replacement-read-back
 title: "The validator never reads a replacement text back, so defective wording reaches the file"
-status: in-progress
+status: done
 tags: [quality, correctness, prompts, feature]
 created: 2026-10-27
 updated: 2026-10-27

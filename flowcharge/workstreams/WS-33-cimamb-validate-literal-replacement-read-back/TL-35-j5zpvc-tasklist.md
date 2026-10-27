@@ -4,7 +4,7 @@ type: tasklist
 workstream: WS-33-cimamb
 slug: validate-literal-replacement-read-back
 title: "Read a replacement text back in fc-validate's Accuracy class"
-status: ready
+status: done
 created: 2026-10-27
 updated: 2026-10-27
 author: Anthony Koukoullis
@@ -128,7 +128,7 @@ Every command `verify` step was run at `base_commit`: the value after "at base_c
         measured: "source: grep -cF of the case returned 1; the case and its READ_BACK_ constants sit directly after the git-ignored files pin, node --check of run-tests.mjs passes, and its constants match the edited SKILL.md while the bullet, the report-only sentence, the Undetermined sentence and the description item are absent from the SKILL.md at 4e44975"
   ```
 
-- [ ] 5. Test-run task: run the project's test suites
+- [x] 5. Test-run task: run the project's test suites
   ```yaml
   description: "Run every command in the frontmatter test_commands after every other task"
   test_run: full
@@ -137,8 +137,10 @@ Every command `verify` step was run at `base_commit`: the value after "at base_c
   verify:
     - "Every command in the frontmatter test_commands, in order, from the project root"
   self_eval:
-    passed: false
-    test_run_result: pending
+    passed: true
+    test_run_result: passed
     test_run_baseline: []
     test_run_failures: []
+    test_run_counts:
+      - "node skills/flowcharge/scripts/test/run-tests.mjs: 325 passed, 0 failed"
   ```

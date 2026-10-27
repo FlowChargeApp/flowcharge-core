@@ -4,7 +4,7 @@ type: plan
 workstream: WS-33-cimamb
 slug: validate-literal-replacement-read-back
 title: "Read a replacement text back in fc-validate's Accuracy class"
-status: ready
+status: done
 created: 2026-10-27
 updated: 2026-10-27
 author: Anthony Koukoullis
