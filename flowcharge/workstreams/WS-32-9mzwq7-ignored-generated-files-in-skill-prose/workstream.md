@@ -4,7 +4,7 @@ type: workstream
 workstream: WS-32-9mzwq7
 slug: ignored-generated-files-in-skill-prose
 title: "Correct skill prose that treats git-ignored files as visible to git"
-status: in-progress
+status: done
 tags: [skills, correctness, git, issue]
 created: 2026-10-27
 updated: 2026-10-27

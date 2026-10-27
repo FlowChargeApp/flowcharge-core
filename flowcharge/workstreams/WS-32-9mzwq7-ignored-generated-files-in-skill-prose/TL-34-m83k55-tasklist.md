@@ -4,7 +4,7 @@ type: tasklist
 workstream: WS-32-9mzwq7
 slug: ignored-generated-files-in-skill-prose
 title: "Correct the skill prose that says git status lists, or a commit captures, the git-ignored generated files"
-status: ready
+status: done
 created: 2026-10-27
 updated: 2026-10-27
 author: Anthony Koukoullis
@@ -137,7 +137,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         measured: "source: grep -cF of the case returned 1; the case and IGNORED_FILES_PROSE_PINS sit directly after the correction-direction case, and node --check of run-tests.mjs passes"
   ```
 
-- [ ] 6. Test-run task: run the project's test suites
+- [x] 6. Test-run task: run the project's test suites
   ```yaml
   description: "Run every command in the frontmatter test_commands after every other task"
   test_run: full
@@ -146,8 +146,10 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
   verify:
     - "Every command in the frontmatter test_commands, in order, from the project root"
   self_eval:
-    passed: false
-    test_run_result: pending
+    passed: true
+    test_run_result: passed
     test_run_baseline: []
     test_run_failures: []
+    test_run_counts:
+      - "node skills/flowcharge/scripts/test/run-tests.mjs: 324 passed, 0 failed"
   ```
