@@ -353,7 +353,7 @@ Each operation names its stage file, its slots, what it consumes, and what it re
 | issues-and-tasks | `templates/issues-and-tasks.md` | `{stages}`, `{mode}`, `{issuelist}`, `{ws_dir}`, `{ws_id}`, `{slug}` | findings the user supplies; an issue list path in `{issuelist}` when `{stages}` is `tasks-only` | issue list path, ISS IDs, task list path, ISS→task map |
 | validate | `templates/validate.md` | `{stages}`, `{role}`, `{upstream}`, `{upstream_path}`, `{tasklist}`, `{ws_dir}` | both artefacts the authoring stage produced, plus the source material it authored from | one summary line per comparison, plus any open finding; correction detail withheld |
 | execute-tasks | `templates/execute-parent-task.md` (once per parent task) | `{tasklist}`, `{parent_task}` | task list path, **PROMPTED**, deps checked per rule 5 | per-task applied/aborted status, self_eval |
-| commit | inline via the **fc-git** skill | - | completed work, plus the end-of-run upkeep writes that have already landed (issue closures, `--sync` status flips, regenerated index/board, released lease), **PROMPTED** | commit SHA |
+| commit | inline via the **fc-git** skill | - | completed work, plus the end-of-run upkeep writes that have already landed (issue closures, `--sync` status flips), **PROMPTED** | commit SHA |
 | backlog-add | `templates/kanban-add.md` | `{item1}`, `{item2}`, … | backlog items from the request | WS IDs, slugs, card text |
 | upkeep | inline (see FlowCharge Core upkeep) | - | every stage boundary | fresh index + board |
 | list | inline (see Listing artefacts) | - | scope / workstream / sort from the request | Markdown table (in chat) |
@@ -678,10 +678,11 @@ then ask "proceed?" as a numbered question with a recommendation, and wait.
 - **Before commit**: `git status --short` of what would be committed, and the
   branch. The end-of-run bookkeeping has already run by this point (see "FlowCharge Core
   upkeep"), so that status is expected to list FlowCharge Core's own edits (the issue-status
-  closures, `--sync`'s task-list, issue-list and workstream status flips, the
-  regenerated `index.md` and `kanban.md`, and the released `.lease`)
-  alongside the run's authored and executed artefacts. The prompt still checks the
-  same two things: that `git status --short` output, and the branch.
+  closures and `--sync`'s task-list, issue-list and workstream status flips)
+  alongside the run's authored and executed artefacts. It never lists the regenerated
+  `index.md` and `kanban.md`, the claim markers or the `.lease`: the generator keeps
+  them out of git (CONVENTIONS.md, The index and the board are generated). The prompt
+  still checks the same two things: that `git status --short` output, and the branch.
 
 A "no" or a revision request at a prompt is a normal outcome, not a failure. Apply
 the revision (which may mean re-running an authoring stage) or stop cleanly.
@@ -796,7 +797,7 @@ node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root>
 - **Successful end of run**: this bookkeeping runs once the run's last work stage
   has finished (execute-tasks, or whichever authoring stage the run ended on) and,
   when the run does go on to commit, it runs before the commit stage. The commit
-  stage is therefore the run's last stage, and it captures every write listed below.
+  stage is therefore the run's last stage, and it captures the status writes listed below.
   A run that never reaches a commit stage still does this bookkeeping at the same
   point, when its last work stage finishes.
   Re-check the issues the completed work was linked to
