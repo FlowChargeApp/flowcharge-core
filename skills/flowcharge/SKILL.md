@@ -797,7 +797,7 @@ node <skills-dir>/flowcharge/scripts/fc-index.mjs --root <project-root>
 - **Successful end of run**: this bookkeeping runs once the run's last work stage
   has finished (execute-tasks, or whichever authoring stage the run ended on) and,
   when the run does go on to commit, it runs before the commit stage. The commit
-  stage is therefore the run's last stage, and it captures every write listed below.
+  stage is therefore the run's last stage, and it captures the status writes listed below.
   A run that never reaches a commit stage still does this bookkeeping at the same
   point, when its last work stage finishes.
   Re-check the issues the completed work was linked to

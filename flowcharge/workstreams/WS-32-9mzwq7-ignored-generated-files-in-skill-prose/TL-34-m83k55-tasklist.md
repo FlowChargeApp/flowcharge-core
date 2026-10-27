@@ -67,7 +67,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         measured: "source: verify 3 returned 1; the pointer sits whole on one line, and the re-wrapped lines are 76 to 85 columns wide"
   ```
 
-- [ ] 3. Say the commit captures the status writes the end-of-run upkeep lists
+- [x] 3. Say the commit captures the status writes the end-of-run upkeep lists
   ```yaml
   description: "The Successful end of run item says the commit stage captures the status writes it lists, not every write"
   issues: [ISS-33-aambxj]
@@ -78,7 +78,12 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
     - "grep -cF 'it captures every write listed below' skills/flowcharge/SKILL.md  # expect 0; 1 at base_commit"
     - "grep -cF 'it captures the status writes listed below' skills/flowcharge/SKILL.md  # expect 1; 0 at base_commit"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - result: YES
+        measured: "source: verify 1 returned 0"
+      - result: YES
+        measured: "source: verify 2 returned 1; the edit changes that one line only, and the item's line breaks stay where they were"
   ```
 
 - [ ] 4. Name only what git status shows in fc-validate's precondition, and record the fix in CHANGELOG.md
