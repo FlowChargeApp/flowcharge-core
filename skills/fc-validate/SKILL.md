@@ -101,7 +101,7 @@ Nothing downstream lacks a source.
 
 ### Accuracy
 
-Anchors, paths, counts and claims.
+Anchors, paths, counts, claims and how a replacement text reads once applied.
 
 - A cited `file:line` that does not hold what the artefact says it holds.
 - A path that does not exist.
