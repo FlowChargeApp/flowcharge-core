@@ -50,6 +50,20 @@ skill mirrors it. See VERSIONING.md.
   when a run crosses local midnight.
 - The test suite resolves its own folder correctly on Windows.
 - The renamer skips a directory named like an artefact instead of crashing.
+- `fc-index.mjs` and the release scripts under `.github/scripts/` resolve their
+  own folder correctly on Windows.
+- The manifest test case accepts the date `manifest.mjs` wrote when a run
+  crosses local midnight.
+- An `fc-index.mjs --new-ws` run refused for a taken slug no longer creates or
+  changes `.gitignore`.
+- README.md states the four `.gitignore` lines Core adds, the workstream lease
+  files included.
+- `setup-labels.mjs` runs when started from a path that holds a space, through
+  a symlinked folder or on Windows, instead of exiting without doing anything.
+- The test suite imports `setup-labels.mjs` through a file URL, so its label
+  table case runs on Windows and from a folder whose name holds `#`.
+- CONVENTIONS.md states the four paths the generator keeps out of git, the
+  workstream lease files included.
 
 ## 0.5.1 - 2026-10-13
 

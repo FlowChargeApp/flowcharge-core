@@ -15,8 +15,10 @@ no suggestion still means "not listed," not "safe to leave."
 - conventions
 - correctness
 - data-integrity
+- feature
 - generator
 - git
+- issue
 - migration
 - orchestration
 - prompts

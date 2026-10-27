@@ -20,6 +20,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const HELP = `check-release.mjs: verifies that every stamped skill version and the newest CHANGELOG.md heading agree with one given release version.
 
@@ -52,9 +53,11 @@ Exit codes:
 // script sits at .github/scripts/check-release.mjs, two directories below the
 // repository root. Never from process.cwd(), so a copy placed inside a fixture
 // at <fixture>/.github/scripts/ reads that fixture's own skills/ tree and its
-// own CHANGELOG.md, and nothing else.
+// own CHANGELOG.md, and nothing else. The folder comes from fileURLToPath
+// rather than from the URL's pathname, which keeps a slash in front of a
+// Windows drive letter (/C:/...) that no path API resolves.
 const SELF_ROOT = path.resolve(
-  path.dirname(decodeURIComponent(new URL(import.meta.url).pathname)),
+  path.dirname(fileURLToPath(import.meta.url)),
   '..', '..',
 );
 

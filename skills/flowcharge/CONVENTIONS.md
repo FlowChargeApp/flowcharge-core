@@ -432,13 +432,14 @@ left stale by an `in-progress` status or a `blocked` reason, unknown `depends_on
 targets. Never hand-edit either output; to
 move a card, change the workstream's `status` and regenerate.
 
-Because both outputs are disposable, and `flowcharge/ids/` holds only ephemeral claim
-markers, the script keeps all three out of git for you. Any run that writes (the
-plain regenerate above, `--no-board`, `--claim`, `--sync`, `--new-ws`
-and `--init`) checks the
-project root's `.gitignore` and appends whichever of `flowcharge/index.md`,
-`flowcharge/kanban.md` and `flowcharge/ids/` it does not already cover. Existing lines
-are left exactly as they are, in their original order. A broader entry that already
-covers a path counts, so a bare `flowcharge/` adds nothing. A failed write is reported
-as a warning and changes nothing else about the run. The read-only modes,
-`--list`, `--check` and `--whoami`, write nothing here either.
+Because both outputs are disposable, `flowcharge/ids/` holds only ephemeral claim
+markers, and each workstream's `.lease` file is a lock bound to the run that holds it,
+the script keeps all four out of git for you. Any run that writes (the plain
+regenerate above, `--no-board`, `--claim`, `--sync`, `--new-ws` and `--init`) checks
+the project root's `.gitignore` and appends whichever of `flowcharge/index.md`,
+`flowcharge/kanban.md`, `flowcharge/ids/` and `flowcharge/workstreams/*/.lease` it
+does not already cover. Existing lines are left exactly as they are, in their original
+order. A broader entry that already covers a path counts, so a bare `flowcharge/` adds
+nothing. A failed write is reported as a warning and changes nothing else about the
+run. The read-only modes, `--list`, `--check` and `--whoami`, write nothing here
+either.

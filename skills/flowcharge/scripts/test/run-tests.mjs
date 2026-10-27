@@ -25,7 +25,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { inflateRawSync } from 'node:zlib';
 import { LABELS } from '../../../../.github/scripts/setup-labels.mjs';
 
@@ -1020,15 +1020,21 @@ function expectSync(dir, expectedLines, extraArgs = ['--no-board']) {
   return stdout;
 }
 
-// The day the generator wrote on rel's key: line. The generator reads its own
-// clock, so a case that read its start day just before local midnight sees the
-// next day written. The day is accepted only when it is the case's start day or
-// the day it reads now, so a wrong date still fails.
+// A day a script under test wrote from its own clock. The script reads its
+// clock apart from the case, so a case that read its start day just before
+// local midnight sees the next day written. The day is accepted only when it is
+// the case's start day or the day it reads now, so a wrong date still fails.
+// what names the value in the failure message.
+function acceptDay(what, day, startDay) {
+  const days = [startDay, today()];
+  assert.ok(days.includes(day), `${what} ${day} is neither ${days.join(' nor ')}`);
+  return day;
+}
+
+// The day the generator wrote on rel's key: line, accepted by acceptDay().
 function writtenDay(dir, rel, key, startDay) {
   const day = (readRel(dir, rel).match(new RegExp(`^${key}: (.*)$`, 'm')) || [])[1];
-  const days = [startDay, today()];
-  assert.ok(days.includes(day), `${rel}: ${key} ${day} is neither ${days.join(' nor ')}`);
-  return day;
+  return acceptDay(`${rel}: ${key}`, day, startDay);
 }
 
 // Asserts rel is byte-for-byte the fixture text with only those two lines
@@ -1790,6 +1796,16 @@ testCase('--check reports a missing tag pool and does not create it', () => {
   });
 });
 
+// Unlike the cases around it, this one reads the repository's own pool rather
+// than a fixture: the orchestrator adds the automatic tags issue and feature
+// itself, so a pool without them draws a WARN on every workstream that carries
+// one. The entries are read with the pattern the generator reads a pool with.
+testCase('the tag pool of this repository lists both automatic tags', () => {
+  const pool = fs.readFileSync(path.resolve(HERE, '..', '..', '..', '..', 'flowcharge', 'tags.md'), 'utf8');
+  const listed = [...pool.matchAll(/^- ([a-z0-9-]+)$/gm)].map((m) => m[1]);
+  assert.deepStrictEqual(['feature', 'issue'].filter((t) => !listed.includes(t)), [], 'flowcharge/tags.md does not list these automatic tags');
+});
+
 // ---- cases: --new-ws scaffold mode -----------------------------------------
 // Write-mode cases. They re-read the record the generator wrote rather than
 // trusting its exit code, and they count the marker directories under
@@ -1989,6 +2005,19 @@ for (const refused of [['--new-ws', 'bad slug!', '--title', 'Demo'], ['--new-ws'
       const res = runGenerator(dir, refused);
       expectRefusal(res, refused.join(' '));
       assert.ok(!fs.existsSync(path.join(dir, '.gitignore')), `${refused.join(' ')} created .gitignore`);
+    });
+  });
+}
+
+// A taken slug is refused before the .gitignore write too, whether a live or an
+// archived folder carries it.
+for (const [where, base] of [['a live', 'workstreams'], ['an archived', 'archive']]) {
+  testCase(`a --new-ws run refused for a slug ${where} folder carries creates no .gitignore`, () => {
+    const rel = `flowcharge/${base}/WS-1-abcdef-alpha/workstream.md`;
+    withFixture({ [rel]: workstream({ id: 'WS-1-abcdef', slug: 'alpha', title: 'Alpha', status: 'done' }) }, (dir) => {
+      const res = runGenerator(dir, ['--new-ws', 'alpha', '--title', 'Alpha again']);
+      expectRefusal(res, `--new-ws on a slug ${where} folder carries`);
+      assert.ok(!fs.existsSync(path.join(dir, '.gitignore')), 'the refused run created .gitignore');
     });
   });
 }
@@ -4262,6 +4291,7 @@ testCase('manifest: M1 a clean run writes skills/manifest.json with one entry pe
 // unrelated content change. Indentation and the trailing newline are the only
 // two properties read off the raw text, because JSON.parse discards both.
 testCase('manifest: M2 the document has the contracted key order, sorting, version invariant and generated day', () => {
+  const startDay = today();
   const specs = [
     { name: 'gamma', version: MAN_VERSION },
     { name: 'alpha', version: MAN_VERSION },
@@ -4287,16 +4317,38 @@ testCase('manifest: M2 the document has the contracted key order, sorting, versi
       assert.strictEqual(entry.version, parsed.suite_version, `${entry.name}: version does not mirror suite_version`);
     }
 
-    // today() is this file's own local-calendar day, the same rule the script's
-    // localDay() applies. A toISOString() day would be UTC and would disagree
-    // with the script for anyone running the suite near midnight.
-    assert.strictEqual(parsed.generated, today(), 'generated is not the local calendar day');
+    // The script writes its own local-calendar day, the rule today() follows. A
+    // toISOString() day would be UTC and would disagree with the script for
+    // anyone running the suite near midnight. The script also reads its own
+    // clock, so acceptDay() takes the day this case started as well as today().
+    acceptDay('generated', parsed.generated, startDay);
 
     const text = manifestText(dir);
     assert.ok(text.endsWith('\n'), 'the file does not end with a newline');
     assert.ok(!text.endsWith('\n\n'), 'the file ends with more than one newline');
     assert.ok(text.includes('\n  "suite_version"'), 'the file is not written with a two-space indent');
     assert.strictEqual(text, `${JSON.stringify(parsed, null, 2)}\n`, 'the raw text is not the parsed value at a two-space indent with a trailing newline');
+  });
+});
+
+// Case M2's generated-day check on a run that crosses local midnight. The copy's
+// clock is pinned to the last second of the day before, the day this case takes
+// as its start day, and the case reads today() afterwards. A check against a
+// today() read after the script ran fails this run.
+testCase('manifest: a generated day written just before local midnight passes the generated-day check', () => {
+  withManifestFixture({ specs: manSpecs() }, (dir) => {
+    const startDay = daysAgo(1);
+    const clock = path.join(dir, 'clock.cjs');
+    fs.writeFileSync(clock, `const T = ${new Date(`${startDay}T23:59:59`).getTime()};\nconst D = Date;\n`
+      + 'global.Date = class extends D { constructor(...a) { if (a.length) super(...a); else super(T); } static now() { return T; } };\n');
+    const copy = path.join(dir, ...MAN_SCRIPT_DIR, 'manifest.mjs');
+    const res = spawnSync(process.execPath, ['--require', clock, copy, MAN_VERSION], { cwd: dir, encoding: 'utf8' });
+    if (res.error) throw res.error;
+    assert.strictEqual(res.status, 0, `manifest exited ${res.status}\n${res.stdout}\n${res.stderr}`);
+    const { generated } = readManifest(dir);
+    assert.strictEqual(generated, startDay, 'the pinned clock did not reach the script');
+    assert.notStrictEqual(generated, today(), 'the pinned day is today, so the run crosses no midnight');
+    acceptDay('generated', generated, startDay);
   });
 });
 
@@ -4888,7 +4940,8 @@ testCase('setup-labels: refuses when gh reports no authenticated host, and print
 
 testCase('setup-labels: the table holds exactly six entries, the six required names, capped descriptions, no priority label', () => {
   withLabelFixture(AUTHENTICATED_REPO_STATE, (dir, binDir) => {
-    const script = `import { LABELS } from ${JSON.stringify(SETUP_LABELS)}; process.stdout.write(JSON.stringify(LABELS));`;
+    // An import specifier is a URL, so a Windows drive path or a # in a folder name needs pathToFileURL.
+    const script = `import { LABELS } from ${JSON.stringify(pathToFileURL(SETUP_LABELS).href)}; process.stdout.write(JSON.stringify(LABELS));`;
     const res = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
       cwd: dir,
       encoding: 'utf8',
@@ -4905,6 +4958,34 @@ testCase('setup-labels: the table holds exactly six entries, the six required na
     }
     const log = readLabelLog(dir);
     assert.strictEqual(log.length, 0, 'importing the module must make no gh call');
+  });
+});
+
+// The entry guard must recognise its own entry point however the path to the
+// script is spelled: through a folder whose name holds a space, which a file
+// URL percent-encodes, and through a symbolic link, which node resolves to the
+// real file before it loads the module. Imported where process.argv[1] names
+// no file, the module must still run nothing and throw nothing. No run here
+// reaches gh, so the case needs no stub.
+testCase('setup-labels: runs from a path holding a space or through a symlinked folder, and runs nothing when imported', () => {
+  withFixture({}, (dir) => {
+    const spaced = path.join(dir, 'with space');
+    fs.mkdirSync(spaced);
+    fs.copyFileSync(SETUP_LABELS, path.join(spaced, 'setup-labels.mjs'));
+    fs.symlinkSync(spaced, path.join(dir, 'link'));
+    for (const folder of [spaced, path.join(dir, 'link')]) {
+      const copy = path.join(folder, 'setup-labels.mjs');
+      const help = spawnSync(process.execPath, [copy, '--help'], { cwd: dir, encoding: 'utf8' });
+      assert.strictEqual(help.status, 0, `--help through ${folder} exited ${help.status}`);
+      assert.ok(help.stdout.startsWith('setup-labels.mjs: reconciles'), `--help through ${folder} printed no usage`);
+      const bogus = spawnSync(process.execPath, [copy, '--bogus'], { cwd: dir, encoding: 'utf8' });
+      assert.strictEqual(bogus.status, 1, `--bogus through ${folder} was not refused`);
+      assert.match(bogus.stderr, /unknown argument "--bogus"/, `--bogus through ${folder} printed no refusal`);
+    }
+    const script = `import { LABELS } from ${JSON.stringify(pathToFileURL(path.join(spaced, 'setup-labels.mjs')).href)}; process.stdout.write(String(LABELS.length));`;
+    const imported = spawnSync(process.execPath, ['--input-type=module', '-e', script, 'stray'], { cwd: dir, encoding: 'utf8' });
+    assert.strictEqual(imported.status, 0, `importing the copy with a stray argument failed: ${imported.stderr}`);
+    assert.strictEqual(imported.stdout, '6', 'importing the copy ran its entry point');
   });
 });
 
@@ -5967,6 +6048,40 @@ testCase('the suite derives its own folder through fileURLToPath', () => {
     'HERE is not derived through fileURLToPath',
   );
   assert.ok(!/URL\(import\.meta\.url\)\.pathname/.test(source), 'a path is still derived from a file URL pathname');
+});
+
+// Every script the repository ships derives its own folder through
+// fileURLToPath, for the reason above. These three folders hold all of them.
+testCase('no script derives a path from a file URL pathname', () => {
+  const repoRoot = path.resolve(HERE, '..', '..', '..', '..');
+  const offenders = [];
+  for (const dir of ['skills/flowcharge/scripts', 'skills/flowcharge/scripts/test', '.github/scripts']) {
+    for (const name of fs.readdirSync(path.join(repoRoot, dir)).filter((n) => n.endsWith('.mjs')).sort()) {
+      const rel = `${dir}/${name}`;
+      if (/URL\(import\.meta\.url\)\.pathname/.test(fs.readFileSync(path.join(repoRoot, rel), 'utf8'))) offenders.push(rel);
+    }
+  }
+  assert.deepStrictEqual(offenders, [], 'these scripts still derive a path from a file URL pathname');
+});
+
+// A file URL comes from pathToFileURL and a path from fileURLToPath, because a
+// URL spelled by hand from a path is wrong on Windows and for a path holding a
+// character a URL encodes. Three hand-built forms are flagged: a template
+// literal that runs a file URL prefix straight into an interpolation, a quoted
+// file URL prefix joined to a value with +, and an import specifier
+// interpolated from JSON.stringify of anything but pathToFileURL(...).
+testCase('no script builds a file URL or an import specifier from a path by hand', () => {
+  const repoRoot = path.resolve(HERE, '..', '..', '..', '..');
+  const handBuilt = [/`file:\/\/\$\{/, /['"]file:\/\/['"]\s*\+/, /from \$\{JSON\.stringify\((?!pathToFileURL\()/];
+  const offenders = [];
+  for (const dir of ['skills/flowcharge/scripts', 'skills/flowcharge/scripts/test', '.github/scripts']) {
+    for (const name of fs.readdirSync(path.join(repoRoot, dir)).filter((n) => n.endsWith('.mjs')).sort()) {
+      const rel = `${dir}/${name}`;
+      const text = fs.readFileSync(path.join(repoRoot, rel), 'utf8');
+      if (handBuilt.some((re) => re.test(text))) offenders.push(rel);
+    }
+  }
+  assert.deepStrictEqual(offenders, [], 'these scripts still build a file URL or an import specifier from a path by hand');
 });
 
 // ---- runner ----------------------------------------------------------------

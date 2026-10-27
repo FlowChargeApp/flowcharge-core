@@ -19,6 +19,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 
 const HELP = `manifest.mjs: generates skills/manifest.json for one release version.
 
@@ -70,9 +71,11 @@ the read-only verifier CI calls, and there is no exit 2 here.
 // script writes a file, and a --root flag is precisely the ability to aim a
 // writer at an arbitrary tree that the stamper's relocation exists to remove.
 // A copy placed inside a fixture at <fixture>/.github/scripts/ therefore
-// writes into that fixture's own skills/ tree, and nothing else.
+// writes into that fixture's own skills/ tree, and nothing else. The folder
+// comes from fileURLToPath rather than from the URL's pathname, which keeps a
+// slash in front of a Windows drive letter (/C:/...) that no path API resolves.
 const SELF_ROOT = path.resolve(
-  path.dirname(decodeURIComponent(new URL(import.meta.url).pathname)),
+  path.dirname(fileURLToPath(import.meta.url)),
   '..', '..',
 );
 

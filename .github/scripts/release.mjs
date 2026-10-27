@@ -21,6 +21,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 const HELP = `release.mjs: cuts the local release commit and the annotated tag for one FlowCharge Core version.
 
@@ -68,8 +69,10 @@ Exit codes:
 // command must behave the same run from a subdirectory as run from the root,
 // and a copy placed inside a fixture repository must act on that fixture and
 // on nothing else. The root is where CHANGELOG.md is read, where skills/ is
-// enumerated, and the cwd of every git call.
-const SELF_DIR = path.dirname(decodeURIComponent(new URL(import.meta.url).pathname));
+// enumerated, and the cwd of every git call. The folder comes from
+// fileURLToPath rather than from the URL's pathname, which keeps a slash in
+// front of a Windows drive letter (/C:/...) that no path API resolves.
+const SELF_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SELF_ROOT = path.resolve(SELF_DIR, '..', '..');
 
 const STAMPER = path.join(SELF_DIR, 'stamp-skill-versions.mjs');

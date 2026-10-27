@@ -25,6 +25,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { deflateRawSync } from 'node:zlib';
+import { fileURLToPath } from 'node:url';
 
 const HELP = `build-release-zip.mjs: writes dist/flowcharge-core-<X.Y.Z>.zip, holding every discovered skill folder at the archive's top level.
 
@@ -60,9 +61,11 @@ Exit codes:
 // script sits at .github/scripts/build-release-zip.mjs, two directories below
 // the repository root. Never from process.cwd(), so a copy placed inside a
 // fixture at <fixture>/.github/scripts/ reads that fixture's own skills/ tree
-// and writes that fixture's own dist/, and touches nothing else.
+// and writes that fixture's own dist/, and touches nothing else. The folder
+// comes from fileURLToPath rather than from the URL's pathname, which keeps a
+// slash in front of a Windows drive letter (/C:/...) that no path API resolves.
 const SELF_ROOT = path.resolve(
-  path.dirname(decodeURIComponent(new URL(import.meta.url).pathname)),
+  path.dirname(fileURLToPath(import.meta.url)),
   '..', '..',
 );
 
