@@ -1,6 +1,6 @@
 ---
 name: fc-validate
-description: Validate an authored FlowCharge Core artefact against the source it was authored from, a plan against the brief and workstream record behind it, a task list against its backing plan or issue list, an issue list against the findings it was filed from. Checks four classes (coverage of the source, content with no source behind it, accuracy of anchors, paths, counts and claims about other artefacts, and form, meaning spelling, formatting and schema conformance) and, for a task list, runs the verify steps it may run at the recorded baseline to catch a task that verifies nothing. Fixes every defect the source or a cited file proves wrong, in place and on its own authority, adding, rewriting or deleting items as the proof requires, and reports only a finding whose fix would be irreversible or whose correct content the source does not determine. Use whenever the user asks to validate, check, cross-check or sanity-check an authored artefact against its source, asks "does this task list cover the plan", "did the plan miss anything from the brief", "check the issues against the findings", "was anything invented here", or takes up the closing offer one of the generating skills prints after writing a new artefact. Also triggers on /fc-validate. Do NOT use to hunt defects in code, and do NOT use for pull-request or code review work, which a separate skill handles. This skill compares an authored document with the source it came from; it never judges the code an executor produced or whether a task's chosen approach is right, but how that approach is expressed — every command, flag, argument, path, anchor and count — is in scope wherever a file the artefact cites disproves it. Part of the FlowCharge Core suite.
+description: Validate an authored FlowCharge Core artefact against the source it was authored from, a plan against the brief and workstream record behind it, a task list against its backing plan or issue list, an issue list against the findings it was filed from. Checks four classes (coverage of the source, content with no source behind it, accuracy of anchors, paths, counts, claims about other artefacts and how a replacement text reads once applied, and form, meaning spelling, formatting and schema conformance) and, for a task list, runs the verify steps it may run at the recorded baseline to catch a task that verifies nothing. Fixes every defect the source or a cited file proves wrong, in place and on its own authority, adding, rewriting or deleting items as the proof requires, and reports only a finding whose fix would be irreversible or whose correct content the source does not determine. Use whenever the user asks to validate, check, cross-check or sanity-check an authored artefact against its source, asks "does this task list cover the plan", "did the plan miss anything from the brief", "check the issues against the findings", "was anything invented here", or takes up the closing offer one of the generating skills prints after writing a new artefact. Also triggers on /fc-validate. Do NOT use to hunt defects in code, and do NOT use for pull-request or code review work, which a separate skill handles. This skill compares an authored document with the source it came from; it never judges the code an executor produced or whether a task's chosen approach is right, but how that approach is expressed — every command, flag, argument, path, anchor and count — is in scope wherever a file the artefact cites disproves it. Part of the FlowCharge Core suite.
 metadata:
   version: "0.5.1"
 ---
@@ -101,7 +101,7 @@ Nothing downstream lacks a source.
 
 ### Accuracy
 
-Anchors, paths, counts and claims.
+Anchors, paths, counts, claims and how a replacement text reads once applied.
 
 - A cited `file:line` that does not hold what the artefact says it holds.
 - A path that does not exist.
@@ -112,6 +112,22 @@ Anchors, paths, counts and claims.
 - A statement about what another artefact says, requires, or is currently in, where that
   artefact is named by ID or by path in the artefact you are validating. Check it by
   reading that artefact.
+- A replacement text that reads wrong once applied, found by the read-back. Where an
+  artefact holds the exact text a file will carry after the change (a REPLACE block in a
+  task, or a quoted after-text in a plan's Design), read the target file at the anchor,
+  apply the text mentally, and read the smallest enclosing unit as a reader would: a
+  paragraph or list item in prose, a statement, block or function in code. Do not
+  compare the unit against what the artefact says it should say. In prose, report a
+  sentence that is ungrammatical, disagrees in number, ends a list without its
+  conjunction or carries one on a two-item list, or repeats inside the same unit what
+  the unit already states. In code, report a unit that does not parse as a unit, has
+  unbalanced braces or indentation, uses a name not defined in the unit, calls with the
+  wrong argument count, or holds a duplicated statement. Name the unit and the defect in
+  each finding. The bound is that one unit only: not the section, not sibling files, and
+  nothing the replacement does not touch. A defect outside the unit, such as a
+  contradiction with a paragraph the change never touches or a missed sibling file, is
+  out of scope. A read-back finding always reports and is never applied, because no file
+  on disk proves what a file should hold after a change.
 
 You follow only the references the artefact itself makes. You never survey the
 workstream or the repository for related artefacts, and an artefact the artefact under
@@ -233,7 +249,8 @@ others.
   this condition names what would be lost.
 - **Undetermined.** The evidence shows something is wrong but does not determine the
   correct content: the source is silent, or two readings of it are both defensible.
-  Choosing one would be authoring, not correction.
+  Choosing one would be authoring, not correction. A read-back finding (Part 2,
+  Accuracy) always meets this condition.
 
 No other property of a finding causes a report. Its check class, its size, the number
 of sections it touches, whether it adds or removes an item, and whether it concerns

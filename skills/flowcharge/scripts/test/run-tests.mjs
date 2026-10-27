@@ -5795,6 +5795,122 @@ testCase('no skill file says git status lists, or a commit captures, a git-ignor
   );
 });
 
+// ---- case: validator read-back prose pin -----------------------------------
+// fc-validate's Accuracy class reads a replacement text back: the exact text a
+// file will carry after a change, applied at its anchor and read in its
+// smallest enclosing unit as a reader would. A read-back finding always
+// reports and is never applied, because no file on disk proves what a file
+// should hold after a change, so the correction rule places it under its
+// existing Undetermined stop condition and keeps exactly two. The harness runs
+// no agent, so this static check pins the prose: the whole bullet and its
+// report-only sentence inside the Accuracy section, the Undetermined placement
+// and the two stop conditions inside their section, the four classes, the
+// description's Accuracy item, and the class count the validate stage file
+// names. Each slice keys on text, never on a line number, and is asserted
+// non-empty, for the reason the prompt-policy pin above gives.
+
+const READ_BACK_ACCURACY_OPEN = '### Accuracy';
+const READ_BACK_ACCURACY_END = '### Form';
+const READ_BACK_STOP_OPEN = '### The two stop conditions';
+const READ_BACK_STOP_END = '### Authoring within a fix';
+const READ_BACK_CLASSES_OPEN = '## 2. The four check classes';
+const READ_BACK_CLASSES_END = '## 3.';
+const READ_BACK_BULLET =
+  '- A replacement text that reads wrong once applied, found by the read-back. Where an '
+  + 'artefact holds the exact text a file will carry after the change (a REPLACE block in a '
+  + "task, or a quoted after-text in a plan's Design), read the target file at the anchor, "
+  + 'apply the text mentally, and read the smallest enclosing unit as a reader would: a '
+  + 'paragraph or list item in prose, a statement, block or function in code. Do not '
+  + 'compare the unit against what the artefact says it should say. In prose, report a '
+  + 'sentence that is ungrammatical, disagrees in number, ends a list without its '
+  + 'conjunction or carries one on a two-item list, or repeats inside the same unit what '
+  + 'the unit already states. In code, report a unit that does not parse as a unit, has '
+  + 'unbalanced braces or indentation, uses a name not defined in the unit, calls with the '
+  + 'wrong argument count, or holds a duplicated statement. Name the unit and the defect in '
+  + 'each finding. The bound is that one unit only: not the section, not sibling files, and '
+  + 'nothing the replacement does not touch. A defect outside the unit, such as a '
+  + 'contradiction with a paragraph the change never touches or a missed sibling file, is '
+  + 'out of scope. A read-back finding always reports and is never applied, because no file '
+  + 'on disk proves what a file should hold after a change.';
+const READ_BACK_REPORT_ONLY =
+  'A read-back finding always reports and is never applied, because no file on disk proves '
+  + 'what a file should hold after a change.';
+const READ_BACK_UNDETERMINED = 'A read-back finding (Part 2, Accuracy) always meets this condition.';
+const READ_BACK_DESCRIPTION_ITEM =
+  'accuracy of anchors, paths, counts, claims about other artefacts and how a replacement text '
+  + 'reads once applied';
+
+testCase('fc-validate carries the bounded read-back and reports its findings under Undetermined', () => {
+  const file = 'skills/fc-validate/SKILL.md';
+  const text = fs.readFileSync(path.join(SKILLS_ROOT, 'fc-validate', 'SKILL.md'), 'utf8');
+  const norm = (s) => s.replace(/\s+/g, ' ');
+  const slice = (open, end) => {
+    const from = text.indexOf(open);
+    const to = text.indexOf(end, from + 1);
+    return from === -1 || to === -1 ? '' : text.slice(from, to);
+  };
+
+  const accuracy = slice(READ_BACK_ACCURACY_OPEN, READ_BACK_ACCURACY_END);
+  assert.ok(
+    accuracy.trim().length > 0,
+    `the Accuracy section ("${READ_BACK_ACCURACY_OPEN}") could not be sliced out of ${file}: `
+    + 'the case would otherwise pass on an empty slice',
+  );
+  assert.ok(
+    norm(accuracy).includes(READ_BACK_BULLET),
+    `${file}'s Accuracy section no longer carries the read-back bullet:\n  ${READ_BACK_BULLET}`,
+  );
+  assert.ok(
+    norm(accuracy).includes(READ_BACK_REPORT_ONLY),
+    `${file}'s Accuracy section no longer says a read-back finding only reports:\n  ${READ_BACK_REPORT_ONLY}`,
+  );
+
+  const stops = slice(READ_BACK_STOP_OPEN, READ_BACK_STOP_END);
+  assert.ok(
+    stops.trim().length > 0,
+    `the stop conditions ("${READ_BACK_STOP_OPEN}") could not be sliced out of ${file}: `
+    + 'the case would otherwise pass on an empty slice',
+  );
+  assert.ok(
+    norm(stops).includes('and there are no others.'),
+    `${file}'s stop conditions no longer say there are no others:\n  and there are no others.`,
+  );
+  assert.ok(
+    norm(stops).includes(READ_BACK_UNDETERMINED),
+    `${file}'s Undetermined condition no longer holds the read-back finding:\n  ${READ_BACK_UNDETERMINED}`,
+  );
+  const leads = stops.split('\n').filter((l) => l.startsWith('- **')).map((l) => (/^- \*\*[^*]+\*\*/.exec(l) || [l])[0]);
+  assert.deepStrictEqual(
+    leads,
+    ['- **Irreversible.**', '- **Undetermined.**'],
+    `${file}'s stop conditions are no longer exactly Irreversible and Undetermined, in that order`,
+  );
+
+  const classes = slice(READ_BACK_CLASSES_OPEN, READ_BACK_CLASSES_END);
+  const headings = classes.split('\n').filter((l) => l.startsWith('### ')).map((l) => l.slice(4));
+  assert.deepStrictEqual(
+    headings,
+    ['Coverage', 'Invented content', 'Accuracy', 'Form'],
+    `${file}'s Part 2 ("${READ_BACK_CLASSES_OPEN}") no longer holds exactly the four classes`,
+  );
+
+  const description = (/^description: (.*)$/m.exec(text) || ['', ''])[1];
+  assert.ok(
+    description.includes('Checks four classes ('),
+    `${file}'s description no longer says: Checks four classes (`,
+  );
+  assert.ok(
+    description.includes(READ_BACK_DESCRIPTION_ITEM),
+    `${file}'s description no longer names the read-back in its Accuracy item:\n  ${READ_BACK_DESCRIPTION_ITEM}`,
+  );
+
+  const stage = norm(fs.readFileSync(path.join(SKILLS_ROOT, 'flowcharge', 'templates', 'validate.md'), 'utf8'));
+  assert.ok(
+    stage.includes("check all four of the skill's classes"),
+    "skills/flowcharge/templates/validate.md no longer says: check all four of the skill's classes",
+  );
+});
+
 // ---- cases: inline stage topology ------------------------------------------
 // The orchestrator performs every stage itself, in the session it was loaded
 // into, from the stage files under flowcharge/templates/. No stage is handed to

@@ -13,6 +13,14 @@ skill mirrors it. See VERSIONING.md.
 
 ## Unreleased
 
+### Added
+
+- fc-validate reads a replacement text back in place. Where a plan or a task
+  list holds the exact text a file will carry after a change, the validator
+  reads the smallest unit that encloses it as a reader would, and reports a
+  defect there, such as a list that lost its conjunction or a code unit that
+  does not parse. It reports such a finding and never applies it.
+
 ### Changed
 
 - The executor ticks each subtask in the task list as soon as that subtask
