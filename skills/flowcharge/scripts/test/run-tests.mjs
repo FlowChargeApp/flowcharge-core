@@ -5753,6 +5753,48 @@ testCase('fc-validate still carries the correction-direction rule', () => {
   );
 });
 
+// ---- case: git-ignored generated files prose pin ---------------------------
+// The generator keeps the index, the board, the ID-claim markers and the
+// workstream lease files out of git, so git status never lists them and no
+// commit captures them. Four passages once said otherwise: the commit row of
+// the Operations table, the Before commit prompt and the Successful end of run
+// item in flowcharge/SKILL.md, and the baseline precondition in
+// fc-validate/SKILL.md. The harness runs no agent, so this static check, built
+// on the single-copy check above, pins each retired claim deleted from every
+// skill file and each corrected passage to its file. The pointer the Before
+// commit sentence carries is left to the pointer-resolution case.
+
+const IGNORED_FILES_PROSE_PINS = [
+  { phrase: 'regenerated index/board, released lease', files: [] },
+  { phrase: 'the regenerated `index.md` and `kanban.md`, and the released `.lease`', files: [] },
+  { phrase: 'it captures every write listed below', files: [] },
+  { phrase: 'the generated index, the board and the workstream record are routinely modified', files: [] },
+  { phrase: 'the lease file plus the artefact under validation are untracked', files: [] },
+  { phrase: '(issue closures, `--sync` status flips), **PROMPTED**', files: ['flowcharge/SKILL.md'] },
+  {
+    phrase: 'It never lists the regenerated `index.md` and `kanban.md`, the claim markers or the '
+      + '`.lease`: the generator keeps them out of git (CONVENTIONS.md, The index and the board '
+      + 'are generated).',
+    files: ['flowcharge/SKILL.md'],
+  },
+  { phrase: 'and it captures the status writes listed below.', files: ['flowcharge/SKILL.md'] },
+  {
+    phrase: 'At validation time the workstream record is routinely modified by the upkeep that '
+      + 'runs between stages, and the artefact under validation is untracked.',
+    files: ['fc-validate/SKILL.md'],
+  },
+];
+
+testCase('no skill file says git status lists, or a commit captures, a git-ignored generated file', () => {
+  const found = singleCopyViolations(skillMarkdownSources(), IGNORED_FILES_PROSE_PINS);
+  assert.deepStrictEqual(
+    found,
+    [],
+    'a skill file says git status lists, or a commit captures, a file the generator keeps out of '
+    + `git, or a corrected passage is missing or copied:\n${found.map((f) => `  skills/${f.file}: "${f.phrase}"${f.missing ? ' (missing)' : ''}`).join('\n')}`,
+  );
+});
+
 // ---- cases: inline stage topology ------------------------------------------
 // The orchestrator performs every stage itself, in the session it was loaded
 // into, from the stage files under flowcharge/templates/. No stage is handed to

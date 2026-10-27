@@ -119,7 +119,7 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
         measured: "source: this task's edits are the fc-validate paragraph and the CHANGELOG.md bullet only; no SKILL.md version line and no release heading changed"
   ```
 
-- [ ] 5. Test-update task: bring the tests in line with this change
+- [x] 5. Test-update task: bring the tests in line with this change
   ```yaml
   description: "Update every test the other tasks make wrong or out of date; add only the tests the source asks for"
   test_update: true
@@ -130,7 +130,11 @@ Every `verify` step was run at `base_commit`: the value after "at base_commit" i
   verify:
     - "grep -cF \"testCase('no skill file says git status lists, or a commit captures, a git-ignored generated file'\" skills/flowcharge/scripts/test/run-tests.mjs  # expect 1; 0 at base_commit"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - item: "verify 1"
+        result: YES
+        measured: "source: grep -cF of the case returned 1; the case and IGNORED_FILES_PROSE_PINS sit directly after the correction-direction case, and node --check of run-tests.mjs passes"
   ```
 
 - [ ] 6. Test-run task: run the project's test suites
