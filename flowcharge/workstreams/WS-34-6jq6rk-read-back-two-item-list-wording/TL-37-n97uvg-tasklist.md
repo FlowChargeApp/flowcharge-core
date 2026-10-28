@@ -162,7 +162,7 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
           measured: "source: verify 3 printed 2; the expected field and the fix direction recorded from the workstream record keep their wording"
     ```
 
-- [ ] 4. Test-update task: bring the tests in line with this change
+- [x] 4. Test-update task: bring the tests in line with this change
   ```yaml
   description: "Update every test the other tasks make wrong or out of date; add only the tests the source asks for"
   test_update: true
@@ -170,7 +170,7 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
     - "No edit: task 3.2 updates READ_BACK_BULLET, the pin of the one test case the reworded clause makes out of date, 'fc-validate carries the bounded read-back and reports its findings under Undetermined', inside the parent task whose change it pins, and IL-11-lcakxd asks for no new test"
   verify: []
   self_eval:
-    passed: false
+    passed: true
   ```
 
 - [ ] 5. Test-run task: run the project's test suites
