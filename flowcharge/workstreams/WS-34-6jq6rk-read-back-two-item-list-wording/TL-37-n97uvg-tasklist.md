@@ -78,13 +78,13 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
         measured: "source: verify 3 printed 141; the card line stays inside 200 characters"
   ```
 
-- [ ] 3. Name only a needless comma before the conjunction of a two-item list
+- [x] 3. Name only a needless comma before the conjunction of a two-item list
 
   ```yaml
   description: "The read-back bullet, its READ_BACK_BULLET pin and the quoted wording in the ISS-35-wg7pon notes say 'puts a needless comma before the conjunction of a two-item list'. Fixes ISS-38-ru0lmu."
   ```
 
-  - [ ] 3.1 Add "needless" to the comma clause in the read-back bullet
+  - [x] 3.1 Add "needless" to the comma clause in the read-back bullet
     ```yaml
     description: "In skills/fc-validate/SKILL.md, the read-back bullet under ### Accuracy reports a sentence that puts a needless comma before the conjunction of a two-item list"
     issues: [ISS-38-ru0lmu]
@@ -101,10 +101,15 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
       - "grep -cF 'puts a comma before the' skills/fc-validate/SKILL.md  # expect 0; 1 at base_commit"
       - "tr -s ' \\n' ' ' < skills/fc-validate/SKILL.md | grep -cF 'In prose, report a sentence that is ungrammatical, disagrees in number, ends a list of three or more items without its conjunction, puts a needless comma before the conjunction of a two-item list, or repeats inside the same unit what the unit already states. In code,'  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "source: verify 1 returned 0 (exit 1); the clause without 'needless' is gone"
+        - result: YES
+          measured: "source: verify 2 returned 1; the block applied cleanly, and line 122 is 79 columns wide"
     ```
 
-  - [ ] 3.2 Pin the needless-comma clause in READ_BACK_BULLET
+  - [x] 3.2 Pin the needless-comma clause in READ_BACK_BULLET
     ```yaml
     description: "In skills/flowcharge/scripts/test/run-tests.mjs, READ_BACK_BULLET carries 'puts a needless comma before the', the same words as the bullet"
     issues: [ISS-38-ru0lmu]
@@ -121,10 +126,15 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
       - "grep -cF 'puts a comma before the' skills/flowcharge/scripts/test/run-tests.mjs  # expect 0; 1 at base_commit"
       - "grep -cF 'without its conjunction, puts a needless comma before the ' skills/flowcharge/scripts/test/run-tests.mjs  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "source: verify 1 returned 0 (exit 1); the old segment is gone"
+        - result: YES
+          measured: "source: verify 2 returned 1; the block applied cleanly, node --check of run-tests.mjs passes, and READ_BACK_BULLET equals the whitespace-normalised bullet in skills/fc-validate/SKILL.md, 1363 characters each"
     ```
 
-  - [ ] 3.3 Quote the needless-comma clause in the ISS-35-wg7pon notes
+  - [x] 3.3 Quote the needless-comma clause in the ISS-35-wg7pon notes
     ```yaml
     description: "In IL-10-iavmdl, the ISS-35-wg7pon notes quote the bullet's clause as 'puts a needless comma before the conjunction of a two-item list', and the fix direction they record from the workstream record stays unchanged"
     issues: [ISS-38-ru0lmu]
@@ -142,7 +152,14 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
       - "grep -cF \"without its conjunction, puts a needless comma before the conjunction of a two-item list', and READ_BACK_BULLET pins\" flowcharge/workstreams/WS-34-6jq6rk-read-back-two-item-list-wording/IL-10-iavmdl-issuelist.md  # expect 1; 0 at base_commit"
       - "grep -oF 'puts a comma before the conjunction' flowcharge/workstreams/WS-34-6jq6rk-read-back-two-item-list-wording/IL-10-iavmdl-issuelist.md | wc -l  # expect 2; 3 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "source: verify 1 returned 0 (exit 1); the quote without 'needless' is gone"
+        - result: YES
+          measured: "source: verify 2 returned 1; the block applied cleanly, and the word diff adds 'needless' only"
+        - result: YES
+          measured: "source: verify 3 printed 2; the expected field and the fix direction recorded from the workstream record keep their wording"
     ```
 
 - [ ] 4. Test-update task: bring the tests in line with this change
