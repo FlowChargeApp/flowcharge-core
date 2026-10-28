@@ -3,3 +3,5 @@ flowcharge/index.md
 flowcharge/kanban.md
 flowcharge/ids/
 dist/
+# FlowCharge-managed: do not hand-edit (see fc-index.mjs)
+flowcharge/workstreams/*/.lease
