@@ -4,7 +4,7 @@ type: workstream
 workstream: WS-34-6jq6rk
 slug: read-back-two-item-list-wording
 title: "The read-back rule words its two-item list defect unclearly"
-status: done
+status: in-progress
 tags: [prompts, correctness, quality, issue]
 created: 2026-10-28
 updated: 2026-10-28
