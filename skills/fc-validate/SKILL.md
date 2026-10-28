@@ -116,7 +116,7 @@ Anchors, paths, counts, claims and how a replacement text reads once applied.
   artefact holds the exact text a file will carry after the change (a REPLACE block in a
   task or a quoted after-text in a plan's Design), read the target file at the anchor,
   apply the text mentally, and read the smallest enclosing unit as a reader would: a
-  paragraph or list item in prose, a statement, block or function in code. Do not
+  paragraph or list item in prose and a statement, block or function in code. Do not
   compare the unit against what the artefact says it should say. In prose, report a
   sentence that is ungrammatical, disagrees in number, ends a list
   without its conjunction, puts a needless comma before the

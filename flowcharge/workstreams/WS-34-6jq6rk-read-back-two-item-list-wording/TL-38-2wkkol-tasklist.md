@@ -160,13 +160,13 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
           measured: "source: verify 2 returned 1 (exit 0); expected 1, 0 at base_commit"
     ```
 
-- [ ] 2. Join the two groups of units with a conjunction
+- [x] 2. Join the two groups of units with a conjunction
 
   ```yaml
   description: "The read-back bullet and its READ_BACK_BULLET pin say 'in prose and a statement'. Fixes ISS-40-oc6338."
   ```
 
-  - [ ] 2.1 Add the conjunction in the read-back bullet
+  - [x] 2.1 Add the conjunction in the read-back bullet
     ```yaml
     description: "In skills/fc-validate/SKILL.md, the read-back bullet reads 'a paragraph or list item in prose and a statement, block or function in code'"
     issues: [ISS-40-oc6338]
@@ -183,10 +183,15 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
       - "grep -cF 'list item in prose, a statement, block' skills/fc-validate/SKILL.md  # expect 0; 1 at base_commit"
       - "grep -cF 'list item in prose and a statement, block or function in code.' skills/fc-validate/SKILL.md  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "source: verify 1 returned 0 (exit 1); expected 0, 1 at base_commit"
+        - result: YES
+          measured: "source: verify 2 returned 1 (exit 0); expected 1, 0 at base_commit"
     ```
 
-  - [ ] 2.2 Pin the conjunction in READ_BACK_BULLET
+  - [x] 2.2 Pin the conjunction in READ_BACK_BULLET
     ```yaml
     description: "In skills/flowcharge/scripts/test/run-tests.mjs, READ_BACK_BULLET carries 'in prose and a statement', the same words as the bullet"
     issues: [ISS-40-oc6338]
@@ -203,7 +208,12 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
       - "grep -cF 'list item in prose, a statement, block' skills/flowcharge/scripts/test/run-tests.mjs  # expect 0; 1 at base_commit"
       - "grep -cF 'list item in prose and a statement, block or function in code. Do not ' skills/flowcharge/scripts/test/run-tests.mjs  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "source: verify 1 returned 0 (exit 1); expected 0, 1 at base_commit"
+        - result: YES
+          measured: "source: verify 2 returned 1 (exit 0); expected 1, 0 at base_commit"
     ```
 
 - [ ] 3. State the bound once
