@@ -11,7 +11,7 @@ add the brackets.
 Versions follow Semantic Versioning. There is one FlowCharge Core suite version and every
 skill mirrors it. See VERSIONING.md.
 
-## Unreleased
+## 0.6.0 - 2026-10-28
 
 ### Added
 
@@ -20,9 +20,20 @@ skill mirrors it. See VERSIONING.md.
   reads the smallest unit that encloses it as a reader would, and reports a
   defect there, such as a list that lost its conjunction or a code unit that
   does not parse. It reports such a finding and never applies it.
+- The workstream lease file records a heartbeat, the pipeline stage, the
+  artefact in hand, the task keys and a one-line note. The orchestrator
+  refreshes it before each leaf task, so a reader can tell a live run from a
+  stopped one.
 
 ### Changed
 
+- `fc-index.mjs` measures a lease's staleness from its last heartbeat, and from
+  its acquisition only when no heartbeat was written. A run longer than an hour
+  no longer has its lease reclaimed by another session.
+- Task-list progress counts only executable tasks: child tasks and tasks with
+  no children. A parent task with children is a grouping and adds no step to the
+  total. This changes the figure in the workstream listing, on the board card
+  and in the index.
 - The executor ticks each subtask in the task list as soon as that subtask
   passes, and ticks the parent task after its last subtask. A reader that
   counts checkboxes now sees progress during a parent task. A re-run of a
@@ -30,6 +41,8 @@ skill mirrors it. See VERSIONING.md.
 
 ### Fixed
 
+- `fc-index.mjs` writes `flowcharge/workstreams/*/.lease` into `.gitignore`, so a
+  lease file left by a crashed run cannot enter a commit.
 - `fc-rename-artefacts.mjs` refuses a file whose filename prefix disagrees with
   its frontmatter id and exits 1. It no longer adds a second prefix, which hid
   the file from the generator.
