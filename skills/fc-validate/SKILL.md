@@ -114,20 +114,19 @@ Anchors, paths, counts, claims and how a replacement text reads once applied.
   reading that artefact.
 - A replacement text that reads wrong once applied, found by the read-back. Where an
   artefact holds the exact text a file will carry after the change (a REPLACE block in a
-  task, or a quoted after-text in a plan's Design), read the target file at the anchor,
+  task or a quoted after-text in a plan's Design), read the target file at the anchor,
   apply the text mentally, and read the smallest enclosing unit as a reader would: a
-  paragraph or list item in prose, a statement, block or function in code. Do not
+  paragraph or list item in prose and a statement, block or function in code. Do not
   compare the unit against what the artefact says it should say. In prose, report a
-  sentence that is ungrammatical, disagrees in number, ends a list without its
-  conjunction or carries one on a two-item list, or repeats inside the same unit what
+  sentence that is ungrammatical, disagrees in number, ends a list
+  without its conjunction, puts a needless comma before the
+  conjunction of a two-item list, or repeats inside the same unit what
   the unit already states. In code, report a unit that does not parse as a unit, has
   unbalanced braces or indentation, uses a name not defined in the unit, calls with the
   wrong argument count, or holds a duplicated statement. Name the unit and the defect in
   each finding. The bound is that one unit only: not the section, not sibling files, and
-  nothing the replacement does not touch. A defect outside the unit, such as a
-  contradiction with a paragraph the change never touches or a missed sibling file, is
-  out of scope. A read-back finding always reports and is never applied, because no file
-  on disk proves what a file should hold after a change.
+  nothing the replacement does not touch. A read-back finding always reports and is never
+  applied, because no file on disk proves what a file should hold after a change.
 
 You follow only the references the artefact itself makes. You never survey the
 workstream or the repository for related artefacts, and an artefact the artefact under
