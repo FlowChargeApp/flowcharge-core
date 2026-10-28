@@ -4,7 +4,7 @@ type: tasklist
 workstream: WS-34-6jq6rk
 slug: read-back-two-item-list-wording
 title: "Reword the read-back list clause so it names its two list defects without ambiguity"
-status: ready
+status: done
 created: 2026-10-28
 updated: 2026-10-28
 author: Anthony Koukoullis
@@ -98,7 +98,7 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
     passed: true
   ```
 
-- [ ] 3. Test-run task: run the project's test suites
+- [x] 3. Test-run task: run the project's test suites
   ```yaml
   description: "Run every command in the frontmatter test_commands after every other task"
   test_run: full
@@ -107,8 +107,10 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
   verify:
     - "Every command in the frontmatter test_commands, in order, from the project root"
   self_eval:
-    passed: false
-    test_run_result: pending
+    passed: true
+    test_run_result: passed
     test_run_baseline: []
     test_run_failures: []
+    test_run_counts:
+      - "node skills/flowcharge/scripts/test/run-tests.mjs: 325 passed, 0 failed"
   ```
