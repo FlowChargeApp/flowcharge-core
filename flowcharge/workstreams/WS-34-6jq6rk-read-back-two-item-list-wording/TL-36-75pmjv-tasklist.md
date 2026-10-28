@@ -87,7 +87,7 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
           measured: "source: verify 2 returned 3; the block applied cleanly, and node --check of run-tests.mjs passes"
     ```
 
-- [ ] 2. Test-update task: bring the tests in line with this change
+- [x] 2. Test-update task: bring the tests in line with this change
   ```yaml
   description: "Update every test the other tasks make wrong or out of date; add only the tests the source asks for"
   test_update: true
@@ -95,7 +95,7 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
     - "No edit: task 1.2 updates READ_BACK_BULLET, the pin of the one test case the reworded clause makes out of date, 'fc-validate carries the bounded read-back and reports its findings under Undetermined', inside the parent task whose change it pins, and ISS-35-wg7pon asks for no new test"
   verify: []
   self_eval:
-    passed: false
+    passed: true
   ```
 
 - [ ] 3. Test-run task: run the project's test suites
