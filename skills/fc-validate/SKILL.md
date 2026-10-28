@@ -114,7 +114,7 @@ Anchors, paths, counts, claims and how a replacement text reads once applied.
   reading that artefact.
 - A replacement text that reads wrong once applied, found by the read-back. Where an
   artefact holds the exact text a file will carry after the change (a REPLACE block in a
-  task, or a quoted after-text in a plan's Design), read the target file at the anchor,
+  task or a quoted after-text in a plan's Design), read the target file at the anchor,
   apply the text mentally, and read the smallest enclosing unit as a reader would: a
   paragraph or list item in prose, a statement, block or function in code. Do not
   compare the unit against what the artefact says it should say. In prose, report a
