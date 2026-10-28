@@ -118,8 +118,8 @@ Anchors, paths, counts, claims and how a replacement text reads once applied.
   apply the text mentally, and read the smallest enclosing unit as a reader would: a
   paragraph or list item in prose, a statement, block or function in code. Do not
   compare the unit against what the artefact says it should say. In prose, report a
-  sentence that is ungrammatical, disagrees in number, ends a list of
-  three or more items without its conjunction, puts a needless comma before the
+  sentence that is ungrammatical, disagrees in number, ends a list
+  without its conjunction, puts a needless comma before the
   conjunction of a two-item list, or repeats inside the same unit what
   the unit already states. In code, report a unit that does not parse as a unit, has
   unbalanced braces or indentation, uses a name not defined in the unit, calls with the

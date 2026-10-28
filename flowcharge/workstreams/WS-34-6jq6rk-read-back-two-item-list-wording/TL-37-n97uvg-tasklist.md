@@ -99,7 +99,7 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
         >>>>>>> REPLACE
     verify:
       - "grep -cF 'puts a comma before the' skills/fc-validate/SKILL.md  # expect 0; 1 at base_commit"
-      - "tr -s ' \\n' ' ' < skills/fc-validate/SKILL.md | grep -cF 'In prose, report a sentence that is ungrammatical, disagrees in number, ends a list of three or more items without its conjunction, puts a needless comma before the conjunction of a two-item list, or repeats inside the same unit what the unit already states. In code,'  # expect 1; 0 at base_commit"
+      - "tr -s ' \\n' ' ' < skills/fc-validate/SKILL.md | grep -cF 'In prose, report a sentence that is ungrammatical, disagrees in number, ends a list without its conjunction, puts a needless comma before the conjunction of a two-item list, or repeats inside the same unit what the unit already states. In code,'  # expect 1; 0 at base_commit"
     self_eval:
       passed: true
       evidence:

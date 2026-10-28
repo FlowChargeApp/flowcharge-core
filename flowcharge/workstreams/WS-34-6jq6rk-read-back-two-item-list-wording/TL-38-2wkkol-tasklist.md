@@ -25,13 +25,13 @@ Fixes the three defects IL-12-3e6nlx files in the read-back bullet under `### Ac
 
 Every SEARCH text was copied from the file at `base_commit`. Each `verify` step was run at `base_commit`: the value after "at base_commit" is what it returned there, and each one fails there. A `grep -c` that counts zero exits 1, so its pass is the printed `0`. The repository configures no lint or type-check command, and `runtime` is `none`, so no task carries a lint step or a probe.
 
-- [ ] 1. Name a list of any length that ends without its conjunction
+- [x] 1. Name a list of any length that ends without its conjunction
 
   ```yaml
   description: "The read-back bullet, its READ_BACK_BULLET pin and the three verify steps that quote the clause say 'ends a list without its conjunction'. Fixes ISS-39-943mdj."
   ```
 
-  - [ ] 1.1 Delete "of three or more items" from the read-back bullet
+  - [x] 1.1 Delete "of three or more items" from the read-back bullet
     ```yaml
     description: "In skills/fc-validate/SKILL.md, the read-back bullet reports a sentence that ends a list without its conjunction"
     issues: [ISS-39-943mdj]
@@ -50,10 +50,15 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
       - "grep -cF 'three or more items without its conjunction' skills/fc-validate/SKILL.md  # expect 0; 1 at base_commit"
       - "tr -s ' \\n' ' ' < skills/fc-validate/SKILL.md | grep -cF 'ends a list without its conjunction, puts a needless comma before the conjunction of a two-item list, or repeats'  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "source: verify 1 returned 0 (exit 1); expected 0, 1 at base_commit"
+        - result: YES
+          measured: "source: verify 2 returned 1 (exit 0); expected 1, 0 at base_commit"
     ```
 
-  - [ ] 1.2 Pin the clause without "of three or more items" in READ_BACK_BULLET
+  - [x] 1.2 Pin the clause without "of three or more items" in READ_BACK_BULLET
     ```yaml
     description: "In skills/flowcharge/scripts/test/run-tests.mjs, READ_BACK_BULLET carries 'ends a list without its conjunction', the same words as the bullet"
     issues: [ISS-39-943mdj]
@@ -72,10 +77,15 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
       - "grep -cF 'three or more items without its conjunction' skills/flowcharge/scripts/test/run-tests.mjs  # expect 0; 1 at base_commit"
       - "grep -c \"^  + 'without its conjunction, puts a needless comma before the '\" skills/flowcharge/scripts/test/run-tests.mjs  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "source: verify 1 returned 0 (exit 1); expected 0, 1 at base_commit"
+        - result: YES
+          measured: "source: verify 2 returned 1 (exit 0); expected 1, 0 at base_commit"
     ```
 
-  - [ ] 1.3 Bring TL-36-75pmjv's SKILL.md verify step to the new wording
+  - [x] 1.3 Bring TL-36-75pmjv's SKILL.md verify step to the new wording
     ```yaml
     description: "In TL-36-75pmjv, the SKILL.md verify step of task 1.1 quotes 'ends a list without its conjunction'"
     issues: [ISS-39-943mdj]
@@ -92,10 +102,15 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
       - "grep -cF 'ends a list of three or more items without its conjunction, puts a needless comma before the conjunction' flowcharge/workstreams/WS-34-6jq6rk-read-back-two-item-list-wording/TL-36-75pmjv-tasklist.md  # expect 0; 1 at base_commit"
       - "grep -cF 'ends a list without its conjunction, puts a needless comma before the conjunction of a two-item list, or repeats inside the same unit what the unit already states. In code,' flowcharge/workstreams/WS-34-6jq6rk-read-back-two-item-list-wording/TL-36-75pmjv-tasklist.md  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "source: verify 1 returned 0 (exit 1); expected 0, 1 at base_commit"
+        - result: YES
+          measured: "source: verify 2 returned 1 (exit 0); expected 1, 0 at base_commit"
     ```
 
-  - [ ] 1.4 Bring TL-36-75pmjv's run-tests.mjs verify step to the new wording
+  - [x] 1.4 Bring TL-36-75pmjv's run-tests.mjs verify step to the new wording
     ```yaml
     description: "In TL-36-75pmjv, the run-tests.mjs verify step of task 1.2 quotes the two segments without 'of three or more items'"
     issues: [ISS-39-943mdj]
@@ -112,10 +127,15 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
       - "grep -c 'three or more items without its conjunction, puts a needless comma before the' flowcharge/workstreams/WS-34-6jq6rk-read-back-two-item-list-wording/TL-36-75pmjv-tasklist.md  # expect 0; 2 at base_commit"
       - "grep -c \"ends a list '.\" flowcharge/workstreams/WS-34-6jq6rk-read-back-two-item-list-wording/TL-36-75pmjv-tasklist.md  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "source: verify 1 returned 0 (exit 1); expected 0, 2 at base_commit"
+        - result: YES
+          measured: "source: verify 2 returned 1 (exit 0); expected 1, 0 at base_commit"
     ```
 
-  - [ ] 1.5 Bring TL-37-n97uvg's SKILL.md verify step to the new wording
+  - [x] 1.5 Bring TL-37-n97uvg's SKILL.md verify step to the new wording
     ```yaml
     description: "In TL-37-n97uvg, the SKILL.md verify step of task 3.1 quotes 'ends a list without its conjunction'"
     issues: [ISS-39-943mdj]
@@ -132,7 +152,12 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
       - "grep -cF 'ends a list of three or more items without its conjunction, puts a needless comma before the conjunction of a two-item list, or repeats inside the same unit what the unit already states. In code,' flowcharge/workstreams/WS-34-6jq6rk-read-back-two-item-list-wording/TL-37-n97uvg-tasklist.md  # expect 0; 1 at base_commit"
       - "grep -cF 'ends a list without its conjunction, puts a needless comma before the conjunction of a two-item list, or repeats inside the same unit what the unit already states. In code,' flowcharge/workstreams/WS-34-6jq6rk-read-back-two-item-list-wording/TL-37-n97uvg-tasklist.md  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "source: verify 1 returned 0 (exit 1); expected 0, 1 at base_commit"
+        - result: YES
+          measured: "source: verify 2 returned 1 (exit 0); expected 1, 0 at base_commit"
     ```
 
 - [ ] 2. Join the two groups of units with a conjunction
