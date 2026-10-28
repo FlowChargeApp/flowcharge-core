@@ -5,3 +5,4 @@ flowcharge/ids/
 dist/
 # FlowCharge-managed: do not hand-edit (see fc-index.mjs)
 flowcharge/workstreams/*/.lease
+.claude/skills/
