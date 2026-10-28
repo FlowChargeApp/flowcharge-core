@@ -4,7 +4,7 @@ type: tasklist
 workstream: WS-34-6jq6rk
 slug: read-back-two-item-list-wording
 title: "Fix three wording defects in the read-back bullet and bring the verify steps that quote it to the new wording"
-status: in-progress
+status: done
 created: 2026-10-28
 updated: 2026-10-28
 author: Anthony Koukoullis
@@ -280,7 +280,7 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
           measured: "source: verify 2 returned 1 (exit 0); expected 1, 0 at base_commit"
     ```
 
-- [ ] 4. Test-update task: bring the tests in line with this change
+- [x] 4. Test-update task: bring the tests in line with this change
   ```yaml
   description: "Update every test the other tasks make wrong or out of date; add only the tests the source asks for"
   test_update: true
@@ -288,10 +288,10 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
     - "No edit: tasks 1.2, 2.2 and 3.2 update READ_BACK_BULLET, the pin of the one test case the three fixes make out of date, 'fc-validate carries the bounded read-back and reports its findings under Undetermined', inside the parent task whose change it pins, and IL-12-3e6nlx asks for no new test"
   verify: []
   self_eval:
-    passed: false
+    passed: true
   ```
 
-- [ ] 5. Test-run task: run the project's test suites
+- [x] 5. Test-run task: run the project's test suites
   ```yaml
   description: "Run every command in the frontmatter test_commands after every other task"
   test_run: full
@@ -300,8 +300,10 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
   verify:
     - "Every command in the frontmatter test_commands, in order, from the project root"
   self_eval:
-    passed: false
-    test_run_result: pending
-    test_run_baseline: pending
+    passed: true
+    test_run_result: passed
+    test_run_baseline: unavailable
     test_run_failures: []
+    test_run_counts:
+      - "node skills/flowcharge/scripts/test/run-tests.mjs: 325 passed, 0 failed"
   ```
