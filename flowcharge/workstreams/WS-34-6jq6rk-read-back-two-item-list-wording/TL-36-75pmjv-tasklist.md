@@ -49,7 +49,7 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
         >>>>>>> REPLACE
     verify:
       - "grep -cF 'carries one on a two-item list' skills/fc-validate/SKILL.md  # expect 0; 1 at base_commit"
-      - "tr -s ' \\n' ' ' < skills/fc-validate/SKILL.md | grep -cF 'In prose, report a sentence that is ungrammatical, disagrees in number, ends a list of three or more items without its conjunction, puts a comma before the conjunction of a two-item list, or repeats inside the same unit what the unit already states. In code,'  # expect 1; 0 at base_commit"
+      - "tr -s ' \\n' ' ' < skills/fc-validate/SKILL.md | grep -cF 'In prose, report a sentence that is ungrammatical, disagrees in number, ends a list of three or more items without its conjunction, puts a needless comma before the conjunction of a two-item list, or repeats inside the same unit what the unit already states. In code,'  # expect 1; 0 at base_commit"
     self_eval:
       passed: true
       evidence:
@@ -77,7 +77,7 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
         >>>>>>> REPLACE
     verify:
       - "grep -cF 'conjunction or carries one on a two-item list' skills/flowcharge/scripts/test/run-tests.mjs  # expect 0; 1 at base_commit"
-      - "grep -cF -e \"+ 'sentence that is ungrammatical, disagrees in number, ends a list of '\" -e \"+ 'three or more items without its conjunction, puts a comma before the '\" -e \"+ 'conjunction of a two-item list, or repeats inside the same unit what '\" skills/flowcharge/scripts/test/run-tests.mjs  # expect 3; 0 at base_commit"
+      - "grep -cF -e \"+ 'sentence that is ungrammatical, disagrees in number, ends a list of '\" -e \"+ 'three or more items without its conjunction, puts a needless comma before the '\" -e \"+ 'conjunction of a two-item list, or repeats inside the same unit what '\" skills/flowcharge/scripts/test/run-tests.mjs  # expect 3; 0 at base_commit"
     self_eval:
       passed: true
       evidence:
