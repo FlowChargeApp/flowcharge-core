@@ -12,7 +12,7 @@ author: Anthony Koukoullis
 depends_on: []
 links: []
 ---
-The `fc-validate` read-back bullet says to report a list that "carries one on a two-item list", and the word "one" has no clear referent.
+The `fc-validate` read-back bullet says to report a sentence that "carries one on a two-item list", and the word "one" has no clear referent.
 
 The Accuracy class in `skills/fc-validate/SKILL.md` tells the validator to report a sentence that "ends a list without its conjunction or carries one on a two-item list". Read alone, this can mean that a two-item list must not hold a conjunction, which would flag correct text such as "the index and the board". The intended defect is a comma before the conjunction of a two-item list, as in "the index, and the board".
 

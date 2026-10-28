@@ -50,7 +50,7 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
         measured: "source: verify 2 returned 1; the block applied cleanly, and the REPLACE text is present exactly once"
   ```
 
-- [ ] 2. Quote the read-back bullet correctly on the WS-34-6jq6rk card line
+- [x] 2. Quote the read-back bullet correctly on the WS-34-6jq6rk card line
   ```yaml
   description: "The first body line of the WS-34-6jq6rk record says that the bullet says to report a sentence, and it stays inside 200 characters. Fixes ISS-37-wy7wdx."
   issues: [ISS-37-wy7wdx]
@@ -68,7 +68,14 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
     - "grep -cF 'says to report a sentence that \"carries one on a two-item list\", and the word \"one\" has no clear referent.' flowcharge/workstreams/WS-34-6jq6rk-read-back-two-item-list-wording/workstream.md  # expect 1; 0 at base_commit"
     - "awk 'NR==15 {print length($0)}' flowcharge/workstreams/WS-34-6jq6rk-read-back-two-item-list-wording/workstream.md  # expect 141; 137 at base_commit"
   self_eval:
-    passed: false
+    passed: true
+    evidence:
+      - result: YES
+        measured: "source: verify 1 returned 0 (exit 1); the misquote is gone"
+      - result: YES
+        measured: "source: verify 2 returned 1; the block applied cleanly"
+      - result: YES
+        measured: "source: verify 3 printed 141; the card line stays inside 200 characters"
   ```
 
 - [ ] 3. Name only a needless comma before the conjunction of a two-item list
