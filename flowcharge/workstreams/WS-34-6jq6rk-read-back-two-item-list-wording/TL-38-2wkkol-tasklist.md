@@ -216,13 +216,13 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
           measured: "source: verify 2 returned 1 (exit 0); expected 1, 0 at base_commit"
     ```
 
-- [ ] 3. State the bound once
+- [x] 3. State the bound once
 
   ```yaml
   description: "The read-back bullet and its READ_BACK_BULLET pin no longer repeat the bound in a second sentence. Fixes ISS-41-0ekw6f."
   ```
 
-  - [ ] 3.1 Delete the repeated sentence from the read-back bullet
+  - [x] 3.1 Delete the repeated sentence from the read-back bullet
     ```yaml
     description: "In skills/fc-validate/SKILL.md, the read-back bullet states its bound in one sentence, followed by the report-only sentence"
     issues: [ISS-41-0ekw6f]
@@ -243,10 +243,15 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
       - "grep -cF 'A defect outside the unit' skills/fc-validate/SKILL.md  # expect 0; 1 at base_commit"
       - "tr -s ' \\n' ' ' < skills/fc-validate/SKILL.md | grep -cF 'nothing the replacement does not touch. A read-back finding always reports and is never applied, because no file on disk proves what a file should hold after a change.'  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "source: verify 1 returned 0 (exit 1); expected 0, 1 at base_commit"
+        - result: YES
+          measured: "source: verify 2 returned 1 (exit 0); expected 1, 0 at base_commit"
     ```
 
-  - [ ] 3.2 Delete the repeated sentence from READ_BACK_BULLET
+  - [x] 3.2 Delete the repeated sentence from READ_BACK_BULLET
     ```yaml
     description: "In skills/flowcharge/scripts/test/run-tests.mjs, READ_BACK_BULLET holds the same words as the bullet, without the repeated sentence"
     issues: [ISS-41-0ekw6f]
@@ -267,7 +272,12 @@ Every SEARCH text was copied from the file at `base_commit`. Each `verify` step 
       - "grep -cF 'A defect outside the unit' skills/flowcharge/scripts/test/run-tests.mjs  # expect 0; 1 at base_commit"
       - "grep -cF 'applied, because no file on disk proves what a file should hold after a change.' skills/flowcharge/scripts/test/run-tests.mjs  # expect 1; 0 at base_commit"
     self_eval:
-      passed: false
+      passed: true
+      evidence:
+        - result: YES
+          measured: "source: verify 1 returned 0 (exit 1); expected 0, 1 at base_commit"
+        - result: YES
+          measured: "source: verify 2 returned 1 (exit 0); expected 1, 0 at base_commit"
     ```
 
 - [ ] 4. Test-update task: bring the tests in line with this change

@@ -5829,10 +5829,8 @@ const READ_BACK_BULLET =
   + 'unbalanced braces or indentation, uses a name not defined in the unit, calls with the '
   + 'wrong argument count, or holds a duplicated statement. Name the unit and the defect in '
   + 'each finding. The bound is that one unit only: not the section, not sibling files, and '
-  + 'nothing the replacement does not touch. A defect outside the unit, such as a '
-  + 'contradiction with a paragraph the change never touches or a missed sibling file, is '
-  + 'out of scope. A read-back finding always reports and is never applied, because no file '
-  + 'on disk proves what a file should hold after a change.';
+  + 'nothing the replacement does not touch. A read-back finding always reports and is never '
+  + 'applied, because no file on disk proves what a file should hold after a change.';
 const READ_BACK_REPORT_ONLY =
   'A read-back finding always reports and is never applied, because no file on disk proves '
   + 'what a file should hold after a change.';
